@@ -1,0 +1,63 @@
+---
+title: "Lab Report 2: OLS Model"
+author: "Team #2"
+date: "10/04/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Setup
+
+```{r, warning=FALSE, message = FALSE}
+# Load libraries
+library(tidyverse)
+
+# Read data
+bike_data <- read.csv("../data/bike-day.csv",header=T)
+
+# Clean data by fixing types 
+bike_data$temp <- as.numeric(bike_data$temp)
+bike_data$cnt <- as.integer(bike_data$cnt)
+```
+
+## Data Visualization
+
+```{r}
+# Scatterplot
+plot(bike_data$temp, bike_data$cnt, ylab="Bike Rentals", xlab="Temperature")
+```
+
+\newpage
+
+## Linear Model
+
+Using the normalized temperature values as our predictor (t), we fit an ordinary least squares model of the daily bike usage count (c) in a quadratic model that takes the form:
+
+$$c \sim \beta_0 + \beta_1 t + \beta_2 t^2$$
+
+## Model Results
+
+```{r}
+# Ordinary LS
+m.ols <- lm(cnt~I(temp^2) + temp, data = bike_data)
+summary(m.ols)
+```
+
+## Model Visualization
+
+```{r}
+# Obtain the fitted values from the model
+fitted_vals <- predict(m.ols)
+# Plot the predicted values
+bike_data %>% 
+  ggplot(aes(x=temp, y=cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.7) + 
+  geom_line(mapping = aes(x = temp, y = fitted_vals), col= "blue") +
+  labs(x = "Normalized Temperature", y = "Daily Count", 
+       title = "Daily Bike Usage Count by Recorded Temperature (2011-2012)")
+    
+```
+

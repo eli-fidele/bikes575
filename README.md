@@ -1,4 +1,4 @@
-# MA 575 Fall 2021
+### MA 575 Fall 2021
 # Lab Project: Bike Sharing Data Analysis
 
 Group project for MA575 on Bike Sharing Data

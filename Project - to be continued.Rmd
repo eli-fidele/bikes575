@@ -1,0 +1,196 @@
+---
+title: "MA 575 Project: Bike Sharing Data Analysis"
+author: "Team #2: "
+date: "Fall 2021"
+output: 
+  html_document: 
+    theme: readable
+    toc: true
+    number_sections: true
+    fig_caption: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(GGally)
+```
+
+
+# Preprocessing
+
+## Import Data
+
+Import data:
+```{r}
+bikedata <- read.csv('data/bike-day.csv', header=T)
+```
+
+A brief look at the data structure: 
+```{r}
+head(bikedata)
+```
+
+Variables to be studied: 
+```{r}
+names(bikedata)
+```
+
+**Interpretations** $^{[1]}$
+
+Both hour.csv and day.csv have the following fields, except `hr` which is not available in day.csv:
+	
+- `instant`: record index
+- `dteday`: date
+- `season`: season (1:springer, 2:summer, 3:fall, 4:winter)
+- `yr`: year (0: 2011, 1:2012)
+- `mnth`: month ( 1 to 12)
+- `hr`: hour (0 to 23)
+- `holiday`: weather day is holiday or not (extracted from http://dchr.dc.gov/page/holiday-schedule)
+- `weekday`: day of the week
+- `workingday`: if day is neither weekend nor holiday is 1, otherwise is 0.
++ `weather-sit`: 
+	- 1: Clear, Few clouds, Partly cloudy, Partly cloudy
+	- 2: Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist
+	- 3: Light Snow, Light Rain + Thunderstorm + Scattered clouds, Light Rain + Scattered clouds
+	- 4: Heavy Rain + Ice Pallets + Thunderstorm + Mist, Snow + Fog
+- `temp`: Normalized temperature in Celsius. The values are divided to 41 (max)
+- `atemp`: Normalized feeling temperature in Celsius. The values are divided to 50 (max)
+- `hum`: Normalized humidity. The values are divided to 100 (max)
+- `windspeed`: Normalized wind speed. The values are divided to 67 (max)
+- `casual`: count of casual users
+- `registered`: count of registered users
+- `cnt`: count of total rental bikes including both casual and registered
+
+## Data Type & Value Conversion
+
+### `Date` Type for Dates
+
+Convert `dteday` to `Date` type:
+```{r}
+typeof(bikedata$dteday) #initial type
+dteday <- as.Date(bikedata$dteday)
+typeof(dteday) #converted type
+head(dteday, 10) #contents
+```
+
+### `factor` Type for Categorical Variables
+
+
+**Example: `season`**
+
+Convert `season` to `factor` type:
+```{r}
+typeof(bikedata$season) #initial type
+season <- as.factor(bikedata$season)
+typeof(season) #converted type
+head(season, 10) #contents
+```
+
+**Others: `yr` (year), `mnth` (month), `holiday`, `weekday`, `workingday`, `weathersit`**
+
+Similarly, consider all variables whose **numerical values do not make actual sense** as categorical variables. **Note**: Further considerations might be needed in the decision for `season`, `yr`(year), `mnth` (month) and `weekday` (1 to 7), which are somewhat of an intermediate type. 
+
+```{r}
+yr <- as.factor(bikedata$yr) #0 to 1
+mnth <- as.factor(bikedata$mnth) #from 1 to 12
+holiday <- as.logical(bikedata$holiday) #0 or 1
+weekday <- as.factor(bikedata$weekday) #from 0 to 6
+workingday <- as.logical(bikedata$workingday) #0 or 1
+weathersit <- as.factor(bikedata$weathersit) #from 1 to 4
+```
+
+### Rescaling for Weather Condition Measurements
+
+Recover the normalized data to their original values, so that the those values make more sense, which makes it easier for commonsense to be applied in the later analysis: 
+
+```{r}
+temp <- bikedata$temp * 41
+atemp <- bikedata$atemp * 50
+hum <- bikedata$hum * 100
+windspeed <- bikedata$windspeed * 67 
+```
+
+Reorganized data frame to be used in following studies: 
+
+```{r}
+data <- bikedata[, c(14:16)]
+data <- data.frame(dteday, season, yr, mnth, holiday, weekday, workingday,
+                   weathersit, temp, atemp, hum, windspeed, data)
+```
+
+## Abnormal Values Handling; Data Summaries
+
+Filter out `NA` values: 
+```{r}
+dim(data) #data size
+bikedata <- na.omit(data) #remove NA's
+dim(data) #data size remains the same, so original data contains no NA
+```
+
+Check for unreasonable values:
+```{r}
+# time range
+summary(data[c(1:4)])
+
+# date types
+summary(data[c(5:8)])
+
+# weather measurements
+summary(data[c(9:12)])
+
+# rental counts
+summary(data[c(13:15)])
+```
+
+# Visualization
+
+```{r fig.cap='Fig.1 ', fig.align='center'}
+plot(data = data, cnt ~ dteday,
+     ylab = "Total Count of Daily Bike Rentals", 
+     xlab = "Date",
+     main = "Total Count of Daily Bike Rentals vs Date", 
+     pch = 20, 
+     cex = 1.5, 
+     col = "darkblue")
+grid()
+```
+
+```{r}
+cols <- c('all' = "darkgrey", 'holiday' = "red", 'working day' = "blue")
+
+fig1 <- 
+  ggplot(data, aes(dteday, cnt, color='all')) + 
+  geom_point(size = 2.5, pch = 20, alpha = 0.6) + 
+  
+  labs(x = 'Date', y = 'Daily Count', title='Total Count of Daily Bike Rentals vs Date') + 
+  
+  geom_point(data[data$workingday, ], mapping = aes(dteday, cnt, color='working day'), size = 1, pch = 16, alpha = 0.8) + 
+  geom_point(data[data$holiday, ], mapping = aes(dteday, cnt, color='holiday'), size = 3, pch = 16, alpha = 1) + 
+  
+  scale_color_manual(values = cols, labels = names(cols), name = 'Count')
+
+fig1
+```
+```{r message=FALSE, warning=FALSE}
+ggpairs(data[c('dteday','temp','windspeed','weathersit','workingday','cnt')], progress = F, lower = list(continuous = wrap("points", alpha = 0.3, size=0.1)))
+```
+
+
+```{r}
+pairs(data=data, dteday ~ .)
+```
+
+# Single-Predictor OLS Model
+
+
+
+# Reference
+
+[1] Fanaee-T, Hadi, and Gama, Joao, "Event labeling combining ensemble detectors and background knowledge", Progress in Artificial Intelligence (2013): pp. 1-15, Springer Berlin Heidelberg, doi:10.1007/s13748-013-0040-3.
+
+
+

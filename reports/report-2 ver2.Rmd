@@ -1,0 +1,17 @@
+---
+title: "MA 575: Lab Report 2"
+author: "Team #2: "
+date: "10/4/2021"
+output: 
+  html_document: 
+    theme: readable
+    toc: true
+    number_sections: true
+    fig_caption: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+

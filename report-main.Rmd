@@ -1,7 +1,8 @@
 ---
 title: "MA 575 Project: Bike Sharing Data Analysis"
-author: "Team #2: "
-date: "Fall 2021"
+subtitle: 'MA 575 Fall 2021 - C3 Team #2'
+author: "Ali Taqi, Hsin-Chang Lin, Huiru Yang, Ryan Mahoney, Yulin Li"
+date: ""
 output: 
   html_document: 
     theme: readable

@@ -13,11 +13,11 @@ output:
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
 ```
 
 
-```{r}
+```{r message=FALSE, warning=FALSE, include=FALSE}
 # Libraries
 library(ggplot2)
 library(GGally)
@@ -28,7 +28,9 @@ library(tidyverse)
 theme_update(plot.title = element_text(hjust = 0.5))
 ```
 
-# Lab Report 2 Introduction 
+# Introduction 
+
+## Lab Report 2
 
 In this lab report, Ordinary Least Squares (OLS) modeling is performed on one response variable and a single predictor variable chosen from the 2011-2012 Bike Sharing dataset $^{[1]}$. The dataset contains two main response variables of our concerns: 
 
@@ -40,6 +42,12 @@ For simplicity, the former is chosen as the response variable to be studied in t
 - What are the **daily** bike rentals under different conditions? (Business owners may like to know the daily bike rentals in 2013 so that they could optimize the inventory to reduce costs, and they may also wonder whether it is worth leaving the bike-sharing system open on days with extreme weather conditions. This can be done by performing predictive modeling on the daily rental variable based on data given in 2011 and 2012.)
 
 The studies in this report should serve as a starting point for later attempts of more sophisticated modeling approaches engaging more predictors. 
+
+## Lab Report 3
+
+
+
+
 
 # Preprocessing
 

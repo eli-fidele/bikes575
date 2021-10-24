@@ -11,39 +11,27 @@ output:
 
 # Introduction 
 
-In this lab report, Ordinary Least Squares (OLS) modeling is performed on one response variable and a single predictor variable chosen from the 2011-2012 Bike Sharing dataset $^{[1]}$. The dataset contains two main response variables of our concerns: 
+In this lab report, Multiple Linear Regression (MLR) is performed on one response variable and a subset of predictors chosen from the 2011-2012 Bike Sharing dataset $^{[1]}$. The dataset contains two main kinds of response variables of our concerns: 
 
-1. the total count of **daily** bike rentals 
-2. the total count of **hourly** bike rentals. 
+1. the count of **daily** bike rentals 
+2. the count of **hourly** bike rentals. 
 
-For simplicity, the former is chosen as the response variable to be studied in this lab. The model thus helps answer the following question as mentioned in Lab Report 1: 
+Within each kind of bike rental counts, the following 3 categories of rental counts are recorded: 
+
+1. the count of bike rentals by **casual** users
+2. the count of bike rentals by **registered** users
+3. the **total** count, which is the sum of casual count and registered count. 
+
+For simplicity, the **total** count of **daily** bike rentals is chosen as the response variable to be studied in this lab. The model should thus help answer the following question as mentioned in Lab Report 1: 
 
 - What are the **daily** bike rentals under different conditions? (Business owners may like to know the daily bike rentals in 2013 so that they could optimize the inventory to reduce costs, and they may also wonder whether it is worth leaving the bike-sharing system open on days with extreme weather conditions. This can be done by performing predictive modeling on the daily rental variable based on data given in 2011 and 2012.)
 
-The studies in this report should serve as a starting point for later attempts of more sophisticated modeling approaches engaging more predictors. 
+
+
 
 # Preprocessing
 
 ## Overview
-
-```{r include=FALSE}
-# Load libraries
-library(ggplot2)
-library(GGally)
-# library(tidyverse)
-```
-
-```{r message=FALSE, warning=FALSE, include=FALSE}
-# Read data
-bikedata <- read.csv("../data/bike-day.csv",header=T)
-```
-
-```{r paged.print=TRUE}
-# A brief look at the data structure
-head(bikedata, 3)
-```
-
-$$ $$
 
 **Variable Interpretations** (see $[1]$)
 
@@ -73,6 +61,26 @@ Both hour.csv and day.csv have the following fields, except `hr` which is not av
 
 $$ $$
 
+```{r include=FALSE}
+# Load libraries
+library(ggplot2)
+library(GGally)
+# library(tidyverse)
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# Read data
+bikedata <- read.csv("../data/bike-day.csv",header=T)
+```
+
+```{r paged.print=TRUE}
+# A brief look at the data structure from day.csv
+head(bikedata, 3)
+```
+
+
+$$ $$
+
 ## Data Type & Value Conversion
 
 ```{r include=FALSE}
@@ -80,7 +88,7 @@ $$ $$
 dteday <- as.Date(bikedata$dteday)
 ```
 
-Typically, all variables whose numerical values are not attached to actual physical meanings are treated as categorical variables.
+Typically, all variables whose numerical values are not attached to actual physical meanings are treated as **categorical** variables.
 
 ```{r}
 # Boolean variables (from int to logical type)
@@ -95,7 +103,9 @@ weekday <- as.factor(bikedata$weekday)           #0 to 6
 weathersit <- as.factor(bikedata$weathersit)     #1 to 4
 ```
 
-The normalized weather condition measurements (see "Variable Interpretations" above) are also converted to their original values, so that the numerical values being used "make more sense" to us. This makes it easier for commonsense and real-life experience to be applied in later analysis. 
+**Note:** Although `weathersit` (weather type) is a categorical variable, its numerical value (from 1 to 4) actually indicates a gradual change in the level of suitability for outdoor activities - the larger the number, the worse the weather condition (i.e., more fogs/rains/snows, see "Variable Interpretations" above). 
+
+Furthermore, the normalized weather condition measurements (see "Variable Interpretations" above) are also converted to their original values, so that the numerical values being used "make more sense" to us. This makes it easier for commonsense and real-life experience to be applied in later analysis. 
 
 ```{r}
 # Re-scale the normalized measurements
@@ -114,7 +124,79 @@ data <- bikedata[, c(14:16)]
 data <- data.frame(dteday, season, yr, mnth, holiday, weekday, workingday,
                    weathersit, temp, atemp, hum, windspeed, data)
 ```
+
 $$ $$
+
+
+In order to minimize co-linearity in predictors, one of the two highly correlated predictors `temp` (measured temperature) and `atemp` (feeling temperature) should be dropped. It is decided to keep the feeling temperature `atemp`
+
+```{r fig.width=5, fig.height=2, echo=FALSE}
+# Plot the predicted values
+p1 <- ggplot(data = data, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Measured Temperature (ºC)", y = "Daily Count", 
+       title = "Daily Count vs Measured Temperature") + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+
+# Plot the predicted values
+p2 <- ggplot(data = data, aes(x = atemp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Feeling Temperature (ºC)", y = "Daily Count", 
+       title = "Daily Count vs Feeling Temperature") + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+
+plot_grid(p1, p2)
+```
+
+$$ $$
+
+### Pairwise Correlation
+
+Generally speaking, people's bike rental behaviors should be related to all seasonal and environmental factors, since all of them may to some degree affect people's willing and ability to perform outdoor activities like biking. 
+
+For better resolution in the pairs plot, we first compare the response variable `cnt` (total daily count) with a small subset of representative predictors: 
+
+Seasonal factors: 
+- `dteday` (date in a year)
+- `workingday` (working day or not)
+
+Environmental factors: 
+- `temp` (temperature)
+- `windspeed` (wind speed)
+- `weathersit` (weather type)
+
+$$\text{Fig.?: Pairs Plot}$$
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggpairs(data[c('dteday','temp','windspeed','weathersit','workingday','cnt')], 
+        progress = F, 
+        lower = list(continuous = wrap("points", alpha = 0.3, size=0.1))) + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+```
+Fig.? Column names in order: 
+`dteday`, `temp`, `windspeed`, `weathersit`, `workingday`, `cnt`
+
+$$ $$
+
+**Observations**
+
+- In the last row of the pairs plot (Fig.?) where `cnt` is on the y-axis, the clearest trend shows up at column 1 & 2 where `dteday` and `temp` are on the x-axis, respectively. The corresponding correlations are also the highest in value (row 1 & 2 of the last column), indicating that there might be some linear relationship to be explored.  
+
+- The differences that the categorical variables make (e.g., `weathersit`, `workingday`) are still not immediately clear. Roughly speaking, the 
+
+$$ $$
+
+
+### Time Variation
 
 Response variable `cnt`(count) by time (some groups labeled): 
 
@@ -141,4 +223,101 @@ ggplot(data, aes(dteday, cnt, color='all day types')) +
                      labels = names(cols), 
                      name = 'Daily Count')
 ```
+
+
+$$\text{Fig.2: 2011 Total Count of Daily Bike Rentals by Date (with Trends)}$$
+
+```{r fig.width=7, fig.height=4, echo=FALSE}
+cols <- c('all day types' = "darkgrey", 'on non-working days' = "darkgreen", 'on holidays' = "red", 'trends' = 'black')
+
+data2011 = data[data$dteday < '2012-01-01', ]
+
+ggplot(data2011, aes(dteday, cnt, color = 'all day types')) + 
+  geom_point(size = 1.5, pch = 20, alpha = 0.8) + 
+  labs(x = 'Date', y = 'Daily Count') + 
+  
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) +
+  
+  geom_line(data2011, 
+            mapping = aes(dteday, cnt, color = 'trends'), 
+            size = 0.3, alpha = 0.8) + 
+
+  geom_point(data2011[!(data2011$workingday), ], 
+             mapping = aes(dteday, cnt, color = 'on non-working days'), 
+             size = 1.5, pch = 16, alpha = 1) + 
+  geom_point(data2011[data2011$holiday, ], 
+             mapping = aes(dteday, cnt, color='on holidays'), 
+             size = 1.5, pch = 16, alpha = 1) + 
+  scale_color_manual(values = cols, 
+                     labels = names(cols), 
+                     name = 'Daily Count')
+```
+
+$$\text{Fig.3: 2012 Total Count of Daily Bike Rentals by Date (with Trends)}$$
+
+```{r fig.width=7, fig.height=4, echo=FALSE}
+cols <- c('all day types' = "darkgrey", 'on non-working days' = "darkgreen", 'on holidays' = "red", 'trends' = 'black')
+
+data2012 = data[data$dteday >= '2012-01-01', ]
+
+ggplot(data2012, aes(dteday, cnt, color = 'all day types')) + 
+  geom_point(size = 1.5, pch = 20, alpha = 0.8) + 
+  labs(x = 'Date', y = 'Daily Count') + 
+  
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) +
+  
+  geom_line(data2012, 
+            mapping = aes(dteday, cnt, color = 'trends'), 
+            size = 0.3, alpha = 0.8) + 
+
+  geom_point(data2012[!(data2012$workingday), ], 
+             mapping = aes(dteday, cnt, color = 'on non-working days'), 
+             size = 1.5, pch = 16, alpha = 1) + 
+  geom_point(data2012[data2012$holiday, ], 
+             mapping = aes(dteday, cnt, color='on holidays'), 
+             size = 1.5, pch = 16, alpha = 1) + 
+  scale_color_manual(values = cols, 
+                     labels = names(cols), 
+                     name = 'Daily Count')
+```
+
+
+```{r fig.width=7, fig.height=4, echo=FALSE}
+cols <- c('all day types' = "darkgrey", 'on non-working days' = "darkgreen", 'on holidays' = "red", 'trends' = 'black')
+
+data2012 = data[data$dteday >= '2012-01-01', ]
+
+ggplot(data2012, aes(dteday, cnt, color = 'all day types')) + 
+  geom_point(size = 1.5, pch = 20, alpha = 0.8) + 
+  labs(x = 'Date', y = 'Daily Count') + 
+  
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) +
+  
+  geom_line(data2012, 
+            mapping = aes(dteday, cnt, color = 'trends'), 
+            size = 0.3, alpha = 0.8) + 
+
+  geom_point(data2012[!(data2012$workingday), ], 
+             mapping = aes(dteday, cnt, color = 'on non-working days'), 
+             size = 1.5, pch = 16, alpha = 1) + 
+  geom_point(data2012[data2012$holiday, ], 
+             mapping = aes(dteday, cnt, color='on holidays'), 
+             size = 1.5, pch = 16, alpha = 1) + 
+  scale_color_manual(values = cols, 
+                     labels = names(cols), 
+                     name = 'Daily Count')
+```
+
+
+
+
 

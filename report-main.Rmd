@@ -11,44 +11,67 @@ output:
     fig_caption: true
 ---
 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
 ```{r}
+# Libraries
 library(ggplot2)
 library(GGally)
-#Import Library
+library(cowplot)
+library(tidyverse)
+
+# For ggplot, center all titles
+theme_update(plot.title = element_text(hjust = 0.5))
 ```
 
+# Lab Report 2 Introduction 
+
+In this lab report, Ordinary Least Squares (OLS) modeling is performed on one response variable and a single predictor variable chosen from the 2011-2012 Bike Sharing dataset $^{[1]}$. The dataset contains two main response variables of our concerns: 
+
+1. the total count of **daily** bike rentals 
+2. the total count of **hourly** bike rentals. 
+
+For simplicity, the former is chosen as the response variable to be studied in this lab. The model thus helps answer the following question as mentioned in Lab Report 1: 
+
+- What are the **daily** bike rentals under different conditions? (Business owners may like to know the daily bike rentals in 2013 so that they could optimize the inventory to reduce costs, and they may also wonder whether it is worth leaving the bike-sharing system open on days with extreme weather conditions. This can be done by performing predictive modeling on the daily rental variable based on data given in 2011 and 2012.)
+
+The studies in this report should serve as a starting point for later attempts of more sophisticated modeling approaches engaging more predictors. 
 
 # Preprocessing
 
-## Import Data
+## Overview
 
-Import data:
-```{r}
-bikedata <- read.csv('data/bike-day.csv', header=T)
+```{r include=FALSE}
+# Load libraries
+library(ggplot2)
+library(GGally)
+library(tidyverse)
 ```
 
-A brief look at the data structure: 
-```{r}
-head(bikedata)
+```{r message=FALSE, warning=FALSE}
+# Read data
+bikedata <- read.csv("data/bike-day.csv",header=T)
 ```
 
-Variables to be studied: 
-```{r}
-names(bikedata)
+```{r paged.print=TRUE}
+# A brief look at the data structure
+head(bikedata, 3)
 ```
 
-**Interpretations** $^{[1]}$
+$$ $$
 
-Both hour.csv and day.csv have the following fields, except `hr` which is not available in day.csv:
+**Variable Interpretations** (see $[1]$)
+
+Both hour.csv and day.csv have the following fields, except `hr` which is not available in bike-day.csv:
 	
 - `instant`: record index
 - `dteday`: date
 - `season`: season (1:springer, 2:summer, 3:fall, 4:winter)
-- `yr`: year (0: 2011, 1:2012)
+- `yr`: year (0:2011, 1:2012)
 - `mnth`: month ( 1 to 12)
 - `hr`: hour (0 to 23)
 - `holiday`: weather day is holiday or not (extracted from http://dchr.dc.gov/page/holiday-schedule)
@@ -67,56 +90,55 @@ Both hour.csv and day.csv have the following fields, except `hr` which is not av
 - `registered`: count of registered users
 - `cnt`: count of total rental bikes including both casual and registered
 
+$$ $$
+
 ## Data Type & Value Conversion
 
-### `Date` Type for Dates
-
-Convert `dteday` to `Date` type:
-```{r}
-typeof(bikedata$dteday) #initial type
+```{r include=FALSE}
+# Dates (from char to Date type)
 dteday <- as.Date(bikedata$dteday)
-typeof(dteday) #converted type
-head(dteday, 10) #contents
 ```
 
-### `factor` Type for Categorical Variables
+Typically, all variables whose numerical values are not attached to actual physical meanings are treated as categorical variables.
 
-
-**Example: `season`**
-
-Convert `season` to `factor` type:
 ```{r}
-typeof(bikedata$season) #initial type
-season <- as.factor(bikedata$season)
-typeof(season) #converted type
-head(season, 10) #contents
+# Boolean variables (from int to logical type)
+holiday <- as.logical(bikedata$holiday)          #0 or 1
+workingday <- as.logical(bikedata$workingday)    #0 or 1
+
+# Other categorical variables (from int to factor type)
+season <- as.factor(bikedata$season)             #1 to 4
+yr <- as.factor(bikedata$yr)                     #0 to 1
+mnth <- as.factor(bikedata$mnth)                 #1 to 12
+weekday <- as.factor(bikedata$weekday)           #0 to 6
+weathersit <- as.factor(bikedata$weathersit)     #1 to 4
 ```
 
-**Others: `yr` (year), `mnth` (month), `holiday`, `weekday`, `workingday`, `weathersit`**
-
-Similarly, consider all variables whose **numerical values do not make actual sense** as categorical variables. **Note**: Further considerations might be needed in the decision for `season`, `yr`(year), `mnth` (month) and `weekday` (1 to 7), which are somewhat of an intermediate type. 
+The normalized weather condition measurements (see "Variable Interpretations" above) are also converted to their original values, so that the numerical values being used "make more sense" to us. This makes it easier for commonsense and real-life experience to be applied in later analysis. 
 
 ```{r}
-yr <- as.factor(bikedata$yr) #0 to 1
-mnth <- as.factor(bikedata$mnth) #from 1 to 12
-holiday <- as.logical(bikedata$holiday) #0 or 1
-weekday <- as.factor(bikedata$weekday) #from 0 to 6
-workingday <- as.logical(bikedata$workingday) #0 or 1
-weathersit <- as.factor(bikedata$weathersit) #from 1 to 4
-```
-
-### Rescaling for Weather Condition Measurements
-
-Recover the normalized data to their original values, so that the those values make more sense, which makes it easier for commonsense to be applied in the later analysis: 
-
-```{r}
+# Re-scale the normalized measurements
 temp <- bikedata$temp * 41
 atemp <- bikedata$atemp * 50
 hum <- bikedata$hum * 100
 windspeed <- bikedata$windspeed * 67 
 ```
 
-Reorganized data frame to be used in following studies: 
+$$ $$
+
+## Outlier Handling; Data Summaries
+
+Filter out the `NA` values: 
+```{r}
+dim(bikedata) #before
+bikedata <- na.omit(bikedata) #remove NA's
+dim(bikedata) #after
+```
+Data size remains unchanged, so the original data contains no `NA`.
+
+$$ $$
+
+Reorganized data frame:
 
 ```{r}
 data <- bikedata[, c(14:16)]
@@ -124,70 +146,318 @@ data <- data.frame(dteday, season, yr, mnth, holiday, weekday, workingday,
                    weathersit, temp, atemp, hum, windspeed, data)
 ```
 
-## Abnormal Values Handling; Data Summaries
-
-Filter out `NA` values: 
-```{r}
-dim(data) #data size
-bikedata <- na.omit(data) #remove NA's
-dim(data) #data size remains the same, so original data contains no NA
-```
+$$ $$
 
 Check for unreasonable values:
 ```{r}
 # time range
-summary(data[c(1:4)])
+summary(bikedata[c(2:5)])
 
 # date types
-summary(data[c(5:8)])
+summary(bikedata[c(6:9)])
 
 # weather measurements
-summary(data[c(9:12)])
+summary(bikedata[c(10:13)])
 
 # rental counts
-summary(data[c(13:15)])
+summary(bikedata[c(14:16)])
 ```
 
-# Visualization
+$$ $$
+
+## Visualization
 
 ```{r fig.cap='Fig.1 ', fig.align='center'}
 plot(data = data, cnt ~ dteday,
      ylab = "Total Count of Daily Bike Rentals", 
      xlab = "Date",
-     main = "Total Count of Daily Bike Rentals vs Date", 
+     main = "Total Count of Daily Bike Rentals by Date", 
      pch = 20, 
      cex = 1.5, 
      col = "darkblue")
 grid()
 ```
 
-```{r}
-cols <- c('all' = "darkgrey", 'holiday' = "red", 'working day' = "blue")
+$$ $$
 
-fig1 <- 
-  ggplot(data, aes(dteday, cnt, color='all')) + 
-  geom_point(size = 2.5, pch = 20, alpha = 0.6) + 
-  
-  labs(x = 'Date', y = 'Daily Count', title='Total Count of Daily Bike Rentals vs Date') + 
-  
-  geom_point(data[data$workingday, ], mapping = aes(dteday, cnt, color='working day'), size = 1, pch = 16, alpha = 0.8) + 
-  geom_point(data[data$holiday, ], mapping = aes(dteday, cnt, color='holiday'), size = 3, pch = 16, alpha = 1) + 
-  
-  scale_color_manual(values = cols, labels = names(cols), name = 'Count')
+Response variable `cnt`(count) by time (some groups labeled): 
 
-fig1
+$$\text{Fig.1: Total Count of Daily Bike Rentals by Date}$$
+
+```{r echo=FALSE}
+cols <- c('all day types' = "darkgrey", 'on working days' = "blue", 'on holidays' = "red")
+
+ggplot(data, aes(dteday, cnt, color='all day types')) + 
+  geom_point(size = 2.5, pch = 20, alpha = 0.5) + 
+  
+  labs(x = 'Date', y = 'Daily Count') + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) +
+  
+  geom_point(data[data$workingday, ], 
+             mapping = aes(dteday, cnt, color='on working days'), 
+             size = 1.5, pch = 16, alpha = 0.8) + 
+  geom_point(data[data$holiday, ], 
+             mapping = aes(dteday, cnt, color='on holidays'), 
+             size = 2.5, pch = 16, alpha = 1) + 
+  scale_color_manual(values = cols, 
+                     labels = names(cols), 
+                     name = 'Daily Count')
 ```
-```{r message=FALSE, warning=FALSE}
-ggpairs(data[c('dteday','temp','windspeed','weathersit','workingday','cnt')], progress = F, lower = list(continuous = wrap("points", alpha = 0.3, size=0.1)))
+
+$$\quad$$
+
+Compare the response variable `cnt`(count) to a group of temporal and environmental variables that might be influential:
+
+$$\text{Fig.2: Pairs Plot}$$
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggpairs(data[c('dteday','temp','windspeed','weathersit','workingday','cnt')], 
+        progress = F, 
+        lower = list(continuous = wrap("points", alpha = 0.3, size=0.1))) + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
 ```
 
+Fig.2 Column names in order: 
+`dteday`, `temp`, `windspeed`, `weathersit`, `workingday`, `cnt`
 
 ```{r}
 pairs(data=data, dteday ~ .)
 ```
 
-# Single-Predictor OLS Model
+$$ $$
 
+**Observations**
+
+- In the last row of the pairs plot (Fig.2) where `cnt` is on the y-axis, the clearest trend shows up at column 1 & 2 where `dteday` and `temp` are on the x-axis, respectively. The corresponding correlations are also the highest in value (row 1 & 2 of the last column), indicating that there might be some linear relationship to be explored.  
+
+- In both Fig.1 and Fig.2, the differences that the categorical variables make (e.g., `weathersit`, `workingday`) are still not immediately clear. 
+
+$$ $$
+
+Given that the impact of weather conditions is of great concerns and that the use of numerical variables are more common for a starting model, it is then decided to chose the weather condition measurement `temp`(temperature) as the predictor in this lab. 
+
+# Model: Single-Predictor OLS
+
+## Methods
+
+$$ $$
+
+$$\text{Fig.3: Daily Bike Usage Count by Recorded Temperature (2011-2012)}$$
+
+```{r echo=FALSE}
+ggplot(data, aes(temp, cnt)) + 
+  geom_point(size = 4, pch = 20, alpha = 0.5, col = 'deepskyblue4') + 
+  labs(x = 'Temporature (ºC)', y = 'Daily Count') +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+```
+
+The curvy trend in the scatter plot suggests the need of (at least) a quadratic term in the predictor for the linear model. 
+
+Using the measured temperature values as our predictor (t), we attempt OLS models of the daily bike usage count (c) that take the following forms:
+
+1. Linear: $$c \sim \beta_0 + \beta_1 t$$
+2. Quadratic: $$c \sim \beta_0 + \beta_1 t + \beta_2 t^2$$
+3. Cubic: $$c \sim \beta_0 + \beta_1 t + \beta_2 t^2 + \beta_3 t^3$$
+4. Quartic: $$c \sim \beta_0 + \beta_1 t + \beta_2 t^2 + \beta_3 t^3 + \beta_4 t^4$$
+
+$$ $$
+
+## Results
+
+$$ $$
+
+```{r echo=FALSE}
+cols <- c('Linear' = "cyan", 'Quadratic' = "blue", 'Cubic' = "red", 'Quartic' = 'black')
+```
+
+- **Model 1: Linear**
+
+```{r}
+# Ordinary LS: Linear
+m.ols.1 <- lm(cnt ~ temp, data = bikedata)
+summary(m.ols.1)
+```
+
+$$ $$
+
+- **Model 2: Quadratic**
+
+```{r}
+# Ordinary LS: Quadratic
+m.ols.2 <- lm(cnt ~ I(temp^2) + temp, data = bikedata)
+summary(m.ols.2)
+```
+
+- **Model 3: Cubic**
+
+```{r}
+# Ordinary LS: Cubic
+m.ols.3 <- lm(cnt ~ I(temp^3) + I(temp^2) + temp, data = bikedata)
+summary(m.ols.3)
+```
+
+$$ $$
+
+- **Model 4: Quartic**
+
+```{r}
+# Ordinary LS: Quartic
+m.ols.4 <- lm(cnt ~ I(temp^4) + I(temp^3) + I(temp^2) + temp, data = bikedata)
+summary(m.ols.4)
+```
+
+```{r echo=FALSE}
+# Obtain the fitted values from the model
+fitted_vals1 <- predict(m.ols.1)
+fitted_vals2 <- predict(m.ols.2)
+fitted_vals3 <- predict(m.ols.3)
+fitted_vals4 <- predict(m.ols.4)
+
+# Plot the predicted values
+p1 <- ggplot(data = data, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 1") + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data, mapping = aes(x = temp, y = fitted_vals1, col = names(cols)[1]), lwd = 1) +
+  scale_color_manual(values = cols[1], 
+                     labels = names(cols)[1], 
+                     name = 'Prediction')
+
+# Plot the predicted values
+p2 <- ggplot(data = data, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 2") + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data, mapping = aes(x = temp, y = fitted_vals2, col = names(cols)[2]), lwd = 1) +
+  scale_color_manual(values = cols[2], 
+                     labels = names(cols)[2], 
+                     name = 'Prediction')
+
+# Plot the predicted values
+p3 <- ggplot(data = data, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 3") + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data, mapping = aes(x = temp, y = fitted_vals3, col = names(cols)[3]), lwd = 1) +
+  scale_color_manual(values = cols[3], 
+                     labels = names(cols)[3], 
+                     name = 'Prediction')
+
+# Plot the predicted values
+p4 <- ggplot(data = data, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 4") + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data, mapping = aes(x = temp, y = fitted_vals4, col = names(cols)[4]), lwd = 1) +
+  scale_color_manual(values = cols[4], 
+                     labels = names(cols)[4], 
+                     name = 'Prediction')
+```
+
+$$\text{Fig.4: Daily Bike Usage Count by Recorded Temperature, Predictions Overlayed Seperately}$$
+
+```{r echo=FALSE}
+plot_grid(p1, p2, p3, p4)
+```
+
+$$ $$
+
+## Discussion
+
+Compare the four models:
+
+$$ $$
+
+### **Model 1: Linear**
+
+This model is considered bad, even though all coefficients are indicated as "statistically significant" by the low p-values. This is because the model fails to capture the quadratic variation of data that is visually clear in the scatter plot; as a result, the residuals are clearly not centered around the predicted curve, which indicates violation of the "zero mean" assumption for noises in this model.  
+
+$$ $$
+
+### **Model 2: Quadratic**
+
+This model is fair enough in that:
+
+1. It captures the non-linear variations.
+2. All coefficients are indicated as "statistically significant". 
+3. The variance of noises seems to be roughly constant over different temperatures. 
+
+However, it still has the following problems: 
+
+1. In the higher temperature part, the residuals are no longer centered around the predicted values. 
+2. In the lower temperature part, the predicted curve even crosses over the x-axis, which is highly impossible since there is no negative rental counts. 
+
+
+$$\text{Fig.5: Daily Bike Usage Count by Recorded Temperature, Predictions Overlayed}$$
+
+```{r echo=FALSE}
+# Plot the predicted values
+ggplot(data = data, aes(x = temp, y = cnt)) + 
+  geom_point(size = 2, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count") + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data, mapping = aes(x = temp, y = fitted_vals1, col = names(cols)[1]), lwd = 1, alpha = 0.8) +
+  geom_line(data = data, mapping = aes(x = temp, y = fitted_vals2, col = names(cols)[2]), lwd = 1, alpha = 0.8) +
+  geom_line(data = data, mapping = aes(x = temp, y = fitted_vals3, col = names(cols)[3]), lwd = 1, alpha = 1) + 
+  geom_line(data = data, mapping = aes(x = temp, y = fitted_vals4, col = names(cols)[4]), lwd = 1, alpha = 0.6) + 
+  scale_color_manual(values = cols, 
+                     labels = names(cols), 
+                     name = 'Prediction')
+  
+```
+
+$$ $$
+
+### **Model 3: 3rd-degree polynomial**
+
+Interestingly, in this model, the coefficients of the lower-order terms which used to be "significant" in Model 1 & 2 are no longer as significant. Instead, only the cubic term exhibits the same level of significance in p-value, which suggests that the cubic term might be better at explaining the variations than the lower-order terms. 
+
+Now, this model improves on the problems of Model 2 while maintaining a relatively strong predictive power. 
+
+$$ $$
+
+### **Model 4: 4th-degree polynomial**
+
+Interestingly, the prediction generated by this model almost completely overlaps with that of the 3rd-degree model, so increasing model complexity by adding higher-order terms at this point no longer leads to more modeling power. Further, the coefficients of this model are no longer indicated as statistically significant, which suggest that this model should probably be rejected. Overall, this would not be a better model than Model 3.
+
+### Conclusion
+
+From the above, the 3rd-degree model with the predictor variable `temp` is considered the current best that can be reach with a single-predictor OLS model. Lastly, we verify that this model makes sense by our commonsense: 
+
+When the temperature approaches the comfortable temperature for outdoor activities, which should be warm but neither too high nor too low, the bike rental count is supposed to increase. That temperature should typically be between 20ºC and 30ºC, as is in the early summer or early autumn, and that corresponds to the peak of predicted value as well as the scatter point trends in Fig.5. From this perspective, the 3rd-degree polynomial model is a relatively convincing model.  
+
+Notably, in the scatter plot (Fig.3), the data points seem to be roughly divided into three layers, which could possibly be captured separately by three quadratic curves. This indicates that a categorical variable is probably needed to capture this characteristics. This is left for our further studies. 
 
 
 # Reference

@@ -16,10 +16,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r include=FALSE}
+# Libraries
 library(ggplot2)
 library(GGally)
 library(cowplot)
-# Libraries
 ```
 
 # Introduction 

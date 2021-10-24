@@ -1,0 +1,144 @@
+---
+title: 'Lab Report 3: Multiple Linear Regression'
+subtitle: "MA 575 Fall 2021 - C3 Team #2"
+author: "Ali Taqi, Hsin-Chang Lin, Huiru Yang, Ryan Mahoney, Yulin Li"
+date: "10/25/2021"
+output: 
+  pdf_document: 
+    toc: true
+    number_sections: true
+---
+
+# Introduction 
+
+In this lab report, Ordinary Least Squares (OLS) modeling is performed on one response variable and a single predictor variable chosen from the 2011-2012 Bike Sharing dataset $^{[1]}$. The dataset contains two main response variables of our concerns: 
+
+1. the total count of **daily** bike rentals 
+2. the total count of **hourly** bike rentals. 
+
+For simplicity, the former is chosen as the response variable to be studied in this lab. The model thus helps answer the following question as mentioned in Lab Report 1: 
+
+- What are the **daily** bike rentals under different conditions? (Business owners may like to know the daily bike rentals in 2013 so that they could optimize the inventory to reduce costs, and they may also wonder whether it is worth leaving the bike-sharing system open on days with extreme weather conditions. This can be done by performing predictive modeling on the daily rental variable based on data given in 2011 and 2012.)
+
+The studies in this report should serve as a starting point for later attempts of more sophisticated modeling approaches engaging more predictors. 
+
+# Preprocessing
+
+## Overview
+
+```{r include=FALSE}
+# Load libraries
+library(ggplot2)
+library(GGally)
+# library(tidyverse)
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# Read data
+bikedata <- read.csv("../data/bike-day.csv",header=T)
+```
+
+```{r paged.print=TRUE}
+# A brief look at the data structure
+head(bikedata, 3)
+```
+
+$$ $$
+
+**Variable Interpretations** (see $[1]$)
+
+Both hour.csv and day.csv have the following fields, except `hr` which is not available in bike-day.csv:
+	
+- `instant`: record index
+- `dteday`: date
+- `season`: season (1:springer, 2:summer, 3:fall, 4:winter)
+- `yr`: year (0:2011, 1:2012)
+- `mnth`: month ( 1 to 12)
+- `hr`: hour (0 to 23)
+- `holiday`: weather day is holiday or not (extracted from http://dchr.dc.gov/page/holiday-schedule)
+- `weekday`: day of the week
+- `workingday`: if day is neither weekend nor holiday is 1, otherwise is 0.
++ `weather-sit`: 
+	- 1: Clear, Few clouds, Partly cloudy, Partly cloudy
+	- 2: Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist
+	- 3: Light Snow, Light Rain + Thunderstorm + Scattered clouds, Light Rain + Scattered clouds
+	- 4: Heavy Rain + Ice Pallets + Thunderstorm + Mist, Snow + Fog
+- `temp`: Normalized temperature in Celsius. The values are divided to 41 (max)
+- `atemp`: Normalized feeling temperature in Celsius. The values are divided to 50 (max)
+- `hum`: Normalized humidity. The values are divided to 100 (max)
+- `windspeed`: Normalized wind speed. The values are divided to 67 (max)
+- `casual`: count of casual users
+- `registered`: count of registered users
+- `cnt`: count of total rental bikes including both casual and registered
+
+$$ $$
+
+## Data Type & Value Conversion
+
+```{r include=FALSE}
+# Dates (from char to Date type)
+dteday <- as.Date(bikedata$dteday)
+```
+
+Typically, all variables whose numerical values are not attached to actual physical meanings are treated as categorical variables.
+
+```{r}
+# Boolean variables (from int to logical type)
+holiday <- as.logical(bikedata$holiday)          #0 or 1
+workingday <- as.logical(bikedata$workingday)    #0 or 1
+
+# Other categorical variables (from int to factor type)
+season <- as.factor(bikedata$season)             #1 to 4
+yr <- as.factor(bikedata$yr)                     #0 to 1
+mnth <- as.factor(bikedata$mnth)                 #1 to 12
+weekday <- as.factor(bikedata$weekday)           #0 to 6
+weathersit <- as.factor(bikedata$weathersit)     #1 to 4
+```
+
+The normalized weather condition measurements (see "Variable Interpretations" above) are also converted to their original values, so that the numerical values being used "make more sense" to us. This makes it easier for commonsense and real-life experience to be applied in later analysis. 
+
+```{r}
+# Re-scale the normalized measurements
+temp <- bikedata$temp * 41
+atemp <- bikedata$atemp * 50
+hum <- bikedata$hum * 100
+windspeed <- bikedata$windspeed * 67 
+```
+
+$$ $$
+
+## Visualization
+
+```{r include=FALSE}
+data <- bikedata[, c(14:16)]
+data <- data.frame(dteday, season, yr, mnth, holiday, weekday, workingday,
+                   weathersit, temp, atemp, hum, windspeed, data)
+```
+$$ $$
+
+Response variable `cnt`(count) by time (some groups labeled): 
+
+$$\text{Fig.1: Total Count of Daily Bike Rentals by Date}$$
+
+```{r echo=FALSE}
+cols <- c('all day types' = "darkgrey", 'on working days' = "blue", 'on holidays' = "red")
+
+ggplot(data, aes(dteday, cnt, color='all day types')) + 
+  geom_point(size = 2.5, pch = 20, alpha = 0.5) + 
+  
+  labs(x = 'Date', y = 'Daily Count') + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) +
+  
+  geom_point(data[data$workingday, ], 
+             mapping = aes(dteday, cnt, color='on working days'), 
+             size = 1.5, pch = 16, alpha = 0.8) + 
+  geom_point(data[data$holiday, ], 
+             mapping = aes(dteday, cnt, color='on holidays'), 
+             size = 2.5, pch = 16, alpha = 1) + 
+  scale_color_manual(values = cols, 
+                     labels = names(cols), 
+                     name = 'Daily Count')
+```
+

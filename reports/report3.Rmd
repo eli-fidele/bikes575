@@ -1012,7 +1012,7 @@ ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','cnt')],
         plot.subtitle = element_text(hjust = 0.5),
         plot.caption = element_text(hjust = 0.5))
 ```
-Fig.? Column names in order: 
+Fig.13 Column names in order: 
 `dteday`, `weathersit`, `temp`, `atemp`, `windspeed`, `hum`, `cnt`
 
 $$ $$
@@ -1031,7 +1031,7 @@ ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','cnt')],
         plot.subtitle = element_text(hjust = 0.5),
         plot.caption = element_text(hjust = 0.5))
 ```
-Fig.? Column names in order: 
+Fig.14 Column names in order: 
 `dteday`, `weathersit`, `temp`, `atemp`, `windspeed`, `hum`, `cnt`
 
 
@@ -1051,7 +1051,7 @@ ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','cnt')],
         plot.subtitle = element_text(hjust = 0.5),
         plot.caption = element_text(hjust = 0.5))
 ```
-Fig.? Column names in order: 
+Fig.15 Column names in order: 
 `dteday`, `weathersit`, `temp`, `atemp`, `windspeed`, `hum`, `cnt`
 
 
@@ -1071,7 +1071,7 @@ ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','cnt')],
         plot.subtitle = element_text(hjust = 0.5),
         plot.caption = element_text(hjust = 0.5))
 ```
-Fig.? Column names in order: 
+Fig.16 Column names in order: 
 `dteday`, `weathersit`, `temp`, `atemp`, `windspeed`, `hum`, `cnt`
 
 $$ $$
@@ -1089,7 +1089,7 @@ ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','cnt')],
         plot.subtitle = element_text(hjust = 0.5),
         plot.caption = element_text(hjust = 0.5))
 ```
-Fig.? Column names in order: 
+Fig.17 Column names in order: 
 `dteday`, `weathersit`, `temp`, `atemp`, `windspeed`, `hum`, `cnt`
 
 

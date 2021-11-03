@@ -1,0 +1,124 @@
+---
+title: "Lab4_DataVisuals"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# Libraries
+library(ggplot2)
+library(GGally)
+library(cowplot)
+library(tidyverse)
+
+# For ggplot, center all titles
+theme_update(plot.title = element_text(hjust = 0.5))
+```
+
+```{r message=FALSE, warning=FALSE}
+# Read data
+bikedata <- read.csv("day.csv",header=T)
+```
+
+```{r paged.print=TRUE}
+# A brief look at the data structure
+head(bikedata, 3)
+```
+
+```{r include=FALSE}
+# Dates (from char to Date type)
+dteday <- as.Date(bikedata$dteday)
+```
+
+```{r}
+# Boolean variables (from int to logical type)
+holiday <- as.logical(bikedata$holiday)          #0 or 1
+workingday <- as.logical(bikedata$workingday)    #0 or 1
+# Other categorical variables (from int to factor type)
+season <- as.factor(bikedata$season)             #1 to 4
+yr <- as.factor(bikedata$yr)                     #0 to 1
+mnth <- as.factor(bikedata$mnth)                 #1 to 12
+weekday <- as.factor(bikedata$weekday)           #0 to 6
+weathersit <- as.factor(bikedata$weathersit)     #1 to 4
+```
+
+```{r}
+# Re-scale the normalized measurements
+temp <- bikedata$temp * 41
+atemp <- bikedata$atemp * 50
+hum <- bikedata$hum * 100
+windspeed <- bikedata$windspeed * 67
+```
+
+```{r}
+data <- bikedata[, c(14:16)]
+data <- data.frame(dteday, season, yr, mnth, holiday, weekday, workingday,
+        weathersit, temp, atemp, hum, windspeed, data)
+```
+
+```{r}
+# Extract the 2011 data
+data2011 = data[(data$dteday >= "2011-01-01" & data$dteday <= "2011-12-31"),]
+```
+
+```{r fig.cap='Fig.1 ', fig.align='center'}
+plot(data = data2011, cnt ~ dteday,
+     ylab = "Total Count of Daily Bike Rentals", 
+     xlab = "Date",
+     main = "Total Count of Daily Bike Rentals by Date", 
+     pch = 20, 
+     cex = 1.5, 
+     col = "darkblue")
+grid()
+```
+
+```{r echo=FALSE}
+cols <- c('all day types' = "darkgrey", 'on working days' = "blue", 'on holidays' = "red")
+
+ggplot(data2011, aes(dteday, cnt, color='all day types')) + 
+  geom_point(size = 2.5, pch = 20, alpha = 0.5) + 
+  
+  labs(x = 'Date', y = 'Daily Count') + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) +
+  
+  geom_point(data2011[data2011$workingday, ], 
+             mapping = aes(dteday, cnt, color='on working days'), 
+             size = 1.5, pch = 16, alpha = 0.8) + 
+  geom_point(data2011[data2011$holiday, ], 
+             mapping = aes(dteday, cnt, color='on holidays'), 
+             size = 2.5, pch = 16, alpha = 1) + 
+  scale_color_manual(values = cols, 
+                     labels = names(cols), 
+                     name = 'Daily Count')
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggpairs(data2011[c('dteday','temp','windspeed','weathersit',
+                   'workingday','cnt')], 
+        progress = F, 
+        lower = list(continuous = wrap("points", alpha = 0.3, size=0.1))) + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggpairs(data2011[c('dteday','weathersit','temp','atemp',
+                   'windspeed','hum','cnt')], 
+        progress = F, 
+        lower = list(continuous = wrap("points", alpha = 0.3, size=0.1)), 
+        aes(colour=weathersit)) + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+
+```
+

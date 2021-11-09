@@ -23,13 +23,11 @@ source(file = "../R/plot.R")
 #=============================#
 # Import and wrangle data
 bikedata <- read.csv("../data/bike-day.csv", header = T)
-#data <- wrangle_init(bikedata)
+# Use the wrangling "wrapper" function to clean the data (fxn sourced from wrangle.R)
+bikedata <- wrangle_init(bikedata)
 ```
 
 ```{r}
-# Initial wrangling
-wrangle_init <- function(data){
-  data
-}
+
 ```
 

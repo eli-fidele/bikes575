@@ -75,6 +75,28 @@ plot(data = data2011, cnt ~ dteday,
 grid()
 ```
 
+```{r}
+plot(data = data2011, casual ~ dteday,
+     ylab = "Count of Daily Casual Bike Rentals", 
+     xlab = "Date",
+     main = "Count of Casual Daily Bike Rentals by Date", 
+     pch = 20, 
+     cex = 1.5, 
+     col = "darkblue")
+grid()
+```
+
+```{r}
+plot(data = data2011, registered ~ dteday,
+     ylab = "Count of Daily Registered Bike Rentals", 
+     xlab = "Date",
+     main = "Count of Daily Registered Bike Rentals by Date", 
+     pch = 20, 
+     cex = 1.5, 
+     col = "darkblue")
+grid()
+```
+
 ```{r echo=FALSE}
 cols <- c('all day types' = "darkgrey", 'on working days' = "blue", 'on holidays' = "red")
 

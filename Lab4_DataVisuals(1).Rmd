@@ -20,7 +20,7 @@ theme_update(plot.title = element_text(hjust = 0.5))
 
 ```{r message=FALSE, warning=FALSE}
 # Read data
-bikedata <- read.csv("bike-day.csv",header=T)
+bikedata <- read.csv("data/bike-day.csv",header=T)
 ```
 
 ```{r paged.print=TRUE}

@@ -5,8 +5,7 @@ I've created this "dev-template.Rmd" file for each one of us to duplicate and th
 
 This way, merge conflicts don't occur since you would be working on your own copy of the template file. 
 
-Additionally, the first (setup) chunk contains a "module" of code, so if you run it, you should get a standardized environment with 
-specific datasets and functions that is standardized for everyone (helps with fixing bugs in future). In practice, this is probably going to be just the wrangled dataset and a few model functions.
+Additionally, the first (setup) chunk contains a "module" of code, so if you run it, you should get a standardized environment with specific datasets and functions that is standardized for everyone (helps with fixing bugs in future). In practice, this is probably going to be just the wrangled dataset and a few model functions.
 
 
 =========================================
@@ -21,7 +20,6 @@ You could duplicate the template file in one of two ways:
 
 1. In the "Files" pane, check the box next to the "dev-template.Rmd" file to select it.
 2. Click on "More" > "Copy..." and name your personal copy of the file.
-
 
 ==========================
           Manually

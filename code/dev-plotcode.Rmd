@@ -23,9 +23,9 @@ theme_update(plot.title = element_text(hjust = 0.5))
 # Source the wrangling scripts
 source(file = "../R/wrangle.R")
 # Import and wrangle data
-bike_day <- read.csv("../data/bike-day.csv", header = T)
+bikedata <- read.csv("../data/bike-day.csv", header = T)
 # Use the wrangling "wrapper" function to clean the data (fxn sourced from wrangle.R)
-data <- wrangle_init(bike_day)
+data <- wrangle_init(bikedata)
 #============================#
 #       Source Scripts       #
 #============================#

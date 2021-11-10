@@ -1,4 +1,7 @@
 
+#========================#
+#         Wrangling      #
+#========================#
 # Initial wrangling
 wrangle_init <- function(data, omit_NA = TRUE){
   # Boolean variables (from int to logical type)
@@ -15,10 +18,20 @@ wrangle_init <- function(data, omit_NA = TRUE){
   data$atemp <- data$atemp * 50
   data$hum <- data$hum * 100
   data$windspeed <- data$windspeed * 67 
-  # Remove NAs (if prompted)
+  # Remove NAs (if prompted) default value is TRUE
   if(omit_NA) { data <- na.omit(data) }
+  # Change type of Dates (from char to Date type)
+  data$dteday <- as.Date(data$dteday)
   # Remove instance column
   data <- data %>% select(-c("instant"))
   # Return the wrangled dataset
   return(data)
 }
+
+#========================#
+#        Subsetting      #
+#========================#
+# Filter for the 2011 data
+in_2011 <- function(data){ data[(data$dteday >= "2011-01-01" & data$dteday <= "2011-12-31"),] }
+# Filter for the 2012 data
+in_2012 <- function(data){ data[(data$dteday >= "2012-01-01" & data$dteday <= "2012-12-31"),] }

@@ -4,7 +4,7 @@ author: "Group 2"
 output: pdf_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
 #==============================#
 #       Import Libraries       #
@@ -29,7 +29,9 @@ data <- wrangle_init(bike_day)
 #============================#
 #       Source Scripts       #
 #============================#
+# Import any models (and fitted values, if applicable)
 source(file = "../R/model.R")
+# Import any plots or plot wrapper functions
 source(file = "../R/plot.R")
 ```
 

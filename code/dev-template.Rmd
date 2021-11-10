@@ -6,28 +6,33 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
-# Import libraries
+#==============================#
+#       Import Libraries       #
+#==============================#
 library(tidyverse)
 library(GGally)
 library(cowplot)
+#==============================#
+#        Global Settings       #
+#==============================#
 # Center ggplot titles
 theme_update(plot.title = element_text(hjust = 0.5))
-#============================#
-#       Source Scripts       #
-#============================#
-source(file = "../R/wrangle.R")
-source(file = "../R/model.R")
-source(file = "../R/plot.R")
 #=============================#
 #        Obtain Dataset       #
 #=============================#
+# Source the wrangling scripts
+source(file = "../R/wrangle.R")
 # Import and wrangle data
-bikedata <- read.csv("../data/bike-day.csv", header = T)
+bike_day <- read.csv("../data/bike-day.csv", header = T)
 # Use the wrangling "wrapper" function to clean the data (fxn sourced from wrangle.R)
-bikedata <- wrangle_init(bikedata)
+data <- wrangle_init(bike_day)
+#============================#
+#       Source Scripts       #
+#============================#
+source(file = "../R/model.R")
+source(file = "../R/plot.R")
 ```
 
-```{r}
 
-```
+
 

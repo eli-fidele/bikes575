@@ -38,12 +38,6 @@ source(file = "../R/model.R")
 source(file = "../R/plot.R")
 ```
 
-```{r}
-# Fit the OLS model
-m.ols <- lm(cnt ~ yr + atemp + holiday + weathersit,
-            data = data)
-summary(m.ols)
-```
 
 \newpage
 
@@ -57,11 +51,16 @@ ols.model1 <- function(data){
 
 The parameter estimates retain their signs if we split the dataset. From an inference POV, this is a good sign. Curiously enough, however, the actual parameter estimates change slightly.
 
+## Training on 2011 Data
+
 ```{r}
-ols2011 <- ols.model1(data2011)
-summary(ols2011)
-ols2012 <- ols.model1(data2012)
-summary(ols2012)
+ols.model1(data2011)
+```
+
+## Training on 2012 Data
+
+```{r}
+ols.model1(data2012)
 ```
 
 \newpage
@@ -96,7 +95,7 @@ Another way we could verify this is by using the adjusted count as a variable, r
 
 ```{r}
 ols.adjusted <- lm(cnt_adj ~ atemp + I(atemp^2) + holiday + weathersit, data = data)
-summary(ols.adjusted)
+ols.adjusted
 ```
 
 ```{r}
@@ -107,7 +106,7 @@ p1 <- ggplot(data = residuals_adj) + geom_point(aes(x, y))
 
 ```{r}
 ols.unadjusted <- lm(cnt ~ yr + atemp + I(atemp^2) + holiday + weathersit, data = data)
-summary(ols.unadjusted)
+ols.unadjusted
 ```
 
 ```{r}
@@ -133,21 +132,33 @@ plot_grid(p1, p2)
 ```{r}
 # Train model on 2011 data (don't show it 2012 data)
 ols.model <- ols.model1(data = data2011) 
-summary(ols.model)
+#summary(ols.model)
 ```
 
 ```{r}
 preds2012 <- predict(ols.model, data2012)
+```
+
+### MSE of unadjusted response on 2012 dataset (training on 2011 data only)
+
+```{r}
 # MSEs
 MSE_unadj <- sqrt(mean((preds2012 - data2012$cnt)^2))
 MSE_unadj
+```
+
+### MSE of adjusted response on 2012 dataset (training on 2011 data only)
+
+```{r}
 MSE_adj <- sqrt(mean((preds2012 - data2012$cnt_adj)^2))
 MSE_adj
 ```
 
-Now lets compare it to if we used the `yr` variable, how does it compare? In theory, we have the same exact information, so we expect the model performance on the testing data to not be too disparate. Why would changing from a indicator variable scheme to a scaled response variable scheme change performance if both use the same "information"?
+\textbf{In conclusion, adjusting the response variable shows that the model performs better than initially thought. By adjusting for an increasing base of bike share users, the parameter $\beta$ is "given a fair shot" to estimate the effects our predictors have since the adjusted response variable "relevels" the playing field.}
 
-Surprisingly, the model with the scaled response variable scheme did perform better. So, if we account the response variable for expected growth $r$ rather than add a constant $\delta \mu$ to our predictors, this indicates we might get better model performance. 
+Now lets compare it to if we used the `yr` variable as a predictor, how does it compare? In theory, we have the same exact information, so we expect the model performance on the testing data to not be too disparate. Why would changing from a indicator variable scheme to a scaled response variable scheme change performance if both use the same "information"?
+
+Surprisingly, the model with the scaled response variable scheme did perform better. So, if we account the response variable for expected growth $r$ rather than add a constant $\Delta \mu$ to our fitted values (the effect of regressing an indicator variable), this indicates we might get better model performance. 
 
 ```{r}
 preds2012 <- predict(ols.unadjusted, data2012)

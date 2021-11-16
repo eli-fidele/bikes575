@@ -20,7 +20,11 @@ In this lab report, Multiple Linear Regression (MLR) is performed on three diffe
 The model should help answer the following question: what are the **daily** bike rentals under different conditions? Business owners may like to know the daily bike rentals in 2012 so that they could optimize the inventory to reduce costs, and they may also wonder whether it is worth leaving the bike-sharing system open on days with extreme weather conditions. This can be done by performing predictive modeling on the daily rental variable based on data given in 2011.
 
 
-$$ $$
+
+
+# Preprocessing
+
+## Overview
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 # Load libraries
@@ -28,11 +32,12 @@ library(ggplot2)
 library(GGally)
 library(cowplot)
 library(tidyverse)
+```
 
+```{r}
 # For ggplot, center all titles
 theme_update(plot.title = element_text(hjust = 0.5))
 ```
-
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 # Read data
@@ -43,9 +48,6 @@ bikedata <- read.csv("data/bike-day.csv",header=T)
 # A brief look at the data structure from day.csv
 head(bikedata, 3)
 ```
-
-
-$$ $$
 
 ## Data Type & Value Conversion
 

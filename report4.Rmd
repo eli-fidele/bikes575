@@ -44,6 +44,8 @@ source(file = "R/plot.R")
 
 # Abstract
 
+The prevalence of bikesharing has been steadily increasing over the years; as the industry grows, there is an increasing interest in predicting the daily frequency in which users utilize these bikesharing services. Using the data provided by LIAAD, we seek to use the daily counts and a variety of seasonal and envrionmental predictors to estimate 2012 counts by using 2011 data. By selecting two sets of predictors (one simple, one complex), an OLS model is fit to demonstrate the reliability of a core set of predictors: `atemp`, `atemp^2`, `weathersit`, `windspeed`, and `hum`. Additionally, a technique of "growth-discounting" response variables on the testing data is motivated in order to solve the issue of non-constant size of the bikesharing user-base. Significant improvements in testing performances (11-12x) were observed when the response was adjusted. Small, but considerable improvements (0.4-4.6%) were also observed when increasing the complexity of the model, indicating room for more complex models.
+
 # Introduction 
 
 In this lab report, we narrow our scope from last time and perform Multiple Linear Regression (MLR) on the `cnt` variable and a selected subset of predictors chosen from the 2011 Bike Sharing dataset $^{[1]}$. Then, we will be testing our model fit of the 2011 data on the 2012 data.
@@ -92,7 +94,7 @@ To stay concise, we deicded to omit the time-class variables (due to autocorrela
 
 ```{r, warning = F, message = F, echo = F, fig.height = 3, fig.width = 7}
 chosen_vars <- c('weathersit','atemp','windspeed','hum', 'cnt')
-ggpairs(data[chosen_vars])
+ggpairs(data = data[chosen_vars])
 ```
 
 As we can see we have a wide array of variables with reasonable amounts of explanatory power. That being said, we will go forward with two classes of models: a simple model, and a complex model. As we know, simple models tend to perform better since there is much less risk of overfitting to the data as exists in the complex model paradigm. That being said, we propose the following models by variable subset:
@@ -180,42 +182,66 @@ With regards to diagnostics, both models seem to be reasonably well-behaved. Bot
 Now, we come to test the performance of our models. Recall that in our discussion regarding the response variable, we talked about rescaling the response variable in the testing data to account for the growth in the user base. We may finally concretely show this strategy to be powerful by observing the MSE when considering both the scaled and unscaled response variable for both Model 1 and Model 2. Consider the following table, summarizing our results below:
 
 ```{r}
-
-```
-
-
-```{r}
 # Simple model 
 preds2012 <- predict(model1, data2012)
 MSE0 <- MSE(fits = preds2012, trues = data2012$cnt)
 MSE1 <- MSE(fits = preds2012, trues = data2012$cnt_adj)
-```
-
-```{r}
 # Complex model
 preds2012 <- predict(model2, data2012)
 MSE2 <- MSE(fits = preds2012, trues = data2012$cnt)
 MSE3 <- MSE(fits = preds2012, trues = data2012$cnt_adj)
 ```
 
-```{r}
-# Complex model
-ols.model <- model2
-preds2012 <- predict(ols.model, data2012)
-MSE2 <- MSE(fits = preds2012, trues = data2012$cnt_adj)
-MSE2
+```{r, paged.print=TRUE}
+l0 <- c(MSE0, "simple", "unadjusted")
+l1 <- c(MSE1, "simple", "adjusted")
+l2 <- c(MSE2, "complex", "unadjusted")
+l3 <- c(MSE3, "complex", "adjusted")
+model_results <- data.frame(rbind(l0,l1,l2,l3))
+rownames(model_results) <- 1:4
+colnames(model_results) <- c("MSE","Model","Response")
+model_results$MSE <- round(as.numeric(model_results$MSE), 3) 
+model_results
 ```
 
 ```{r}
-MSE0/MSE1
-MSE1/MSE2
-#Improvements:
-#1200%, 0.003%
+perc_diff <- function(i, j){ round(model_results$MSE[i]/model_results$MSE[j], 3) }
 ```
+
+
+As we can see, the most profound result comes from switching from the unadjusted responses to the growth-adjusted ones. Namely, when we do so, we observe that the MSE improved and decreased by $1211\%$ and $1164\%$ in the simple and complex models, respectively. Keeping the response type constant, when we go from the simple to the complex models, we observe the MSE improves and decreases by by $4.3\%$ and $0.6\%$ in the unadjusted and adjusted response types, respectively. \textbf{All in all, it seems as though in our case, the complex model did indeed perform better (0.6-4.3\% decrease). The game-changer comes when we adjust the response variable, in which we observe amazing reduction in the MSE (11-12x decrease).}
 
 # Discussion
 
-# Conclusion
+Overall, we achieved a few things in this report. One of our main objectives from last time is to narrow the scope (and length) of our results and focus on finding a core subset of variables and test our models to ensure they perform well. Indeed, we did so and found that the model `cnt ~ weathersit + atemp + I(atemp^2)` is a great core model. It seems like the complexity introduced by `windspeed` and `hum` have improved the model, meaning it is very possible the model could benefit from adding even more variables.
+
+Additionally, we really focused on the main problem we are trying to solve: predicting the 2012 counts well. We have identified a core problem which got us much closer to doing so. Namely, last time, we failed to consider that the number of users using bikes is not necessarily constant across 2011-2012. By introducing the "growth-discount factor" $r = \frac{\mu_{2011}}{\mu_{2012}}$, we were able to "renormalize" our 2012 data to behave under the same underlying logic of the 2011 data. This allowed us to glimpse the true potential of $\hat{\beta}$ on our testing data. The results were remarkable, showing a 11-12x improvement in MSE. That being said, we only demonstrated this in the scenario where we "perfectly estimated" $\hat{r}$. This is our primary shortcoming -- while we demonstrated the power of estimating $r$, we did not provide a method, technique, or even data to do so. However, as we know, the world is generating more and more data every day, making this less of an issue than in 2011.
+
+When it came to model selection, we decided to take the simple approach to keep the report digestible, and chose a simple model and a complex one. With everything in place, there is certainly more room to explore more complex models. As it turns out, we have still not reached a point in model complexity where we are overfitting the data, but we are probably close. That is in lieu of the improvements of 0.4-4.3\% in terms of the MSE. Additionally, the scope of this report was very focused on our OSE models. Now that we have achieved this, we may begin to slowly increase our scope to our previous goals of studying the `registered` and `casual` variables to observe any patterns or differences in predictability. Additionally, we only made use of our weather predictors, tossing away all of our \textit{time-based} predictors. So for next time, we are considering bringing those variables back to wield the power of time-series models and/or autocorrelation models.
+
+# Appendix
+
+- `instant`: record index
+- `dteday`: date
+- `season`: season (1:spring, 2:summer, 3:fall, 4:winter)
+- `yr`: year (0:2011, 1:2012)
+- `mnth`: month ( 1 to 12)
+- `hr`: hour (0 to 23)
+- `holiday`: weather day is holiday or not (extracted from http://dchr.dc.gov/page/holiday-schedule)
+- `weekday`: day of the week
+- `workingday`: if day is neither weekend nor holiday is 1, otherwise is 0.
++ `weather-sit`: 
+	- 1: Clear, Few clouds, Partly cloudy, Partly cloudy
+	- 2: Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist
+	- 3: Light Snow, Light Rain + Thunderstorm + Scattered clouds, Light Rain + Scattered clouds
+	- 4: Heavy Rain + Ice Pallets + Thunderstorm + Mist, Snow + Fog
+- `temp`: Normalized temperature in Celsius. The values are divided to 41 (max)
+- `atemp`: Normalized feeling temperature in Celsius. The values are divided to 50 (max)
+- `hum`: Normalized humidity. The values are divided to 100 (max)
+- `windspeed`: Normalized wind speed. The values are divided to 67 (max)
+- `casual`: count of casual users
+- `registered`: count of registered users
+- `cnt`: count of total rental bikes including both casual and registered
 
 # References
 

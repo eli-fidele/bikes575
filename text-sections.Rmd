@@ -9,12 +9,33 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Introduction 
 
-In this lab report, Multiple Linear Regression (MLR) is performed on three different responses variable and a subset of predictors chosen from the 2011 Bike Sharing dataset $^{[1]}$. The response variables of our concern are: 
+# Preprocessing
 
-1. the count of **casual** daily bike rentals 
-2. the count of **registered** daily bike rentals
-3. the count of **total** daily bike rentals
+## Overview
 
-The model should help answer the following question: what are the **daily** bike rentals under different conditions? Business owners may like to know the daily bike rentals in 2012 so that they could optimize the inventory to reduce costs, and they may also wonder whether it is worth leaving the bike-sharing system open on days with extreme weather conditions. This can be done by performing predictive modeling on the daily rental variable based on data given in 2011.
+**Variable Interpretations** (see $[1]$)
+
+Both hour.csv and day.csv have the following fields, except `hr` which is not available in bike-day.csv:
+	
+- `instant`: record index
+- `dteday`: date
+- `season`: season (1:spring, 2:summer, 3:fall, 4:winter)
+- `yr`: year (0:2011, 1:2012)
+- `mnth`: month ( 1 to 12)
+- `hr`: hour (0 to 23)
+- `holiday`: weather day is holiday or not (extracted from http://dchr.dc.gov/page/holiday-schedule)
+- `weekday`: day of the week
+- `workingday`: if day is neither weekend nor holiday is 1, otherwise is 0.
++ `weather-sit`: 
+	- 1: Clear, Few clouds, Partly cloudy, Partly cloudy
+	- 2: Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist
+	- 3: Light Snow, Light Rain + Thunderstorm + Scattered clouds, Light Rain + Scattered clouds
+	- 4: Heavy Rain + Ice Pallets + Thunderstorm + Mist, Snow + Fog
+- `temp`: Normalized temperature in Celsius. The values are divided to 41 (max)
+- `atemp`: Normalized feeling temperature in Celsius. The values are divided to 50 (max)
+- `hum`: Normalized humidity. The values are divided to 100 (max)
+- `windspeed`: Normalized wind speed. The values are divided to 67 (max)
+- `casual`: count of casual users
+- `registered`: count of registered users
+- `cnt`: count of total rental bikes including both casual and registered

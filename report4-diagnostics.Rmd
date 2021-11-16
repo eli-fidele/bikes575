@@ -1,0 +1,189 @@
+---
+title: "report4-plots"
+author: "Taqi"
+date: "11/15/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Residual Diagostics
+
+### Residual Trends
+
+$$\text{Fig.9: Standardized Residual Plots}$$
+
+```{r fig.width=6, fig.height=2, echo=FALSE}
+# Standardized Residuals vs Temperature
+StanRes.2 <- rstandard(m.mlr.2)
+data.mlr.2 <- data.frame(atemp,StanRes.2)
+
+StanRes.3_1 <- rstandard(m.mlr.3_1)
+data.mlr.3_1 <- data.frame(atemp,StanRes.3_1)
+
+StanRes.4_2 <- rstandard(m.mlr.4_2)
+data.mlr.4_2 <- data.frame(atemp,StanRes.4_2)
+
+r2 <- ggplot() + 
+  geom_point(data=data.mlr.2,   aes(x=atemp, y=StanRes.2,   color = names(cols[2])), size = 1) +
+  geom_hline(yintercept=2,color='blue') + geom_hline(yintercept=-2, color='blue') +
+  scale_color_manual(name = element_blank(), labels = names(cols[2]), values = cols[2]) +
+  labs(x = "Temperature (ºC)", y = "Standarized Residual", title = "Model 2") + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+
+r3_1 <- ggplot() + 
+  geom_point(data=data.mlr.3_1, aes(x=atemp, y=StanRes.3_1, color = names(cols[3])), size = 1) +
+  geom_hline(yintercept=2,color='blue') + geom_hline(yintercept=-2, color='blue') +
+  scale_color_manual(name = element_blank(), labels = names(cols[3]), values = cols[3]) +
+  labs(x = "Temperature (ºC)", y = "Standarized Residual", title = "Model 3_1") +
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+
+r4_2 <- ggplot() + 
+  geom_point(data=data.mlr.4_2, aes(x=atemp, y=StanRes.4_2, color = names(cols[4])), size = 1) +
+  geom_hline(yintercept=2,color='blue') + geom_hline(yintercept=-2, color='blue') +
+  scale_color_manual(name = element_blank(), labels = names(cols[4]), values = cols[4]) +
+  labs(x = "Temperature (ºC)", y = "Standarized Residual", title = "Model 4_2") + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+
+
+plot_grid(r2, r3_1, r4_2, ncol = 3)
+```
+
+Most data points spreed evenly above and below the x-axis, which means the predicted values have captured the correct trends in response variation, which is good. Note that for the quadratic model (Model 2), there is still a slight positive bias in the lower-temperature parts and a negative bias in the higher-temperature parts, which also matches our observation in Fig.7&8. This problem is alleviated in the higher-degree models. 
+
+### Residual Normality
+
+#### Standardized Residual versus Fitted Value
+
+$$\text{Fig.10: Standardized Residual Plots}$$
+
+```{r fig.width=6, fig.height=2, echo=FALSE}
+# Standardized Residuals vs Fitted
+data.mlr.2   <- data.frame(fitted_vals2,   StanRes.2)
+data.mlr.3_1 <- data.frame(fitted_vals3_1, StanRes.3_1)
+data.mlr.4_2 <- data.frame(fitted_vals4_2, StanRes.4_2)
+
+r2 <- ggplot() + 
+  geom_point(data=data.mlr.2,   aes(x=fitted_vals2, y=StanRes.2,   color = names(cols[2])), size = 1) +
+  geom_hline(yintercept=2,color='blue') + geom_hline(yintercept=-2, color='blue') +
+  scale_color_manual(name = element_blank(), labels = names(cols[2]), values = cols[2]) +
+  labs(x = "Predicted Count", y = "Standarized Residual", title = "Model 2") + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+
+r3_1 <- ggplot() + 
+  geom_point(data=data.mlr.3_1, aes(x=fitted_vals3_1, y=StanRes.3_1, color = names(cols[3])), size = 1) +
+  geom_hline(yintercept=2,color='blue') + geom_hline(yintercept=-2, color='blue') +
+  scale_color_manual(name = element_blank(), labels = names(cols[3]), values = cols[3]) +
+  labs(x = "Predicted Count", y = "Standarized Residual", title = "Model 3_1") + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+
+r4_2 <- ggplot() + 
+  geom_point(data=data.mlr.4_2, aes(x=fitted_vals4_2, y=StanRes.4_2, color = names(cols[4])), size = 1) +
+  geom_hline(yintercept=2,color='blue') + geom_hline(yintercept=-2, color='blue') +
+  scale_color_manual(name = element_blank(), labels = names(cols[4]), values = cols[4]) +
+  labs(x = "Predicted Count", y = "Standarized Residual", title = "Model 4_2") + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+
+
+plot_grid(r2, r3_1, r4_2, ncol = 3)
+```
+
+When the predicted counts are low, which corresponds to the lower-temperature parts in Fig.10, the residuals have a positive bias, i.e., the predicted values tend to be less than the true values, which matches what we have seen in Fig.7&8. 
+
+The problem that the predicted rental counts go below 0 still needs to be fixed in the later studies. 
+
+#### Normal Q-Q Plots
+
+$$\text{Fig.11: Normal Q-Q Plots}$$
+
+```{r fig.width=6, fig.height=2, echo=FALSE}
+# QQ Plot
+p2 <- ggplot(data.frame(StanRes.2), aes(sample = StanRes.2, color = names(cols[2]))) + 
+  scale_color_manual(name = element_blank(), labels = names(cols[2]), values = cols[2]) + 
+  stat_qq() + stat_qq_line() + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+
+p3_1 <- ggplot(data.frame(StanRes.3_1), aes(sample = StanRes.3_1, color = names(cols[3]))) + 
+  scale_color_manual(name = element_blank(), labels = names(cols[3]), values = cols[3]) + 
+  stat_qq() + stat_qq_line() + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) 
+
+p4_2 <- ggplot(data.frame(StanRes.4_2), aes(sample = StanRes.4_2, color = names(cols[4]))) + 
+  scale_color_manual(name = element_blank(), labels = names(cols[4]), values = cols[4]) + 
+  stat_qq() + stat_qq_line() + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) 
+
+plot_grid(p2, p3_1, p4_2, ncol = 3)
+```
+
+All of the residual distributions (Fig.11) match quite well with the standard normal distribution, which is really great, as such degree of matches can rarely be seen in general. 
+
+\newpage
+
+#### Residual Histograms
+
+$$\text{Fig.12: Residual Histograms}$$
+
+```{r fig.width=6, fig.height=2, echo=FALSE}
+# Histogram of Quadratic and QMLS
+
+p2 <- ggplot(data.frame(StanRes.2), aes(x = StanRes.2, color = names(cols[2]))) + 
+  scale_color_manual(name = element_blank(), labels = names(cols[2]), values = cols[2]) + 
+  labs(x = "Standardized Residual", title = "Model 2") + 
+  geom_histogram(bins = 100) + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+
+p3_1 <- ggplot(data.frame(StanRes.3_1), aes(x = StanRes.3_1, color = names(cols[3]))) + 
+  scale_color_manual(name = element_blank(), labels = names(cols[3]), values = cols[3]) + 
+  labs(x = "Standardized Residual", title = "Model 3_1") + 
+  geom_histogram(bins = 100) + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+
+p4_2 <- ggplot(data.frame(StanRes.4_2), aes(x = StanRes.4_2, color = names(cols[4]))) + 
+  scale_color_manual(name = element_blank(), labels = names(cols[4]), values = cols[4]) + 
+  labs(x = "Standardized Residual", title = "Model 4_2") + 
+  geom_histogram(bins = 100) + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+
+plot_grid(p2, p3_1, p4_2, ncol = 3)
+```
+
+Given the nice match of distributions (Fig.11), the histograms should also match the standard normal distribution quite well, but surprisingly, the cubic model exhibits a slight bi-model issue (Fig.12). This is to be inspected in later analysis. 

@@ -1,0 +1,408 @@
+---
+title: "report4-plots"
+author: "Taqi"
+date: "11/15/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Model Building
+
+### Model 1: Linear in Temperature
+
+```{r}
+# MLR Model 1: Linear in Temperature
+m.mlr.1 <- lm(cnt ~ yr + holiday + weathersit + atemp, data = bikedata)
+summary(m.mlr.1)
+```
+
+$$  $$
+
+### Model 2: Quadratic in Temperature
+
+```{r}
+# MLR Model 2: Quadratic in Temperature
+m.mlr.2 <- lm(cnt ~ yr + holiday + weathersit + atemp + I(atemp^2), data = bikedata)
+summary(m.mlr.2)
+```
+
+$$ $$
+
+### Model 3: Cubic in Temperature
+
+```{r}
+# MLR Model 3: Cubic in Temperature
+m.mlr.3 <- lm(cnt ~ yr + holiday + weathersit + atemp + I(atemp^2) + I(atemp^3), data = bikedata)
+summary(m.mlr.3)
+```
+
+$$ $$
+
+### MLR Model 4: Quartic in Temperature
+
+```{r}
+# MLR Model 4: Quartic in Temperature
+m.mlr.4 <- lm(cnt ~ yr + holiday + weathersit + atemp + I(atemp^2) + I(atemp^3) + I(atemp^4), 
+              data = bikedata)
+summary(m.mlr.4)
+```
+
+$$ $$
+
+The quartic model (Model 4) ends up having all temperature terms insignificant, presumably because the influence of each individual term in the polynomial are being evened out by other terms having a similar effect (e.g., the 4th order term is able to cover some variation in the form of a 3rd-order polynomial, and the linear term is similar to the 3rd-order term in that both functions are odd). 
+
+We can verify this guess by removing one of the lower-order terms, say, the cubic term: 
+
+$$ $$
+
+```{r}
+# MLR Model 4_1: Quartic in Temperature
+m.mlr.4_1 <- lm(cnt ~ yr + holiday + weathersit + atemp + I(atemp^2) + I(atemp^4), 
+                data = bikedata)
+summary(m.mlr.4_1)
+```
+
+$$ $$
+
+Alternatively, removing the quadratic term also does the job (actually even better):
+
+$$ $$
+
+```{r}
+# MLR Model 4_2: Quartic in Temperature
+m.mlr.4_2 <- lm(cnt ~ yr + holiday + weathersit + atemp + I(atemp^3) + I(atemp^4), 
+                data = bikedata)
+summary(m.mlr.4_2)
+```
+
+$$ $$
+
+### MLR Model 3: Additional Models
+
+Inspired by the result of the quartic models, we should also try removing one of the lower-order terms in the cubic model (Model 3): 
+
+$$ $$
+
+```{r}
+# MLR Model 3_1: Cubic in Temperature (dropping one less-significant lower-order term)
+m.mlr.3_1 <- lm(cnt ~ yr + holiday + weathersit + I(atemp^2) + I(atemp^3), 
+                data = bikedata)
+summary(m.mlr.3_1)
+```
+
+$$ $$
+
+```{r}
+# MLR Model 3_2: Cubic in Temperature (dropping another lower-order term)
+m.mlr.3_2 <- lm(cnt ~ yr + holiday + weathersit + atemp + I(atemp^3), data = bikedata)
+summary(m.mlr.3_2)
+```
+
+$$ $$
+
+## Model Selection 
+
+### Fitted Values
+
+```{r echo=FALSE}
+# Obtain the fitted values from the model
+fitted_vals1   <- predict(m.mlr.1)
+fitted_vals2   <- predict(m.mlr.2)
+fitted_vals3   <- predict(m.mlr.3)
+fitted_vals3_1 <- predict(m.mlr.3_1)
+fitted_vals3_2 <- predict(m.mlr.3_2)
+fitted_vals4   <- predict(m.mlr.4)
+fitted_vals4_1 <- predict(m.mlr.4_1)
+fitted_vals4_2 <- predict(m.mlr.4_2)
+
+cols <- c('Linear' = "cyan", 'Quadratic' = "blue", 'Cubic' = "red", 'Quartic' = 'black')
+```
+
+
+```{r echo=FALSE}
+# Plot the predicted values in 2011
+p1 <- ggplot(data = data2011, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 1") + 
+  theme_grey(base_size = 5.6) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data2011, mapping = aes(x = temp, y = fitted_vals1[data$dteday < '2012-01-01'], col = names(cols)[1]), lwd = 1) +
+  scale_color_manual(values = cols[1], 
+                     labels = names(cols)[1], 
+                     name = 'Prediction')
+
+# Plot the predicted values
+p2 <- ggplot(data = data2011, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 2") + 
+  theme_grey(base_size = 5.6) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data2011, mapping = aes(x = temp, y = fitted_vals2[data$dteday < '2012-01-01'], col = names(cols)[2]), lwd = 1) +
+  scale_color_manual(values = cols[2], 
+                     labels = names(cols)[2], 
+                     name = 'Prediction')
+
+# Plot the predicted values
+p3 <- ggplot(data = data2011, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 3") + 
+  theme_grey(base_size = 5.6) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data2011, mapping = aes(x = temp, y = fitted_vals3[data$dteday < '2012-01-01'], col = names(cols)[3]), lwd = 1) +
+  scale_color_manual(values = cols[3], 
+                     labels = names(cols)[3], 
+                     name = 'Prediction')
+
+# Plot the predicted values
+p3_1 <- ggplot(data = data2011, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 3_1") + 
+  theme_grey(base_size = 5.6) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data2011, mapping = aes(x = temp, y = fitted_vals3_1[data$dteday < '2012-01-01'], col = names(cols)[3]), lwd = 1) +
+  scale_color_manual(values = cols[3], 
+                     labels = names(cols)[3], 
+                     name = 'Prediction')
+
+# Plot the predicted values
+p3_2 <- ggplot(data = data2011, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 3_2") + 
+  theme_grey(base_size = 5.6) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data2011, mapping = aes(x = temp, y = fitted_vals3_2[data$dteday < '2012-01-01'], col = names(cols)[3]), lwd = 1) +
+  scale_color_manual(values = cols[3], 
+                     labels = names(cols)[3], 
+                     name = 'Prediction')
+
+# Plot the predicted values
+p4 <- ggplot(data = data2011, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 4") + 
+  theme_grey(base_size = 5.6) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data2011, mapping = aes(x = temp, y = fitted_vals4[data$dteday < '2012-01-01'], col = names(cols)[4]), lwd = 1) +
+  scale_color_manual(values = cols[4], 
+                     labels = names(cols)[4], 
+                     name = 'Prediction')
+
+# Plot the predicted values
+p4_1 <- ggplot(data = data2011, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 4_1") + 
+  theme_grey(base_size = 5.6) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data2011, mapping = aes(x = temp, y = fitted_vals4_1[data$dteday < '2012-01-01'], col = names(cols)[4]), lwd = 1) +
+  scale_color_manual(values = cols[4], 
+                     labels = names(cols)[4], 
+                     name = 'Prediction')
+
+# Plot the predicted values
+p4_2 <- ggplot(data = data2011, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 4_2") + 
+  theme_grey(base_size = 5.6) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data2011, mapping = aes(x = temp, y = fitted_vals4_2[data$dteday < '2012-01-01'], col = names(cols)[4]), lwd = 1) +
+  scale_color_manual(values = cols[4], 
+                     labels = names(cols)[4], 
+                     name = 'Prediction')
+```
+
+$$\text{Fig.7: 2011 Daily Bike Usage Count by Feeling Temperature, Predictions Overlayed}$$
+
+```{r fig.width=9, fig.height=6, echo=FALSE}
+plot_grid(p1, p2, p3, p3_1, p3_2, p4, p4_1, p4_2)
+```
+
+
+```{r echo=FALSE}
+# Plot the predicted values in 2012
+
+cols <- c('Linear' = "cyan", 'Quadratic' = "blue", 'Cubic' = "red", 'Quartic' = 'black')
+
+p1 <- ggplot(data = data2012, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 1") + 
+  theme_grey(base_size = 5.6) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data2012, mapping = aes(x = temp, y = fitted_vals1[data$dteday >= '2012-01-01'], col = names(cols)[1]), lwd = 1) +
+  scale_color_manual(values = cols[1], 
+                     labels = names(cols)[1], 
+                     name = 'Prediction')
+
+# Plot the predicted values
+p2 <- ggplot(data = data2012, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 2") + 
+  theme_grey(base_size = 5.6) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data2012, mapping = aes(x = temp, y = fitted_vals2[data$dteday >= '2012-01-01'], col = names(cols)[2]), lwd = 1) +
+  scale_color_manual(values = cols[2], 
+                     labels = names(cols)[2], 
+                     name = 'Prediction')
+
+# Plot the predicted values
+p3 <- ggplot(data = data2012, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 3") + 
+  theme_grey(base_size = 5.6) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data2012, mapping = aes(x = temp, y = fitted_vals3[data$dteday >= '2012-01-01'], col = names(cols)[3]), lwd = 1) +
+  scale_color_manual(values = cols[3], 
+                     labels = names(cols)[3], 
+                     name = 'Prediction')
+
+# Plot the predicted values
+p3_1 <- ggplot(data = data2012, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 3_1") + 
+  theme_grey(base_size = 5.6) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data2012, mapping = aes(x = temp, y = fitted_vals3_1[data$dteday >= '2012-01-01'], col = names(cols)[3]), lwd = 1) +
+  scale_color_manual(values = cols[3], 
+                     labels = names(cols)[3], 
+                     name = 'Prediction')
+
+# Plot the predicted values
+p3_2 <- ggplot(data = data2012, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 3_2") + 
+  theme_grey(base_size = 5.6) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data2012, mapping = aes(x = temp, y = fitted_vals3_2[data$dteday >= '2012-01-01'], col = names(cols)[3]), lwd = 1) +
+  scale_color_manual(values = cols[3], 
+                     labels = names(cols)[3], 
+                     name = 'Prediction')
+
+# Plot the predicted values
+p4 <- ggplot(data = data2012, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 4") + 
+  theme_grey(base_size = 5.6) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data2012, mapping = aes(x = temp, y = fitted_vals4[data$dteday >= '2012-01-01'], col = names(cols)[4]), lwd = 1) +
+  scale_color_manual(values = cols[4], 
+                     labels = names(cols)[4], 
+                     name = 'Prediction')
+
+# Plot the predicted values
+p4_1 <- ggplot(data = data2012, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 4_1") + 
+  theme_grey(base_size = 5.6) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data2012, mapping = aes(x = temp, y = fitted_vals4_1[data$dteday >= '2012-01-01'], col = names(cols)[4]), lwd = 1) +
+  scale_color_manual(values = cols[4], 
+                     labels = names(cols)[4], 
+                     name = 'Prediction')
+
+# Plot the predicted values
+p4_2 <- ggplot(data = data2012, aes(x = temp, y = cnt)) + 
+  geom_point(size = 0.5, color = "deepskyblue4", alpha = 0.4) + 
+  
+  labs(x = "Temperature (ºC)", y = "Daily Count", 
+       title = "Model 4_2") + 
+  theme_grey(base_size = 5.6) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) + 
+  
+  geom_line(data = data2012, mapping = aes(x = temp, y = fitted_vals4_2[data$dteday >= '2012-01-01'], col = names(cols)[4]), lwd = 1) +
+  scale_color_manual(values = cols[4], 
+                     labels = names(cols)[4], 
+                     name = 'Prediction')
+```
+
+
+Observe that in 2011 (Fig.7), all models have to some degree lead to predicted counts below 0. This is a problem that should be fixed.  
+
+$$ $$
+\newpage
+
+$$\text{Fig.8: 2012 Daily Bike Usage Count by Feeling Temperature, Predictions Overlayed}$$
+
+
+```{r fig.width=9, fig.height=6, echo=FALSE}
+plot_grid(p1, p2, p3, p3_1, p3_2, p4, p4_1, p4_2)
+```
+
+Considering both the significance of coefficients and how well the visual trends are captured (Fig.7,8), we keep Model 2, 3_1 and 4_2 for further comparisons. 

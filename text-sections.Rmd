@@ -11,17 +11,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction 
 
-In this lab report, Multiple Linear Regression (MLR) is performed on one response variable and a subset of predictors chosen from the 2011-2012 Bike Sharing dataset $^{[1]}$. The dataset contains three main kinds of response variables of our concerns: 
+In this lab report, Multiple Linear Regression (MLR) is performed on three different responses variable and a subset of predictors chosen from the 2011 Bike Sharing dataset $^{[1]}$. The response variables of our concern are: 
 
-1. the count of **daily** bike rentals 
-2. the count of **hourly** bike rentals. 
+1. the count of **casual** daily bike rentals 
+2. the count of **registered** daily bike rentals
+3. the count of **total** daily bike rentals
 
-Within each kind of bike rental counts, the following 3 categories of rental counts are recorded: 
-
-1. the count of bike rentals by **casual** users
-2. the count of bike rentals by **registered** users
-3. the **total** count, which is the sum of casual count and registered count. 
-
-For simplicity, the **total** count of **daily** bike rentals is chosen as the response variable to be studied in this lab. The model should thus help answer the following question as mentioned in Lab Report 1: 
-
-- What are the **daily** bike rentals under different conditions? (Business owners may like to know the daily bike rentals in 2013 so that they could optimize the inventory to reduce costs, and they may also wonder whether it is worth leaving the bike-sharing system open on days with extreme weather conditions. This can be done by performing predictive modeling on the daily rental variable based on data given in 2011 and 2012.)
+The model should help answer the following question: what are the **daily** bike rentals under different conditions? Business owners may like to know the daily bike rentals in 2012 so that they could optimize the inventory to reduce costs, and they may also wonder whether it is worth leaving the bike-sharing system open on days with extreme weather conditions. This can be done by performing predictive modeling on the daily rental variable based on data given in 2011.

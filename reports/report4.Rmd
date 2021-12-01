@@ -1,0 +1,252 @@
+---
+title: 'Lab Report 3: Multiple Linear Regression'
+subtitle: "MA 575 Fall 2021 - C3 Team #2"
+author: "Ali Taqi, Hsin-Chang Lin, Huiru Yang, Ryan Mahoney, Yulin Li"
+date: "11/15/2021"
+output: 
+  pdf_document: 
+    number_sections: true
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.align = "center")
+#==============================#
+#       Import Libraries       #
+#==============================#
+library(tidyverse)
+library(GGally)
+library(cowplot)
+library(gglm)
+#==============================#
+#        Global Settings       #
+#==============================#
+# Center ggplot titles
+theme_update(plot.title = element_text(hjust = 0.5))
+#=============================#
+#        Obtain Dataset       #
+#=============================#
+# Source the wrangling scripts
+source(file = "R/wrangle.R")
+# Import and wrangle data
+bike_day <- read.csv("data/bike-day.csv", header = T)
+# Use the wrangling "wrapper" function to clean the data (fxn sourced from wrangle.R)
+data <- wrangle_init(bike_day)
+# Partition the 2011/2012 data
+data2011 <- in_2011(data); data2012 <- in_2012(data)
+#============================#
+#       Source Scripts       #
+#============================#
+# Import any models (and fitted values, if applicable)
+source(file = "R/model.R")
+# Import any plots or plot wrapper functions
+source(file = "R/plot.R")
+```
+
+# Abstract
+
+The prevalence of bikesharing has been steadily increasing over the years; as the industry grows, there is an increasing interest in predicting the daily frequency in which users utilize these bikesharing services. Using the data provided by LIAAD, we seek to use the daily counts and a variety of seasonal and envrionmental predictors to estimate 2012 counts by using 2011 data. By selecting two sets of predictors (one simple, one complex), an OLS model is fit to demonstrate the reliability of a core set of predictors: `atemp`, `atemp^2`, `weathersit`, `windspeed`, and `hum`. Additionally, a technique of "growth-discounting" response variables on the testing data is motivated in order to solve the issue of non-constant size of the bikesharing user-base. Significant improvements in testing performances (11-12x) were observed when the response was adjusted. Small, but considerable improvements (0.4-4.6%) were also observed when increasing the complexity of the model, indicating room for more complex models.
+
+# Introduction 
+
+In this lab report, we narrow our scope from last time and perform Multiple Linear Regression (MLR) on the `cnt` variable and a selected subset of predictors chosen from the 2011 Bike Sharing dataset $^{[1]}$. Then, we will be testing our model fit of the 2011 data on the 2012 data.
+
+The model should help answer the following question: what are the **daily** bike rentals under different conditions? Business owners may like to know the daily bike rentals in 2012 so that they could optimize the inventory to reduce costs, and they may also wonder whether it is worth leaving the bike-sharing system open on days with extreme weather conditions. This can be done by performing predictive modeling on the daily rental variable based on data given in 2011.
+
+<!-- \newpage -->
+
+# Background
+
+First, we take a peek at our dataset In the appendix, attached is the explanation of the column names. The response variable is `cnt`, the number of users. Our selection of predictors include three numerical predictors: `atemp`, `hum`, `windspeed` and one categorical: `weathersit`. All our chosen predictors are weather-related. That being said, here is a sample of our data to obtain a sense of the values.
+
+```{r paged.print=TRUE}
+bikedata <- bike_day %>% select(weathersit, atemp, hum, windspeed, cnt)
+# A brief look at the data structure from day.csv
+head(bikedata, 3)
+```
+
+\textbf{Preprocessing: Data Type \& Value Conversion}
+
+Next, we need to preprocess our data before we can fit our models. We mainly do two things: (i) perform a few type changes on our predictors, and (ii) rescale our numerical predictors for interpretability. For the purposes of being concise, we only cover the variables we end up using.
+
+Typically, all variables whose numerical values are not attached to actual physical meanings are treated as **categorical** variables. Note that for the `weathersit` variable, weather conditions "worsen" as the index gets higher. Furthermore, the normalized weather condition measurements are also converted to their original values, so that the numerical values being used "make more sense" to us. This makes it easier for commonsense and real-life experience to be applied in later analysis. 
+
+```{r, echo = T}
+# Other categorical variables (from int to factor type)
+weathersit <- as.factor(bikedata$weathersit)     #1 to 4
+# Re-scale the normalized measurements
+temp <- bikedata$temp * 41
+atemp <- bikedata$atemp * 50
+hum <- bikedata$hum * 100
+windspeed <- bikedata$windspeed * 67 
+```
+
+<!-- \newpage -->
+
+# Modeling & Analysis
+
+## Variable Selection
+
+The first step to fitting a model starts with selecting our variables. To keep it simple, we decide to fit a full preliminary model and select a core set of very important, statistically significant variables. Of course, since models of high complexity are prone to overfitting, we do not get "fooled" by the low p-values on predictors we expect to have little predictive power. 
+
+To stay concise, we deicded to omit the time-class variables (due to autocorrelation and generally being inappopriate for our OLS model) and the variables `workingday`, `weekday`, and `holiday` due to their weak predictive power and general instability. Note that `temp` is almost perfectly correlated to `atemp`, and is thus omitted.
+
+## Pairwise Variable Plot
+
+```{r, warning = F, message = F, echo = F, fig.height = 3, fig.width = 7}
+chosen_vars <- c('weathersit','atemp','windspeed','hum', 'cnt')
+ggpairs(data = data[chosen_vars])
+```
+
+As we can see we have a wide array of variables with reasonable amounts of explanatory power. That being said, we will go forward with two classes of models: a simple model, and a complex model. As we know, simple models tend to perform better since there is much less risk of overfitting to the data as exists in the complex model paradigm. That being said, we propose the following models by variable subset:
+
+**Simple Model:** `cnt ~ weathersit + atemp + atemp^2` 
+
+**Complex Model:**  `cnt ~ weathersit + atemp + atemp^2 + windspeed + hum`
+
+In both models, we use the same core subset of variables containing "most" of the explanatory power: `weathersit`, and `atemp` (along with its second power) since we expect them to encode the most predictive power. This decision was made primarily to be conservative regarding model complexity for the reasons mentioned above (regarding testing performance). Additionally, one might surmise the predictive power of `weathersit` may be somewhat correlated to `windspeed` and `hum`; as such, to avoid the risk of any collinearity, we distinguish it from the simple model.
+
+Additionally, with regards to the second order term of `atemp`, we choose to confidently always use the quadratic model from preliminary findings in Lab Report 2, where we found that temperature and count tended to have a parabolic shape. Choosing a linear model wouldn't capture the full complexity, and choosing orders of 3 or above would be prone to overfitting. The plot below demonstrates the parabolic relation mentioned earlier.
+
+```{r, fig.height = 2, fig.length = 4}
+.plot_temp_cnt(bike_day[1:365,])
+```
+
+## The Response Variable 
+
+### Accounting for Growth in Bikeshare Users
+
+Recall that our response variable is `cnt`, the count of users on a given day. There is a bit of a problem if we are to use the 2011 data as training data and 2012 as testing data. Namely, it assumes the number of users stays constant, which is not necessarily true. \textbf{This is critical to account for since our response variable is a raw count}. As such, treating the 2011 and 2012 data disjointly may be appopriate. Let's do a hypothesis test to see if $\mu_{2011} - \mu_{2012} = 0$. Indeed, as we see below we find evidence suggesting there is a significant difference between the two populations.
+
+```{r}
+t.test(data2011$cnt, data2012$cnt)
+```
+
+That being said, we must account for the growth in the number of users between 2011-12. This is because in theory, the true parameter estimate $\hat{\beta}_{atemp}$ should be independent of how many users there. As such, one solution to consider is \textbf{discounting the 2012 responses by the average user growth observed between 2011-12, which we call $r$}. That being said, the factor $r$ is given by $r = \frac{\mu_{2011}}{\mu_{2012}}$, where $\mu_Y$ is the average `cnt` in year $Y$. 
+
+To summarize, we want to test the model against the "discounted" response variables $\tilde{c_i} = r\cdot c_i$. While this solution is elegant, there is one clear issue. Validating on 2012 data implies we do not have $\mu_{2012}$, and thus the factor $r$. This means we must somehow estimate $r$ without the testing data. The estimation of $r$ is not within the scope of this report. To justify this cost, we demonstrate the benefits of estimating $r$ by observing the effects on $\hat{\beta}$ assuming we perfectly estimate $r$. In our data, we observe $r = 0.608$, meaning the 2011 bikesharing community is about $60.8\%$ the size of the 2012 community.
+
+```{r, echo = F}
+# Get the ratio of means scaling factor
+r <- mean(data2011$cnt)/mean(data2012$cnt)
+```
+
+### Parameter Estimate Stability
+
+Now, we fit the same (simple) model on the training data and the testing datasets (adjusted and unadjusted response). By looking at the parameter estimates, we indeed find the parameter fits on the adjusted-response 2012 data resoundingly agrees with the 2011 estimates relative to the unadjusted-response 2012 data.
+
+```{r}
+# Function takes a dataset and returns model fit
+ols.model <- function(data){ lm(cnt ~ atemp + I(atemp^2) + weathersit, data) }
+# Create adjusted count variable in 2012 and fit to the adjusted response variable
+data2012_ADJ <- data2012 %>% mutate(cnt = r * cnt)
+# Fit model to 2011 data (as a baseline for parameter estimates)
+m0 <- lm(cnt ~ atemp + I(atemp^2) + weathersit, data2011)
+# Fit model to adjusted response variable
+m1 <- lm(cnt ~ atemp + I(atemp^2) + weathersit, data2012_ADJ)
+# Fit model to unadjusted response variable
+m2 <- lm(cnt ~ atemp + I(atemp^2) + weathersit, data2012)
+```
+
+```{r, echo = T}
+# Fit model to 2011 data (as a baseline for parameter estimates)
+m0$coefficients
+# Fit model to adjusted response variable
+m1$coefficients
+# Fit model to unadjusted response variable
+m2$coefficients
+```
+
+## Models
+
+Below, we fit all the models on the 2011 data and obtain our parameter estimates. We find that both models are statistically significant given their F-statistics yield near-zero $p$-values. All parameters across both models are statistically significant, with the exception of $\hat{\beta_0}$ in the complex model, which is a curious fact. As expected, the more complex model had a higher $R^2$ value of 0.75 compared to 0.72. However, given that we have added two predictors, this doesn't necessarily imply better testing performance. On the same note, we note ${RSE}_1 = 723.5$ and ${RSE}_2 = 688.1$ indicating the RSE diminishes with model complexity as we expect. However, this is most likely suspect to the training overfitting, which we will verify in the next sections.
+
+\textbf{Model 1: Simple Model}
+
+```{r, fig.width = 7, fig.height = 2.75}
+model1 <- lm(cnt ~ weathersit + atemp + I(atemp^2), data = data2011)
+summary(model1)
+gglm(model1)
+```
+\textbf{Model 2: Complex Model} 
+
+```{r, fig.width = 7, fig.height = 2.75}
+model2<- lm(cnt ~ weathersit + atemp + I(atemp^2) + windspeed + hum, data = data2011)
+summary(model2)
+gglm(model2)
+```
+
+With regards to diagnostics, both models seem to be reasonably well-behaved. Both Normal Q-Q plots seem to display a good fit. Roughly speaking, the Scale-Location plot seems to show a constant line, with a slight bend towards the lower fitted values, however. Additionally, the residuals in both models seem to be independent of the fitted values, with the exception of the lower values being consistently overestimated. When it comes to the ranges, the simple model has a larger range which makes sense since ${RSE}_1 > {RSE}_2$. Lastly, the simple model seems to show no outliers or badly-behaved points from the leverage plot. On the other hand, there is one outlier with considerable leverage in the complex model.
+
+# Prediction
+
+Now, we come to test the performance of our models. Recall that in our discussion regarding the response variable, we talked about rescaling the response variable in the testing data to account for the growth in the user base. We may finally concretely show this strategy to be powerful by observing the MSE when considering both the scaled and unscaled response variable for both Model 1 and Model 2. Consider the following table, summarizing our results below:
+
+```{r}
+# Simple model 
+preds2012 <- predict(model1, data2012)
+MSE0 <- MSE(fits = preds2012, trues = data2012$cnt)
+MSE1 <- MSE(fits = preds2012, trues = data2012$cnt_adj)
+# Complex model
+preds2012 <- predict(model2, data2012)
+MSE2 <- MSE(fits = preds2012, trues = data2012$cnt)
+MSE3 <- MSE(fits = preds2012, trues = data2012$cnt_adj)
+```
+
+```{r, paged.print=TRUE}
+l0 <- c(MSE0, "simple", "unadjusted")
+l1 <- c(MSE1, "simple", "adjusted")
+l2 <- c(MSE2, "complex", "unadjusted")
+l3 <- c(MSE3, "complex", "adjusted")
+model_results <- data.frame(rbind(l0,l1,l2,l3))
+rownames(model_results) <- 1:4
+colnames(model_results) <- c("MSE","Model","Response")
+model_results$MSE <- round(as.numeric(model_results$MSE), 3) 
+model_results
+```
+
+```{r}
+perc_diff <- function(i, j){ round(model_results$MSE[i]/model_results$MSE[j], 3) }
+```
+
+
+As we can see, the most profound result comes from switching from the unadjusted responses to the growth-adjusted ones. Namely, when we do so, we observe that the MSE improved and decreased by $1211\%$ and $1164\%$ in the simple and complex models, respectively. Keeping the response type constant, when we go from the simple to the complex models, we observe the MSE improves and decreases by by $4.3\%$ and $0.6\%$ in the unadjusted and adjusted response types, respectively. \textbf{All in all, it seems as though in our case, the complex model did indeed perform better (0.6-4.3\% decrease). The game-changer comes when we adjust the response variable, in which we observe amazing reduction in the MSE (11-12x decrease).}
+
+# Discussion
+
+Overall, we achieved a few things in this report. One of our main objectives from last time is to narrow the scope (and length) of our results and focus on finding a core subset of variables and test our models to ensure they perform well. Indeed, we did so and found that the model `cnt ~ weathersit + atemp + I(atemp^2)` is a great core model. It seems like the complexity introduced by `windspeed` and `hum` have improved the model, meaning it is very possible the model could benefit from adding even more variables.
+
+Additionally, we really focused on the main problem we are trying to solve: predicting the 2012 counts well. We have identified a core problem which got us much closer to doing so. Namely, last time, we failed to consider that the number of users using bikes is not necessarily constant across 2011-2012. By introducing the "growth-discount factor" $r = \frac{\mu_{2011}}{\mu_{2012}}$, we were able to "renormalize" our 2012 data to behave under the same underlying logic of the 2011 data. This allowed us to glimpse the true potential of $\hat{\beta}$ on our testing data. The results were remarkable, showing a 11-12x improvement in MSE. That being said, we only demonstrated this in the scenario where we "perfectly estimated" $\hat{r}$. This is our primary shortcoming -- while we demonstrated the power of estimating $r$, we did not provide a method, technique, or even data to do so. However, as we know, the world is generating more and more data every day, making this less of an issue than in 2011.
+
+When it came to model selection, we decided to take the simple approach to keep the report digestible, and chose a simple model and a complex one. With everything in place, there is certainly more room to explore more complex models. As it turns out, we have still not reached a point in model complexity where we are overfitting the data, but we are probably close. That is in lieu of the improvements of 0.4-4.3\% in terms of the MSE. Additionally, the scope of this report was very focused on our OSE models. Now that we have achieved this, we may begin to slowly increase our scope to our previous goals of studying the `registered` and `casual` variables to observe any patterns or differences in predictability. Additionally, we only made use of our weather predictors, tossing away all of our \textit{time-based} predictors. So for next time, we are considering bringing those variables back to wield the power of time-series models and/or autocorrelation models.
+
+# Appendix
+
+- `instant`: record index
+- `dteday`: date
+- `season`: season (1:spring, 2:summer, 3:fall, 4:winter)
+- `yr`: year (0:2011, 1:2012)
+- `mnth`: month ( 1 to 12)
+- `hr`: hour (0 to 23)
+- `holiday`: weather day is holiday or not (extracted from http://dchr.dc.gov/page/holiday-schedule)
+- `weekday`: day of the week
+- `workingday`: if day is neither weekend nor holiday is 1, otherwise is 0.
++ `weather-sit`: 
+	- 1: Clear, Few clouds, Partly cloudy, Partly cloudy
+	- 2: Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist
+	- 3: Light Snow, Light Rain + Thunderstorm + Scattered clouds, Light Rain + Scattered clouds
+	- 4: Heavy Rain + Ice Pallets + Thunderstorm + Mist, Snow + Fog
+- `temp`: Normalized temperature in Celsius. The values are divided to 41 (max)
+- `atemp`: Normalized feeling temperature in Celsius. The values are divided to 50 (max)
+- `hum`: Normalized humidity. The values are divided to 100 (max)
+- `windspeed`: Normalized wind speed. The values are divided to 67 (max)
+- `casual`: count of casual users
+- `registered`: count of registered users
+- `cnt`: count of total rental bikes including both casual and registered
+
+# References
+
+[1] Fanaee-T, Hadi, and Gama, Joao, "Event labeling combining ensemble detectors and background knowledge", Progress in Artificial Intelligence (2013): pp. 1-15, Springer Berlin Heidelberg, doi:10.1007/s13748-013-0040-3.
+
+[2] MA 575 Fall 2021 C3 Team #2, "Lab Report 2: Ordinary Least Squares".
+
+\newpage

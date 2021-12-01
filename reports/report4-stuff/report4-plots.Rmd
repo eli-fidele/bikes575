@@ -1,0 +1,280 @@
+---
+title: "report4-plots"
+author: "Taqi"
+date: "11/15/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Visualization
+
+```{r include=FALSE}
+data <- bikedata[, c(14:16)]
+data <- data.frame(dteday, season, yr, mnth, holiday, weekday, workingday,
+                   weathersit, temp, atemp, hum, windspeed, data)
+```
+
+$$ $$
+
+
+### Pairwise Relationships
+
+Generally speaking, people's bike rental behaviors should be related to all seasonal and environmental factors, since all of them may to some degree affect people's willingness and ability to perform outdoor activities like biking. Therefore, all predictors should be taken into consideration, at least at the beginning. 
+
+Note the seasonal variables `weekday`, `workingday` and `holiday` can be viewed as roughly uncorrelated to all the environmental variables. Therefore, it would be fine to just have two separate pairs plots involving each of two uncorrelated groups of predictors, respectively (to reduce the number of variables in a single plot for better resolutions). Additionally, observe that the seasonal variables `season`, `yr` (year) and `mnth` (month) can be inferred from the variable `dteday` (day). Therefore, the two pairs plots can be made using variables grouped in the following way, to guarantee that all essential relationships can be seen in the plots: 
+
+$$ $$
+
+**Group 1: (Mainly) Environmental**
+
+Predictors (all environmental variables plus date):
+
+- `dteday` (date)
+- `weathersit` (weather type)
+- `temp` (measured temperature)
+- `atemp` (feeling temperature)
+- `windspeed` (wind speed)
+- `hum` (humidity)
+
+Response:
+
+- `cnt` (daily total count)
+
+$$ $$
+
+**Group 2: Seasonal**
+
+Predictors (all seasonal variables):
+
+- `dteday` (date)
+- `season` (season)
+- `yr` (year)
+- `mnth` (month)
+- `holiday` (holiday or not)
+- `weekday` (day of the week)
+- `workingday` (working day or not)
+
+Response:
+
+- `cnt` (daily total count)
+
+$$ $$
+
+#### Pairs Plot for Group 1 (Mainly Environmental)
+
+$$\text{Fig.1: Pairs Plot for Group 1}$$
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','cnt')], 
+        progress = F, 
+        lower = list(continuous = wrap("points", alpha = 0.3, size=0.1))) + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+```
+
+Fig.1 Column names in order: 
+`dteday`, `weathersit`, `temp`, `atemp`, `windspeed`, `hum`, `cnt`
+
+$$ $$
+
+**Observations:**
+
+Looking at the last row of the pairs plot (Fig.1), only date and temperatures seem to be significant. The corresponding correlations are also the highest (see subplot 1, 3 & 4 on the last column of Fig.1), indicating that there should be some linear relationship to be explored. 
+
+The two kinds of temperatures are highly correlated; to avoid co-linearity issues among the predictors in our model, only one of them should be kept. We choose to stick with the one having a higher correlation with rental counts, the feeling temperature, `atemp`.
+
+Note that the significance of weather types is not immediately clear, since the distributions of rental counts under different weather types seem not to differ a lot (see subplot 2 on the last row of Fig.1), which is to our surprise. To take a closer look at the effect of weather types (`weathersit`), we choose to colored the pairs plot by it. 
+
+
+$$\text{Fig.2: Pairs Plot for Group 1 (Colored by Weather Type)}$$
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','cnt')], 
+        progress = F, 
+        lower = list(continuous = wrap("points", alpha = 0.3, size=0.1)), 
+        aes(colour=weathersit)) + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+```
+Fig.2 Column names in order: 
+`dteday`, `weathersit`, `temp`, `atemp`, `windspeed`, `hum`, `cnt`
+
+$$ $$
+
+**Observations:**
+
+From the first subplot on the last row of the above pairs plot (Fig.2), there does exist a separation of relatively higher and lower counts by weather type. This matches our commonsense - on more rainy days (weather type 2 & 3 indicated by the green and blue dots), people's biking activities do tend to less. This indicates that the weather type should be an useful predictor of bike rentals. 
+
+However, the scatter plots of rental counts against temperatures (subplot 3 & 4 on the last row of Fig.2) are still not clearly separated by weather types, which is again to our surprise. Remember that from the previous lab report [2], we have observed in these scatter plots the clustering of data points roughly into three curves at different levels of rental counts, which made us suspect the need of some categorical variable to separate the data. Now that the weather type variable does not play the role, we should attempt some other categorical variables. 
+
+After a few attempts, the desired categorical variable is found to be year, and the story starts to be clearer.  
+
+$$\text{Fig.3: Pairs Plot for Group 1 (Colored by Year)}$$
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','cnt')], 
+        progress = F, 
+        lower = list(continuous = wrap("points", alpha = 0.3, size=0.1)), 
+        aes(colour=yr)) + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+```
+Fig.3 Column names in order: 
+`dteday`, `weathersit`, `temp`, `atemp`, `windspeed`, `hum`, `cnt`
+
+$$ $$
+
+From the scatter-plot matrices (Fig.1-3), a time correlation is already clear. In fact, it is almost the strongest pattern, indicating the necessity of a model involving time. Before a time-series model is studied in this course, such time correlation can be utilized by noting that rental counts in the same year generally differ from counts in the other years by a similar offset, and that, similarly, rental counts in the same months also generally differ from counts in the other months by a common offset. We can then include additive terms of the categorical variables `yr` (year) and `mnth` (month) to capture the time correlation. 
+
+Furthermore, we should notice that the correlation of rental counts among different months have already been captured by another predictor, temperature. Also, the temperature variable must be highly correlated to the month variable. Then, to avoid co-linearity issues, only one of them can be kept, and in this case we should stick to temperature, because it better explains the nature of the underlying reason for that variation of bike rental counts: it is the body sensations instead of the number of months that ultimately affect people's willingness for outdoor activities. The same reasoning applies when comparing between the temperature variable and the season variable. 
+
+$$ $$
+
+**Conclusion:**
+
+From the above reasoning, the predictors to be kept in this group of variables should be: 
+
+- **'weathersit' (weather type)**
+- **'atemp' (feeling temperature)**
+
+The predictors `windspeed` (wind speed) and `hum` (humidity) should be dropped not only because they do not exhibit strong patterns and correlations with bike rental counts, but also because they both have a strong correlation with an existing predictor, 'weathersit' (weather type). 
+
+$$ $$
+
+#### Pairs Plot for Group 2 (Seasonal)
+
+$$\text{Fig.4: Pairs Plot for Group 2}$$
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggpairs(data[c('dteday','season','yr','mnth','holiday','weekday','workingday', 'cnt')], 
+        progress = F, 
+        lower = list(continuous = wrap("points", alpha = 0.3, size=0.1))) + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+```
+Fig.4 Column names in order: 
+`dteday`, `season`, `yr`, `mnth`, `holiday`, `weekday`, `workingday`, `cnt`
+
+
+$$ $$
+
+**Observations:**
+
+Most predictors in this group are categorical. To see if they are useful / significant predictors, we mainly look at how large the differences are between the average response values within different categories. 
+
+Looking at the last column of the pairs plot (Fig.4), significant predictors seem to include: 
+
+- `dteday` (date)
+- `season` (season)
+- `yr` (year)
+- `mnth` (month)
+- `holiday` (holiday or not).
+
+Surprisingly, the weekdays and working days do not seem influential, at least for now. 
+
+Removing from the above list the variables that have strong correlations to the predictors already chosen from Group 1, we are left with the following predictors: 
+
+- **`yr` (year)**
+- **`holiday` (holiday or not)**.
+
+
+$$ $$
+
+
+### Time Variation
+
+To further confirm the effect of the categorical variables `weekday` and `workingday`, we plot the rental counts by date and color the data points that are NOT working days (i.e., `workingday == FALSE`) (Fig.5,6), since that helps us identify the positions of weekends, which are included in non-working days, and thus we can infer from the plot where the other weekdays are. The holidays are also colored to help exclude the effect of holidays. 
+
+
+$$ $$
+
+**Observations:**
+
+Zooming in (Fig.5,6), a phenomenon is observed: 
+
+Many times, the rental count rises at the beginning of a week, reaches a maximum around the middle of the week and then falls down as the week approaches its end. This implies that the weekday variable could still be of some use. 
+
+We choose to build our MLS model first with the chosen predictors from the previous sections, and see what difference the weekday and working-day predictors can made to that model afterwards.  
+
+$$ $$
+
+\newpage
+
+$$\text{Fig.5: 2011 Total Count of Daily Bike Rentals by Date (with Trends)}$$
+
+```{r fig.width=7, fig.height=4, echo=FALSE}
+cols <- c('all day types' = "darkgrey", 'on non-working days' = "darkgreen", 'on holidays' = "red", 'trends' = 'black')
+
+data2011 = data[data$dteday < '2012-01-01', ]
+
+ggplot(data2011, aes(dteday, cnt, color = 'all day types')) + 
+  geom_point(size = 1.5, pch = 20, alpha = 0.8) + 
+  labs(x = 'Date', y = 'Daily Count') + 
+  
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) +
+  
+  geom_line(data2011, 
+            mapping = aes(dteday, cnt, color = 'trends'), 
+            size = 0.3, alpha = 0.8) + 
+
+  geom_point(data2011[!(data2011$workingday), ], 
+             mapping = aes(dteday, cnt, color = 'on non-working days'), 
+             size = 1.5, pch = 16, alpha = 1) + 
+  geom_point(data2011[data2011$holiday, ], 
+             mapping = aes(dteday, cnt, color='on holidays'), 
+             size = 1.5, pch = 16, alpha = 1) + 
+  scale_color_manual(values = cols, 
+                     labels = names(cols), 
+                     name = 'Daily Count')
+```
+
+$$ $$
+
+$$\text{Fig.6: 2012 Total Count of Daily Bike Rentals by Date (with Trends)}$$
+
+```{r fig.width=7, fig.height=4, echo=FALSE}
+cols <- c('all day types' = "darkgrey", 'on non-working days' = "darkgreen", 'on holidays' = "red", 'trends' = 'black')
+
+data2012 = data[data$dteday >= '2012-01-01', ]
+
+ggplot(data2012, aes(dteday, cnt, color = 'all day types')) + 
+  geom_point(size = 1.5, pch = 20, alpha = 0.8) + 
+  labs(x = 'Date', y = 'Daily Count') + 
+  
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5)) +
+  
+  geom_line(data2012, 
+            mapping = aes(dteday, cnt, color = 'trends'), 
+            size = 0.3, alpha = 0.8) + 
+
+  geom_point(data2012[!(data2012$workingday), ], 
+             mapping = aes(dteday, cnt, color = 'on non-working days'), 
+             size = 1.5, pch = 16, alpha = 1) + 
+  geom_point(data2012[data2012$holiday, ], 
+             mapping = aes(dteday, cnt, color='on holidays'), 
+             size = 1.5, pch = 16, alpha = 1) + 
+  scale_color_manual(values = cols, 
+                     labels = names(cols), 
+                     name = 'Daily Count')
+```
+
+
+$$ $$
+

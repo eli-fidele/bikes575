@@ -104,8 +104,10 @@ ggpairs(data2011[chosen_vars],
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggpairs(data2011[c('dteday','weathersit','temp','atemp',
-                   'windspeed','hum','cnt')], 
+# Choose the variables desired in the plot
+chosen_vars <- c('dteday','weathersit','temp','atemp',
+                   'windspeed','hum','cnt')
+ggpairs(data2011[chosen_vars], 
         progress = F, 
         lower = list(continuous = wrap("points", alpha = 0.3, size=0.1)), 
         aes(colour=weathersit)) + 

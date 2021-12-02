@@ -30,9 +30,9 @@ data <- wrangle_init(bikedata)
 #       Source Scripts       #
 #============================#
 # Import any models (and fitted values, if applicable)
-source(file = "../R/model_example.R")
+source(file = "../R/archive/model_example.R")
 # Import any plots or plot wrapper functions
-source(file = "../R/plot_example.R")
+source(file = "../R/archive/plot_example.R")
 ```
 
 ```{r}

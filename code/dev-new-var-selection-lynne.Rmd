@@ -1,0 +1,166 @@
+---
+title: 'Lab Report: Bike-Sharing Data Analysis'
+subtitle: "MA 575 Fall 2021 - C3 Team #2"
+author: "Ali Taqi, Hsin-Chang Lin, Huiru Yang, Ryan Mahoney, Yulin Li"
+date: "12/01/2021"
+output: 
+  pdf_document: 
+    number_sections: true
+---
+
+## Preprocessing
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.align = "center")
+#==============================#
+#       Import Libraries       #
+#==============================#
+library(tidyverse)
+library(GGally)
+library(cowplot)
+library(gglm)
+#==============================#
+#        Global Settings       #
+#==============================#
+# Center ggplot titles
+theme_update(plot.title = element_text(hjust = 0.5))
+#=============================#
+#        Obtain Dataset       #
+#=============================#
+# Source the wrangling scripts
+source(file = "../R/wrangle-lynne.R")
+# Import and wrangle data
+bike_day <- read.csv("../data/bike-day.csv", header = T)
+# Use the wrangling "wrapper" function to clean the data (fxn sourced from wrangle.R)
+data <- wrangle_init(bike_day)
+# Partition the 2011/2012 data
+data2011 <- in_2011(data); data2012 <- in_2012(data)
+#============================#
+#       Source Scripts       #
+#============================#
+# Import any models (and fitted values, if applicable)
+source(file = "../R/model-lynne.R")
+# Import any plots or plot wrapper functions
+source(file = "../R/plot-lynne.R")
+```
+
+## Visualization
+
+### Pairwise Relationships
+
+$$ $$
+
+**Group 1: (Mainly) Environmental**
+
+Predictors (all environmental variables plus date):
+
+- `dteday` (date)
+- `weathersit` (weather type)
+- `temp` (measured temperature)
+- `atemp` (feeling temperature)
+- `windspeed` (wind speed)
+- `hum` (humidity)
+
+Response:
+
+- `cnt` (daily total count)
+- `registered` (daily registered count)
+- `casual` (daily casual count)
+
+$$ $$
+
+**Group 2: Seasonal**
+
+Predictors (all seasonal variables):
+
+- `dteday` (date)
+- `season` (season)
+- `yr` (year)
+- `mnth` (month)
+- `holiday` (holiday or not)
+- `weekday` (day of the week)
+- `workingday` (working day or not)
+
+Response:
+
+- `cnt` (daily total count)
+- `registered` (daily registered count)
+- `casual` (daily casual count)
+
+$$ $$
+
+#### Pairs Plot for Group 1 (Mainly Environmental)
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+plot_pairs(data, group = 1, y_name = 'cnt')
+plot_pairs(data, group = 1, y_name = 'registered')
+plot_pairs(data, group = 1, y_name = 'casual')
+```
+
+**Observations:**
+ - `registered`: quadratic in `temp`
+ - `casual`: linear in `temp`
+ 
+
+#### Pairs Plot for Group 1 (Mainly Environmental) (Colored by Year)
+
+```{r}
+# plot_pairs_colored(data, group = 0, y_name = 'cnt', color_name = 'yr', var_list_new = c('mnth', 'atemp'))
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+plot_pairs_colored(data, group = 1, y_name = 'cnt', color_name = 'yr')
+plot_pairs_colored(data, group = 1, y_name = 'registered', color_name = 'yr')
+plot_pairs_colored(data, group = 1, y_name = 'casual', color_name = 'yr')
+```
+
+**Observations:**
+ - `registered`: sensitive to `yr`
+ - `casual`: less sensitive to `yr`
+
+#### Pairs Plot for Group 1 (Mainly Environmental) (Colored by Weather Type)
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+plot_pairs_colored(data, group = 1, y_name = 'cnt', color_name = 'weathersit')
+plot_pairs_colored(data, group = 1, y_name = 'registered', color_name = 'weathersit')
+plot_pairs_colored(data, group = 1, y_name = 'casual', color_name = 'weathersit')
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+plot_pairs_colored(data2011, group = 1, y_name = 'cnt', color_name = 'weathersit')
+plot_pairs_colored(data2011, group = 1, y_name = 'registered', color_name = 'weathersit')
+plot_pairs_colored(data2011, group = 1, y_name = 'casual', color_name = 'weathersit')
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+plot_pairs_colored(data2012, group = 1, y_name = 'cnt', color_name = 'weathersit')
+plot_pairs_colored(data2012, group = 1, y_name = 'registered', color_name = 'weathersit')
+plot_pairs_colored(data2012, group = 1, y_name = 'casual', color_name = 'weathersit')
+```
+
+#### Pairs Plot for Group 2 (Seasonal)
+
+```{r}
+# plot_pairs_colored(data, group = 0, color_name = 'yr', y_name = 'cnt', var_list_new = c('mnth'))
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+plot_pairs(data, group = 2, y_name = 'cnt')
+plot_pairs(data, group = 2, y_name = 'registered')
+plot_pairs(data, group = 2, y_name = 'casual')
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+plot_pairs_colored(data, group = 2, color_name = 'yr', y_name = 'cnt')
+plot_pairs_colored(data, group = 2, color_name = 'yr', y_name = 'registered')
+plot_pairs_colored(data, group = 2, color_name = 'yr', y_name = 'casual')
+```
+
+**Observations:**
+
+ - `casual`: `workingday` seems significant
+ - `registered`: `workingday` seems less significant

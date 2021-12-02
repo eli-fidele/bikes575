@@ -23,7 +23,7 @@ theme_update(plot.title = element_text(hjust = 0.5))
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 # Read data
-bikedata <- read.csv("../data/bike-day.csv",header=T)
+bikedata <- read.csv("../../data/bike-day.csv",header=T)
 ```
 
 $$ $$
@@ -72,6 +72,9 @@ $$ $$
 data <- bikedata[, c(14:16)]
 data <- data.frame(dteday, season, yr, mnth, holiday, weekday, workingday,
                    weathersit, temp, atemp, hum, windspeed, data)
+
+data2011 <- data[data$dteday < '2012-01-01', ]
+data2012 <- data[data$dteday >= '2012-01-01', ]
 ```
 
 $$ $$
@@ -94,6 +97,8 @@ Predictors (all environmental variables plus date):
 Response:
 
 - `cnt` (daily total count)
+- `registered` (daily registered count)
+- `casual` (daily casual count)
 
 $$ $$
 
@@ -112,6 +117,8 @@ Predictors (all seasonal variables):
 Response:
 
 - `cnt` (daily total count)
+- `registered` (daily registered count)
+- `casual` (daily casual count)
 
 $$ $$
 
@@ -136,6 +143,7 @@ ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','registere
         plot.subtitle = element_text(hjust = 0.5),
         plot.caption = element_text(hjust = 0.5))
 ```
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','casual')], 
         progress = F, 
@@ -152,7 +160,7 @@ ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','casual')]
 ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','cnt')], 
         progress = F, 
         lower = list(continuous = wrap("points", alpha = 0.3, size=0.1)), 
-        aes(colour=weathersit)) + 
+        aes(colour=data[,'weathersit'])) + 
   theme_grey(base_size = 5.6) + 
   theme(plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
@@ -252,6 +260,7 @@ ggpairs(data[c('dteday','season','yr','mnth','holiday','weekday','workingday', '
 
 
 
+
 ## Modeling 
 
 ### Draft Model (for Comparison & Verification of Ideas)
@@ -260,20 +269,21 @@ Make a new variable: weekly average (a 7-day rolling average); presumably indepe
 
 ```{r}
 # mod
+
 ```
 
-
+#### Trial 1
 
 ```{r}
 # MLR Model 2: Quadratic in Temperature
 
-m.mlr.2.cnt <- lm(cnt ~ yr + holiday + weathersit + atemp + I(atemp^2), data = bikedata)
+m.mlr.2.cnt <- lm(cnt ~ yr + holiday + weathersit + atemp + I(atemp^2), data = data)
 summary(m.mlr.2.cnt)
 
-m.mlr.2.reg <- lm(registered ~ yr + holiday + weathersit + atemp + I(atemp^2), data = bikedata)
+m.mlr.2.reg <- lm(registered ~ yr + holiday + weathersit + atemp + I(atemp^2), data = data)
 summary(m.mlr.2.reg)
 
-m.mlr.2.cas <- lm(casual ~ yr + holiday + weathersit + atemp + I(atemp^2), data = bikedata)
+m.mlr.2.cas <- lm(casual ~ yr + holiday + weathersit + atemp + I(atemp^2), data = data)
 summary(m.mlr.2.cas)
 ```
 ```{r}
@@ -285,21 +295,49 @@ summary(m.mlr.2.cas)$coef[,"Estimate"]
 summary(m.mlr.2.reg)$coef[,"Estimate"] + summary(m.mlr.2.cas)$coef[,"Estimate"]
 ```
 
-
-## Helper Functions
+#### Trial 2
 
 ```{r}
+# MLR Model 2: Quadratic in Temperature
 
-get_test_rmse = function(model, data) {
-  sqrt(mean((dat_tst$price - predict(model, newdata = dat_tst))^2))
-}
+m.mlr.2.cnt <- lm(cnt ~ yr + holiday + weathersit + atemp + I(atemp^2), data = data)
+summary(m.mlr.2.cnt)
+
+m.mlr.2.reg <- lm(registered ~ yr + holiday + weathersit + atemp + I(atemp^2), data = data)
+summary(m.mlr.2.reg)
+
+m.mlr.2.cas <- lm(casual ~ yr + weathersit + atemp + I(atemp^2), data = data)
+summary(m.mlr.2.cas)
+```
+
+```{r}
+summary(m.mlr.2.cnt)$coef[,"Estimate"]
+summary(m.mlr.2.reg)$coef[,"Estimate"]
+summary(m.mlr.2.cas)$coef[,"Estimate"]
+```
 
 
-get_perc_err = function(model) {
-  actual = dat_tst$price
-  predicted = predict(model, dat_tst)
-  100 * mean((abs(actual - predicted)) / actual)
-}
+```{r}
+# 
+summary(m.mlr.2.cnt)$coef[,"Estimate"][-3]
+summary(m.mlr.2.reg)$coef[,"Estimate"][-3] + summary(m.mlr.2.cas)$coef[,"Estimate"]
+```
+
+
+```{r}
+## Helper Functions
+
+# 
+# get_test_rmse = function(model, data) {
+#   sqrt(mean((dat_tst$price - predict(model, newdata = dat_tst))^2))
+# }
+# 
+# 
+# get_perc_err = function(model) {
+#   actual = dat_tst$price
+#   predicted = predict(model, dat_tst)
+#   100 * mean((abs(actual - predicted)) / actual)
+# }
 
 
 ```

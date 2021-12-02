@@ -276,7 +276,7 @@ mod.reg.best <- mod.reg.3
 
 # try removing the y-space outlier
 mod.cas.best.5 <- lm(casual ~
-                   workingday:atemp + weathersit:season, data = data2011)
+                   workingday:atemp + weathersit:season, data = filter(data2011, dteday != '2012-10-29'))
 mod.reg.best.5 <- lm(registered ~
                   season:workingday:atemp + season:I(atemp^2) + weathersit, data = data2011)
 ```

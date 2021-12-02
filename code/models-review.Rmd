@@ -9,7 +9,7 @@ output:
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = FALSE, fig.align = "center")
+knitr::opts_chunk$set(echo = FALSE, fig.align = "center", fig.height = 4, fig.width = 6)
 #==============================#
 #       Import Libraries       #
 #==============================#
@@ -17,6 +17,7 @@ library(tidyverse)
 library(GGally)
 library(cowplot)
 library(gglm)
+library(moderndive)
 #==============================#
 #        Global Settings       #
 #==============================#
@@ -55,22 +56,32 @@ cols <- c('all day types' = "darkgrey",
           'fitted' = 'purple')
 ```
 
+\newpage
 
-```{r fig.width=7, fig.height=4, echo = FALSE}
+### 2011 Data
+
+```{r fig.width=6, fig.height=4, echo = FALSE}
 # Plot 1: 2011, Registered
-plot_usertype_cnt(data2011, user = "registered")
+#plot_usertype_cnt(data2011, user = "registered")
 p1 <- plot_usertype_cnt(data2011, user = "registered", compare = T)
 p1
 # Plot 2: 2011, Casual
-plot_usertype_cnt(data2011, user = "casual")
+#plot_usertype_cnt(data2011, user = "casual")
 p2 <- plot_usertype_cnt(data2011, user = "casual", compare = T)
 p2
+```
+
+\newpage
+
+### 2012 Data
+
+```{r fig.width=6, fig.height=4, echo = FALSE}
 # Plot 3: 2012, Causal
-plot_usertype_cnt(data2012, user = "casual")
+#plot_usertype_cnt(data2012, user = "casual")
 p3 <- plot_usertype_cnt(data2012, user = "casual", compare = T)
 p3
 # Plot 4: 2012, Registered
-plot_usertype_cnt(data2012, user = "registered")
+#plot_usertype_cnt(data2012, user = "registered")
 p4 <- plot_usertype_cnt(data2012, user = "registered", compare = T)
 p4
 ```
@@ -79,68 +90,157 @@ p4
 - casual counts & registered counts: opposite behaviors - active on weekends vs active on working days. 
 
 
+\newpage
+
 # Modeling
 
 - for casual counts: adding temp^2 makes the prediction even more unstable.
 - for registered counts: adding temp^2 seems necessary. 
 
 ```{r}
-mod.cas.1 <- lm(casual ~ 
+### Unused models:
+mod.cas.1 <- lm(casual ~
                    workingday + weathersit + atemp + I(atemp^2), data = data2011)
-summary(mod.cas.1)
- 
-mod.reg.1 <- lm(registered ~ 
+mod.reg.1 <- lm(registered ~
                    workingday + weathersit + atemp + I(atemp^2), data = data2011)
-summary(mod.reg.1)
- 
-
-mod.cas.2 <- lm(casual ~ 
+mod.cas.2 <- lm(casual ~
                    weathersit:workingday:atemp + season, data = data2011)
-summary(mod.cas.2)
- 
-mod.reg.2 <- lm(registered ~ 
+mod.reg.2 <- lm(registered ~
                    weathersit:workingday:atemp + I(atemp^2) + weathersit + season, data = data2011)
-summary(mod.reg.2)
-
 mod.cas.3 <- lm(casual ~
                    workingday:atemp + weathersit:season, data = data2011)
-summary(mod.cas.3)
-```
-
-```{r}
 mod.reg.3 <- lm(registered ~
                    workingday:atemp + I(atemp^2) + weathersit + season, data = data2011)
-summary(mod.reg.3)
-
-mod.cas.3 <- lm(casual ~
-                  season:workingday:atemp + weathersit, data = data2011)
-summary(mod.cas.3)#current best
-
-mod.reg.3 <- lm(registered ~
-                  season:workingday:atemp + season:I(atemp^2) + weathersit, data = data2011)
-
-
 mod.reg.4 <- lm(registered ~
                   season:workingday:atemp + season:workingday:I(atemp^2) + weathersit, data = data2011)
-
-summary(mod.reg.3)
+# summary(mod.cas.1)
+# summary(mod.reg.1)
+# summary(mod.cas.2)
+# summary(mod.reg.2)
+# summary(mod.reg.4)
 ```
-#### Model 3
+
+## Casual Users
+
+```{r, echo = T}
+mod.cas.3 <- lm(casual ~ season:workingday:atemp + weathersit, data = data2011)
+```
 
 ```{r}
-fitted.reg <- predict(mod.reg.3, data2011)
-fitted.cas <- predict(mod.cas.3, data2011)
+# Current best performing model: mod.cas.3
+get_regression_table(mod.cas.3)
+get_regression_summaries(mod.cas.3) 
+```
 
-p2 + geom_line(data2011, 
-            mapping = aes(dteday, fitted.cas, color = 'fitted'), 
-            size = 0.5, alpha = 0.7)
+\newpage
 
-p1 + geom_line(data2011, 
-            mapping = aes(dteday, predict(mod.reg.4, data2011), color = 'on holidays'), 
-            size = 0.5, alpha = 0) + 
-  geom_line(data2011, 
-            mapping = aes(dteday, predict(mod.reg.3, data2011), color = 'fitted'), 
-            size = 0.5, alpha = 0.8)
+## Registered Users
+
+```{r, echo = T}
+mod.reg.3 <- lm(registered ~ season:workingday:atemp + season:I(atemp^2) + weathersit, data = data2011)
+```
+
+```{r}
+get_regression_table(mod.reg.3)
+get_regression_summaries(mod.reg.3)
+```
+
+\newpage
+
+# Diagnostics: 2011 Data
+
+## Our Wrapper Functions
+
+```{r}
+plot_fitted_cnt_2011 <- function(data, user, model, compare = FALSE){
+  plot_usertype_cnt(data, user, compare) + 
+    geom_line(mapping = aes(x = dteday, y = predict(model, data2011), color = 'fitted'), 
+              size = 0.5, alpha = 0.7)
+}
+```
+
+\newpage
+
+## Casual Users
+
+### Model 2
+
+```{r}
+plot_fitted_cnt_2011(data = data2011, user = "casual", model = mod.cas.2, compare = TRUE)
+```
+
+
+### Model 3
+
+```{r, echo = T}
+plot_fitted_cnt_2011(data = data2011, user = "casual", model = mod.cas.3, compare = TRUE)
+```
+
+\newpage
+
+## Registered Users
+
+### Model 2
+
+```{r}
+plot_fitted_cnt_2011(data = data2011, user = "registered", model = mod.reg.2, compare = TRUE)
+```
+
+### Model 3
+
+```{r, echo = T}
+plot_fitted_cnt_2011(data = data2011, user = "casual", model = mod.cas.3, compare = TRUE)
+```
+
+### Model 4
+
+```{r, echo = T}
+#plot_fitted_cnt_2011(data = data2011, user = "casual", model = mod.cas.4, compare = TRUE)
+```
+
+\newpage
+
+# Diagnostics: 2012 Data
+
+## Our Wrapper Functions
+
+```{r}
+plot_fitted_cnt_2012 <- function(data, user, model, compare = FALSE){
+  plot_usertype_cnt(data, user, compare) + 
+    geom_line(data = data2012, mapping = aes(x = dteday, y = predict(model, data2012), color = 'fitted'), 
+              size = 0.5, alpha = 0.7)
+}
+```
+
+\newpage
+
+## Registered Users
+
+### Model 2
+
+```{r}
+plot_fitted_cnt_2012(data = data2011, user = "registered", model = mod.reg.2, compare = FALSE)
+```
+
+### Model 3
+
+```{r}
+
+```
+
+\newpage
+
+## Casual Users
+
+### Model 2
+
+```{r}
+
+```
+
+### Model 3
+
+```{r}
 
 ```
 
@@ -166,20 +266,6 @@ p3 + geom_line(data2012,
 #### Model 2: current best
 
 ```{r}
-fitted.reg <- predict(mod.reg.2, data2011)
-fitted.cas <- predict(mod.cas.2, data2011)
-
-p2 + geom_line(data2011, 
-            mapping = aes(dteday, fitted.cas, color = 'fitted'), 
-            size = 0.5, alpha = 0.7)
-
-p1 + geom_line(data2011, 
-            mapping = aes(dteday, fitted.reg, color = 'fitted'), 
-            size = 0.5, alpha = 0.7)
-
-```
-
-```{r}
 fitted.reg <- predict(mod.reg.2, data2012)
 fitted.cas <- predict(mod.cas.2, data2012)
 
@@ -192,14 +278,3 @@ p3 + geom_line(data2012,
             size = 0.5, alpha = 0.7)
 ```
 
-```{r}
-# data2011[data2011$cnt <= 800, ]
-# Use filter() from "dplyr (data plyer)" also in tidyverse 
-# data2011 %>% filter(cnt <= 800)
-# Equivalent code!
-# filter(data2011, cnt <= 800)
-```
-
-```{r}
-# data2012[data2012$cnt <= 1000, ]
-```

@@ -15,7 +15,7 @@ plot_usertype_cnt <- function(data, user, compare = FALSE){
     ggplot(aes(x = dteday, y = .data[[user]], color = 'all day types')) + 
     geom_point(size = size0, pch = pch1, alpha = 0.8) + 
     # General plot settings
-    labs(x = 'Date', y = 'Daily Registered Count') + 
+    labs(x = 'Date', y = 'Daily Registered Count', title = .title_helper(user)) + 
     theme_grey(base_size = 5.5) + 
     theme(plot.title = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5),
@@ -49,6 +49,11 @@ plot_usertype_cnt <- function(data, user, compare = FALSE){
     geom_point(data %>% filter(holiday), 
                mapping = aes(x = dteday, y = .data[[.switch_user(user)]], color = 'on holidays'), 
                size = size0, pch = pch0, alpha = 0.2)
+}
+
+.title_helper <- function(user){
+  user_title <- str_to_title(user)
+  paste("Daily User Count for ",user_title," Users", sep = "")
 }
 
 # Dummy helper function that returns a string of the other user type

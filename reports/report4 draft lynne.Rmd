@@ -195,6 +195,26 @@ ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','cnt')],
 Fig.1 Column names in order: 
 `dteday`, `weathersit`, `temp`, `atemp`, `windspeed`, `hum`, `cnt`
 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','casual')], 
+        progress = F, 
+        lower = list(continuous = wrap("points", alpha = 0.3, size=0.1))) + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','registered')], 
+        progress = F, 
+        lower = list(continuous = wrap("points", alpha = 0.3, size=0.1))) + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+```
+
 $$ $$
 
 **Observations:**
@@ -221,6 +241,28 @@ ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','cnt')],
 Fig.2 Column names in order: 
 `dteday`, `weathersit`, `temp`, `atemp`, `windspeed`, `hum`, `cnt`
 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','casual')], 
+        progress = F, 
+        lower = list(continuous = wrap("points", alpha = 0.3, size=0.1)), 
+        aes(colour=weathersit)) + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','registered')], 
+        progress = F, 
+        lower = list(continuous = wrap("points", alpha = 0.3, size=0.1)), 
+        aes(colour=weathersit)) + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+```
+
 $$ $$
 
 **Observations:**
@@ -245,6 +287,28 @@ ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','cnt')],
 ```
 Fig.3 Column names in order: 
 `dteday`, `weathersit`, `temp`, `atemp`, `windspeed`, `hum`, `cnt`
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','casual')], 
+        progress = F, 
+        lower = list(continuous = wrap("points", alpha = 0.3, size=0.1)), 
+        aes(colour=yr)) + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggpairs(data[c('dteday','weathersit','temp','atemp','windspeed','hum','registered')], 
+        progress = F, 
+        lower = list(continuous = wrap("points", alpha = 0.3, size=0.1)), 
+        aes(colour=yr)) + 
+  theme_grey(base_size = 5.6) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0.5))
+```
 
 $$ $$
 
@@ -428,7 +492,7 @@ data2012 = data[data$dteday >= '2012-01-01', ]
 
 ggplot(data2012, aes(dteday, registered, color = 'all day types')) + 
   geom_point(size = 1.5, pch = 20, alpha = 0.8) + 
-  labs(x = 'Date', y = 'Daily Count') + 
+  labs(x = 'Date', y = 'Daily Registered Count') + 
   
   theme_grey(base_size = 5.6) + 
   theme(plot.title = element_text(hjust = 0.5),

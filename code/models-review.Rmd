@@ -151,7 +151,7 @@ get_regression_summaries(mod.reg.3)
 
 ## Our Wrapper Functions
 
-```{r}
+```{r, echo = T}
 plot_fitted_cnt_2011 <- function(data, user, model, compare = FALSE){
   plot_usertype_cnt(data, user, compare) + 
     geom_line(mapping = aes(x = dteday, y = predict(model, data2011), color = 'fitted'), 
@@ -204,7 +204,7 @@ plot_fitted_cnt_2011(data = data2011, user = "casual", model = mod.cas.3, compar
 
 ## Our Wrapper Functions
 
-```{r}
+```{r, echo = T}
 plot_fitted_cnt_2012 <- function(data, user, model, compare = FALSE){
   plot_usertype_cnt(data, user, compare) + 
     geom_line(data = data2012, mapping = aes(x = dteday, y = predict(model, data2012), color = 'fitted'), 
@@ -219,7 +219,7 @@ plot_fitted_cnt_2012 <- function(data, user, model, compare = FALSE){
 ### Model 2
 
 ```{r}
-plot_fitted_cnt_2012(data = data2011, user = "registered", model = mod.reg.2, compare = FALSE)
+plot_fitted_cnt_2012(data = data2012, user = "registered", model = mod.reg.2, compare = FALSE)
 ```
 
 ### Model 3

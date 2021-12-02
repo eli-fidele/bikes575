@@ -63,8 +63,11 @@ cols <- c('all day types' = "darkgrey",
 ```{r fig.width=6, fig.height=4, echo = FALSE}
 # Plot 1: 2011, Registered
 #plot_usertype_cnt(data2011, user = "registered")
-p1 <- plot_usertype_cnt(data2011, user = "registered", compare = T)
+p1 <- plot_usertype_cnt(data2011, user = "registered", compare = F)
 p1
+```
+
+```{r}
 # Plot 2: 2011, Casual
 #plot_usertype_cnt(data2011, user = "casual")
 p2 <- plot_usertype_cnt(data2011, user = "casual", compare = T)
@@ -129,8 +132,18 @@ mod.cas.3 <- lm(casual ~ season:workingday:atemp + weathersit, data = data2011)
 ```{r}
 # Current best performing model: mod.cas.3
 get_regression_table(mod.cas.3)
-get_regression_summaries(mod.cas.3) 
+diagnostics <- get_regression_summaries(mod.cas.3)
+diagnostics$r_squared
 ```
+
+```{r}
+models <- c(mod.cas.2, mod.cas.3)
+```
+
+```{r}
+
+```
+
 
 \newpage
 
@@ -219,13 +232,14 @@ plot_fitted_cnt_2012 <- function(data, user, model, compare = FALSE){
 ### Model 2
 
 ```{r}
-plot_fitted_cnt_2012(data = data2012, user = "registered", model = mod.reg.2, compare = FALSE)
+plot_fitted_cnt_2012(data = data2012, user = "registered", model = mod.reg.3, compare = FALSE)
 ```
 
 ### Model 3
 
 ```{r}
-
+regdig <- gglm(mod.cas.1)
+regdig$
 ```
 
 \newpage

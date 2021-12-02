@@ -80,11 +80,13 @@ data2011_W <- data2011 %>% filter(week %in% 2:52)
 
 ```{r}
 growths <- do.call("c", map(weekly_growth, .f = function(x){rep(x,7)}))
+avgs <- do.call("c", map(weekly_growth, .f = function(x){rep(x,7)}))
 data2011_W$growths <- growths
 ```
 
-
-
+```{r}
+write.csv(x = data2011_W, file = "data2011_G.csv")
+```
 
 ```{r}
 avg_growth <- mean(weekly_growth)
@@ -99,6 +101,10 @@ data.frame(x = 1:length(weekly_growth), y = weekly_growth) %>% ggplot() + geom_p
 
 
 
+
+```{r}
+
+```
 
 
 

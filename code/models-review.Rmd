@@ -1,0 +1,205 @@
+---
+title: 'Lab Report: Bike-Sharing Data Analysis'
+subtitle: "MA 575 Fall 2021 - C3 Team #2"
+author: "Ali Taqi, Hsin-Chang Lin, Huiru Yang, Ryan Mahoney, Yulin Li"
+date: "12/01/2021"
+output: 
+  pdf_document: 
+    number_sections: true
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.align = "center")
+#==============================#
+#       Import Libraries       #
+#==============================#
+library(tidyverse)
+library(GGally)
+library(cowplot)
+library(gglm)
+#==============================#
+#        Global Settings       #
+#==============================#
+# Center ggplot titles
+theme_update(plot.title = element_text(hjust = 0.5))
+#=============================#
+#        Obtain Dataset       #
+#=============================#
+# Source the wrangling scripts
+source(file = "../R/wrangle-lynne.R")
+# Import and wrangle data
+bike_day <- read.csv("../data/bike-day.csv", header = T)
+# Use the wrangling "wrapper" function to clean the data (fxn sourced from wrangle.R)
+data <- wrangle_init(bike_day)
+# Partition the 2011/2012 data
+data2011 <- in_2011(data); data2012 <- in_2012(data)
+#============================#
+#       Source Scripts       #
+#============================#
+# Import any models (and fitted values, if applicable)
+source(file = "../R/model-lynne.R")
+# Import any plots or plot wrapper functions
+source(file = "../R/plot.R")
+source(file = "../R/plot-lynne.R")
+```
+
+# Data Visualization
+
+## Plots
+
+```{r}
+cols <- c('all day types' = "darkgrey", 
+          'on non-working days' = "darkgreen", 
+          'on holidays' = "red", 
+          'trends' = 'black', 
+          'fitted' = 'purple')
+```
+
+
+```{r fig.width=7, fig.height=4, echo = FALSE}
+# Plot 1: 2011, Registered
+plot_usertype_cnt(data2011, user = "registered")
+p1 <- plot_usertype_cnt(data2011, user = "registered", compare = T)
+p1
+# Plot 2: 2011, Casual
+plot_usertype_cnt(data2011, user = "casual")
+p2 <- plot_usertype_cnt(data2011, user = "casual", compare = T)
+p2
+# Plot 3: 2012, Causal
+plot_usertype_cnt(data2012, user = "casual")
+p3 <- plot_usertype_cnt(data2012, user = "casual", compare = T)
+p3
+# Plot 4: 2012, Registered
+plot_usertype_cnt(data2012, user = "registered")
+p4 <- plot_usertype_cnt(data2012, user = "registered", compare = T)
+p4
+```
+
+
+- casual counts & registered counts: opposite behaviors - active on weekends vs active on working days. 
+
+
+# Modeling
+
+- for casual counts: adding temp^2 makes the prediction even more unstable.
+- for registered counts: adding temp^2 seems necessary. 
+
+```{r}
+mod.cas.1 <- lm(casual ~ 
+                   workingday + weathersit + atemp + I(atemp^2), data = data2011)
+summary(mod.cas.1)
+ 
+mod.reg.1 <- lm(registered ~ 
+                   workingday + weathersit + atemp + I(atemp^2), data = data2011)
+summary(mod.reg.1)
+ 
+
+mod.cas.2 <- lm(casual ~ 
+                   weathersit:workingday:atemp + season, data = data2011)
+summary(mod.cas.2)
+ 
+mod.reg.2 <- lm(registered ~ 
+                   weathersit:workingday:atemp + I(atemp^2) + weathersit + season, data = data2011)
+summary(mod.reg.2)
+
+mod.cas.3 <- lm(casual ~
+                   workingday:atemp + weathersit:season, data = data2011)
+summary(mod.cas.3)
+```
+
+```{r}
+mod.reg.3 <- lm(registered ~
+                   workingday:atemp + I(atemp^2) + weathersit + season, data = data2011)
+summary(mod.reg.3)
+
+mod.cas.3 <- lm(casual ~
+                  season:workingday:atemp + weathersit, data = data2011)
+summary(mod.cas.3)#current best
+
+mod.reg.3 <- lm(registered ~
+                  season:workingday:atemp + season:I(atemp^2) + weathersit, data = data2011)
+
+
+mod.reg.4 <- lm(registered ~
+                  season:workingday:atemp + season:workingday:I(atemp^2) + weathersit, data = data2011)
+
+summary(mod.reg.3)
+```
+#### Model 3
+
+```{r}
+fitted.reg <- predict(mod.reg.3, data2011)
+fitted.cas <- predict(mod.cas.3, data2011)
+
+p2 + geom_line(data2011, 
+            mapping = aes(dteday, fitted.cas, color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+
+p1 + geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.reg.4, data2011), color = 'on holidays'), 
+            size = 0.5, alpha = 0) + 
+  geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.reg.3, data2011), color = 'fitted'), 
+            size = 0.5, alpha = 0.8)
+
+```
+
+```{r}
+fitted.reg <- predict(mod.reg.3, data2012)
+fitted.cas <- predict(mod.cas.3, data2012)
+
+p4 + geom_line(data2012, 
+            mapping = aes(dteday, fitted.cas/0.608, color = 'fitted'), 
+            size = 0.5, alpha = 0) + 
+  geom_line(data2012, 
+            mapping = aes(dteday, fitted.cas/0.608, color = 'fitted'), 
+            size = 0.5, alpha = 0.8)
+
+p3 + geom_line(data2012, 
+            mapping = aes(dteday, predict(mod.reg.4, data2012)/0.608, color = 'on holidays'), 
+            size = 0.5, alpha = 0) + 
+  geom_line(data2012, 
+            mapping = aes(dteday, predict(mod.reg.3, data2012)/0.608, color = 'fitted'), 
+            size = 0.5, alpha = 0.8)
+```
+
+#### Model 2: current best
+
+```{r}
+fitted.reg <- predict(mod.reg.2, data2011)
+fitted.cas <- predict(mod.cas.2, data2011)
+
+p2 + geom_line(data2011, 
+            mapping = aes(dteday, fitted.cas, color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+
+p1 + geom_line(data2011, 
+            mapping = aes(dteday, fitted.reg, color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+
+```
+
+```{r}
+fitted.reg <- predict(mod.reg.2, data2012)
+fitted.cas <- predict(mod.cas.2, data2012)
+
+p4 + geom_line(data2012, 
+            mapping = aes(dteday, fitted.cas/0.608, color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+
+p3 + geom_line(data2012, 
+            mapping = aes(dteday, fitted.reg/0.608, color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+```
+
+```{r}
+# data2011[data2011$cnt <= 800, ]
+# Use filter() from "dplyr (data plyer)" also in tidyverse 
+# data2011 %>% filter(cnt <= 800)
+# Equivalent code!
+# filter(data2011, cnt <= 800)
+```
+
+```{r}
+# data2012[data2012$cnt <= 1000, ]
+```

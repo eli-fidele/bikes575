@@ -339,13 +339,13 @@ p3 + geom_line(data2012,
 ```
 
 ```{r}
-data2011[data2011$cnt <= 800, ]
+# data2011[data2011$cnt <= 800, ]
 # Use filter() from "dplyr (data plyer)" also in tidyverse 
-data2011 %>% filter(cnt <= 800)
+# data2011 %>% filter(cnt <= 800)
 # Equivalent code!
-filter(data2011, cnt <= 800)
+# filter(data2011, cnt <= 800)
 ```
 
 ```{r}
-data2012[data2012$cnt <= 1000, ]
+# data2012[data2012$cnt <= 1000, ]
 ```

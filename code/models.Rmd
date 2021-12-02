@@ -231,54 +231,83 @@ p4
 - for registered counts: adding temp^2 seems necessary. 
 
 ```{r}
+# Model 1: starting model, simplest
+
 mod.cas.1 <- lm(casual ~ 
                    workingday + weathersit + atemp + I(atemp^2), data = data2011)
-summary(mod.cas.1)
- 
 mod.reg.1 <- lm(registered ~ 
                    workingday + weathersit + atemp + I(atemp^2), data = data2011)
-summary(mod.reg.1)
- 
+
+# Model 1.5: adding season
+
+mod.cas.1.5 <- lm(casual ~ 
+                   workingday + weathersit + atemp + I(atemp^2) + season, data = data2011)
+mod.reg.1.5 <- lm(registered ~ 
+                   workingday + weathersit + atemp + I(atemp^2) + season, data = data2011)
+
+# Model 2: an intermediate model, slightly more complicated
 
 mod.cas.2 <- lm(casual ~ 
                    weathersit:workingday:atemp + season, data = data2011)
-summary(mod.cas.2)
- 
 mod.reg.2 <- lm(registered ~ 
                    weathersit:workingday:atemp + I(atemp^2) + weathersit + season, data = data2011)
-summary(mod.reg.2)
-
-mod.cas.3 <- lm(casual ~
-                   workingday:atemp + weathersit:season, data = data2011)
-summary(mod.cas.3)
 ```
 
 ```{r}
-mod.reg.3 <- lm(registered ~
-                   workingday:atemp + I(atemp^2) + weathersit + season, data = data2011)
-summary(mod.reg.3)
+# Model 2.5: having season as a interception or an interaction?
+
+mod.cas.2.5 <- lm(casual ~
+                   workingday:atemp + weathersit:season, data = data2011) #current best
+mod.reg.2.5 <- lm(registered ~
+                   workingday:atemp + I(atemp^2) + weathersit + season, data = data2011) 
 
 mod.cas.3 <- lm(casual ~
-                  season:workingday:atemp + weathersit, data = data2011)
-summary(mod.cas.3)#current best
-
+                  season:workingday:atemp + weathersit, data = data2011) 
 mod.reg.3 <- lm(registered ~
-                  season:workingday:atemp + season:I(atemp^2) + weathersit, data = data2011)
+                  season:workingday:atemp + season:I(atemp^2) + weathersit, data = data2011)#current best
 
-
-mod.reg.4 <- lm(registered ~
+# Model 4: then try a more complex model - but it starts to overfit
+mod.reg.4 <- lm(registered ~ 
                   season:workingday:atemp + season:workingday:I(atemp^2) + weathersit, data = data2011)
 
-summary(mod.reg.3)
+
+mod.cas.best <- mod.cas.2.5
+mod.reg.best <- mod.reg.3
+
+# try removing the y-space outlier
+mod.cas.best.5 <- lm(casual ~
+                   workingday:atemp + weathersit:season, data = data2011)
+mod.reg.best.5 <- lm(registered ~
+                  season:workingday:atemp + season:I(atemp^2) + weathersit, data = data2011)
 ```
+
+
+
+#### Model Evals
+
+```{r message=FALSE, warning=FALSE}
+get_mod_eval(mod.cas.1, mod.reg.1,     data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval(mod.cas.1.5, mod.reg.1.5, data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval(mod.cas.2, mod.reg.2,     data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval(mod.cas.2.5, mod.reg.2.5, data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval(mod.cas.3, mod.reg.3,     data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval(mod.cas.3, mod.reg.4,     data2011, filter(data2012, dteday != '2012-10-29')) #overfitting
+
+# real current best!!!
+get_mod_eval(mod.cas.best, mod.reg.best, data2011, filter(data2012, dteday != '2012-10-29'))
+```
+
+
 #### Model 3
 
-```{r}
-fitted.reg <- predict(mod.reg.3, data2011)
-fitted.cas <- predict(mod.cas.3, data2011)
+- Problem: 
+  - underfit in the middle of a week -> might need to incorporate the weekday variable
+  - or will need to remove the outlier
+  
 
+```{r}
 p2 + geom_line(data2011, 
-            mapping = aes(dteday, fitted.cas, color = 'fitted'), 
+            mapping = aes(dteday, predict(mod.cas.3, data2011), color = 'fitted'), 
             size = 0.5, alpha = 0.7)
 
 p1 + geom_line(data2011, 
@@ -291,14 +320,11 @@ p1 + geom_line(data2011,
 ```
 
 ```{r}
-fitted.reg <- predict(mod.reg.3, data2012)
-fitted.cas <- predict(mod.cas.3, data2012)
-
 p4 + geom_line(data2012, 
-            mapping = aes(dteday, fitted.cas/0.608, color = 'fitted'), 
+            mapping = aes(dteday, predict(mod.cas.3, data2012), color = 'fitted'), 
             size = 0.5, alpha = 0) + 
   geom_line(data2012, 
-            mapping = aes(dteday, fitted.cas/0.608, color = 'fitted'), 
+            mapping = aes(dteday, predict(mod.cas.3, data2012)/0.608, color = 'fitted'), 
             size = 0.5, alpha = 0.8)
 
 p3 + geom_line(data2012, 
@@ -309,41 +335,46 @@ p3 + geom_line(data2012,
             size = 0.5, alpha = 0.8)
 ```
 
-#### Model 2: current best
+#### Model 2: previous best
 
 ```{r}
-fitted.reg <- predict(mod.reg.2, data2011)
-fitted.cas <- predict(mod.cas.2, data2011)
-
 p2 + geom_line(data2011, 
-            mapping = aes(dteday, fitted.cas, color = 'fitted'), 
+            mapping = aes(dteday, predict(mod.cas.2, data2011), color = 'fitted'), 
             size = 0.5, alpha = 0.7)
 
 p1 + geom_line(data2011, 
-            mapping = aes(dteday, fitted.reg, color = 'fitted'), 
+            mapping = aes(dteday, predict(mod.reg.2, data2011), color = 'fitted'), 
             size = 0.5, alpha = 0.7)
 
 ```
 
 ```{r}
-fitted.reg <- predict(mod.reg.2, data2012)
-fitted.cas <- predict(mod.cas.2, data2012)
-
 p4 + geom_line(data2012, 
-            mapping = aes(dteday, fitted.cas/0.608, color = 'fitted'), 
+            mapping = aes(dteday, predict(mod.cas.2, data2012)/0.608, color = 'fitted'), 
             size = 0.5, alpha = 0.7)
 
 p3 + geom_line(data2012, 
-            mapping = aes(dteday, fitted.reg/0.608, color = 'fitted'), 
+            mapping = aes(dteday, predict(mod.reg.2, data2012)/0.608, color = 'fitted'), 
             size = 0.5, alpha = 0.7)
 ```
+
+### Inspecting Data
+
+```{r}
+p1 + geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.reg.2, data2011), color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+```
+
+
 
 ```{r}
 # data2011[data2011$cnt <= 800, ]
 # Use filter() from "dplyr (data plyer)" also in tidyverse 
 # data2011 %>% filter(cnt <= 800)
+
 # Equivalent code!
-# filter(data2011, cnt <= 800)
+filter(data2011, (registered <= 1000) & (dteday > '2011-06-01'))
 ```
 
 ```{r}

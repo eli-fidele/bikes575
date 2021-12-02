@@ -1,0 +1,168 @@
+---
+title: 'Lab Report: Bike-Sharing Data Analysis'
+subtitle: "MA 575 Fall 2021 - C3 Team #2"
+author: "Ali Taqi, Hsin-Chang Lin, Huiru Yang, Ryan Mahoney, Yulin Li"
+date: "12/01/2021"
+output: 
+  pdf_document: 
+    number_sections: true
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.align = "center", fig.height = 4, fig.width = 6)
+#==============================#
+#       Import Libraries       #
+#==============================#
+library(tidyverse)
+library(GGally)
+library(cowplot)
+library(gglm)
+library(moderndive)
+#==============================#
+#        Global Settings       #
+#==============================#
+# Center ggplot titles
+theme_update(plot.title = element_text(hjust = 0.5))
+#=============================#
+#        Obtain Dataset       #
+#=============================#
+# Source the wrangling scripts
+source(file = "../R/wrangle-lynne.R")
+# Import and wrangle data
+bike_day <- read.csv("../data/bike-day.csv", header = T)
+# Use the wrangling "wrapper" function to clean the data (fxn sourced from wrangle.R)
+data <- wrangle_init(bike_day)
+# Partition the 2011/2012 data
+data2011 <- in_2011(data); data2012 <- in_2012(data)
+#============================#
+#       Source Scripts       #
+#============================#
+# Import any models (and fitted values, if applicable)
+source(file = "../R/model-lynne.R")
+# Import any plots or plot wrapper functions
+source(file = "../R/plot.R")
+source(file = "../R/plot-lynne.R")
+```
+
+```{r}
+data2011 <- data2011 %>% mutate(week = ceiling(1:nrow(data2011)/7))
+```
+
+```{r}
+weekly_cnts <- 
+  data2011 %>% 
+    group_by(week) %>%
+    summarize(cnt = mean(cnt))
+weekly_cnts <- weekly_cnts[1:52,]
+```
+
+```{r}
+weekly_cnts %>%
+  ggplot() +
+  geom_point(aes(x = week, y = cnt))
+```
+
+```{r}
+rates_1 <- function(xs){
+  rng <- 2:nrow(xs)
+  rates <- xs$cnt[rng]/xs$cnt[rng - 1]
+  rates
+}
+```
+
+```{r}
+weekly_growth <- rates_1(weekly_cnts)
+```
+
+```{r}
+data2011_W <- data2011 %>% filter(week %in% 2:52)
+```
+
+```{r}
+growths <- do.call("c", map(weekly_growth, .f = function(x){rep(x,7)}))
+data2011_W$growths <- growths
+```
+
+
+
+
+```{r}
+avg_growth <- mean(weekly_growth)
+avg_growth^52
+var(weekly_growth)
+data.frame(x = 1:length(weekly_growth), y = weekly_growth) %>% ggplot() + geom_point(aes(x = x, y = y)) + geom_abline(intercept = 1, slope = 0)
+```
+
+```{r}
+1/0.608
+```
+
+
+
+
+
+
+
+
+```{r}
+data2011 %>% 
+  group_by(weekday) %>%
+  summarize(avg = mean(registered)) %>%
+  ggplot() +
+  geom_point(aes(x = weekday, y = avg))
+```
+
+```{r}
+data2011 %>% 
+  group_by(weekday) %>%
+  summarize(avg = mean(casual)) %>%
+  ggplot(aes(x = weekday, y = avg)) +
+  geom_point()
+```
+
+```{r}
+by_weekday <- data2011 %>% split(f = data2011$weekday)
+```
+
+```{r}
+mondays <- by_weekday[[2]]
+```
+
+```{r}
+weekday_rates <- function(weekday){
+  rng <- 2:nrow(weekday)
+  rates <- weekday$cnt[rng]/weekday$cnt[rng - 1]
+  rates
+}
+```
+
+```{r}
+weekday_vars <- function(weekday){
+  rng <- 2:nrow(weekday)
+  rates <- weekday$cnt[rng]/weekday$cnt[rng - 1]
+  var(rates)
+}
+```
+
+```{r}
+weekday_rates(mondays)
+```
+
+
+
+```{r}
+map_dbl(by_weekday, weekday_vars)
+```
+
+```{r}
+ggplot() + geom_point(aes(x = 1:51, y = rates)) + geom_abline(slope = 0, intercept = 1)
+```
+
+
+
+```{r}
+find_weekday_growth <- function(weekday){
+  
+}
+```
+

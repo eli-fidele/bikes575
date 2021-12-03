@@ -23,7 +23,8 @@ wrangle_init <- function(data, omit_NA = TRUE, omit_idx = TRUE){
   if(omit_NA) { data <- na.omit(data) }
   # Remove instance column (if prompted) default value is TRUE
   if(omit_idx) { data <- data %>% select(-c("instant")) }
-  
+  # Observe christmas
+  data$holiday[359] <- T; data$holiday[725] <- T
   # Return the wrangled dataset
   return(data)
 }

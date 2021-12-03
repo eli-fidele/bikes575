@@ -49,7 +49,12 @@ counts <- data2011$cnt
 ```
 
 ```{r}
+#data2011[359,"holiday"] <- T
+```
 
+
+```{r}
+data2011 %>% filter(holiday)
 ```
 
 

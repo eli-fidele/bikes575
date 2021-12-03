@@ -257,30 +257,74 @@ mod.reg.2 <- lm(registered ~
 # Model 2.5: having season as a interception or an interaction?
 
 mod.cas.2.5 <- lm(casual ~
-                   workingday:atemp + weathersit:season, data = data2011) #current best
+                   workingday:atemp + weathersit:season, data = data2011)
 mod.reg.2.5 <- lm(registered ~
                    workingday:atemp + I(atemp^2) + weathersit + season, data = data2011) 
 
+# adding the holiday variable for cas
+mod.cas.2.7 <- lm(casual ~
+                   workingday:atemp + weathersit:season + holiday, data = data2011) #current best
+
+# Model 3: having season as an interaction term is better
 mod.cas.3 <- lm(casual ~
-                  season:workingday:atemp + weathersit, data = data2011) 
+                  season:workingday:atemp + weathersit + holiday, data = data2011)  #overfitting
 mod.reg.3 <- lm(registered ~
-                  season:workingday:atemp + season:I(atemp^2) + weathersit, data = data2011)#current best
+                  season:workingday:atemp + season:I(atemp^2) + weathersit, data = data2011)
 
-# Model 4: then try a more complex model - but it starts to overfit
+mod.cas.3.5 <- lm(casual ~
+                  season:workingday:atemp + weathersit:season + holiday, data = data2011) #overfitting but leads to best total
+
+# adding the holiday variable for reg
+mod.reg.3.7 <- lm(registered ~
+                  season:workingday:atemp + season:I(atemp^2) + weathersit + holiday, data = data2011) 
+
+
+# Model 4: then try a more complex model - but it starts to overfit #alright now no longer overfitting
 mod.reg.4 <- lm(registered ~ 
-                  season:workingday:atemp + season:workingday:I(atemp^2) + weathersit, data = data2011)
+                  season:workingday:atemp + season:workingday:I(atemp^2) + weathersit + holiday, data = data2011) #current best
+mod.reg.4.5 <- lm(registered ~ 
+                  season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season + holiday, data = data2011) #overfitting
 
 
-mod.cas.best <- mod.cas.2.5
-mod.reg.best <- mod.reg.3
+# current best models
+mod.cas.best <- mod.cas.2.7
+mod.reg.best <- mod.reg.4
 
 # try removing the y-space outlier
-mod.cas.best.5 <- lm(casual ~
-                   workingday:atemp + weathersit:season, data = filter(data2011, dteday != '2012-10-29'))
-mod.reg.best.5 <- lm(registered ~
-                  season:workingday:atemp + season:I(atemp^2) + weathersit, data = data2011)
+mod.cas.best. <- lm(casual ~
+                   season:workingday:atemp + weathersit:season + holiday, 
+                   data = filter(data2011, dteday != '2011-08-29'))
+mod.reg.best. <- lm(registered ~
+                  season:workingday:atemp + season:workingday:I(atemp^2) + weathersit + holiday, 
+                  data = filter(data2011, dteday != '2011-08-29'))
 ```
 
+```{r}
+data2011_augmented <- read.csv("data2011_G.csv", header = T)
+data2012_augmented <- read.csv("data2012_G.csv", header = T)
+```
+
+
+```{r}
+mod.cas.2.7.5 <- lm(casual ~
+                   workingday:atemp + weathersit:season + holiday, data = data2011) #current best
+mod.cas.3.5.5 <- lm(casual ~
+                  season:workingday:atemp + weathersit:season + holiday, data = data2011) #overfitting but leads to best total
+mod.reg.4.0.5 <- lm(registered ~ 
+                  season:workingday:atemp + season:workingday:I(atemp^2) + weathersit + holiday, data = data2011) #current best
+```
+
+
+```{r}
+# guess what, let's try directly modeling the total count! 
+mod.tot.1   <- lm(cnt ~ workingday + weathersit + atemp + I(atemp^2), data = data2011)
+mod.tot.1.5 <- lm(cnt ~ workingday + weathersit + atemp + I(atemp^2) + holiday + season, data = data2011)
+mod.tot.2   <- lm(cnt ~ weathersit:workingday:atemp + I(atemp^2) + weathersit + season, data = data2011)
+mod.tot.3   <- lm(cnt ~ season:workingday:atemp + season:I(atemp^2) + weathersit + holiday, data = data2011)
+mod.tot.4   <- lm(cnt ~ season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season, data = data2011)
+mod.tot.4.5 <- lm(cnt ~ season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season + holiday, data = data2011) #cas.2.7 + reg.4
+mod.tot.4.7 <- lm(cnt ~ season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season + holiday, data = data2011) #cas.3.5 + reg.4...oh it's the same...
+```
 
 
 #### Model Evals
@@ -290,12 +334,32 @@ get_mod_eval(mod.cas.1, mod.reg.1,     data2011, filter(data2012, dteday != '201
 get_mod_eval(mod.cas.1.5, mod.reg.1.5, data2011, filter(data2012, dteday != '2012-10-29'))
 get_mod_eval(mod.cas.2, mod.reg.2,     data2011, filter(data2012, dteday != '2012-10-29'))
 get_mod_eval(mod.cas.2.5, mod.reg.2.5, data2011, filter(data2012, dteday != '2012-10-29'))
-get_mod_eval(mod.cas.3, mod.reg.3,     data2011, filter(data2012, dteday != '2012-10-29'))
-get_mod_eval(mod.cas.3, mod.reg.4,     data2011, filter(data2012, dteday != '2012-10-29')) #overfitting
+get_mod_eval(mod.cas.2.7, mod.reg.3.7, data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval(mod.cas.3, mod.reg.3,     data2011, filter(data2012, dteday != '2012-10-29')) #casual overfitting
+get_mod_eval(mod.cas.3.5, mod.reg.4,   data2011, filter(data2012, dteday != '2012-10-29')) #best total (casual overfitting)
+# get_mod_eval(mod.cas.3.5, mod.reg.4.5, data2011, filter(data2012, dteday != '2012-10-29')) #now reg overfitting too
 
 # real current best!!!
-get_mod_eval(mod.cas.best, mod.reg.best, data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval(mod.cas.best,  mod.reg.best,  data2011, filter(data2012, dteday != '2012-10-29')) #best reg + best cas
+get_mod_eval(mod.cas.best., mod.reg.best., data2011, filter(data2012, dteday != '2012-10-29')) #outlier removal not really helping
 ```
+
+```{r}
+get_mod_eval_tot(mod.tot.1,data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval_tot(mod.tot.1.5,data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval_tot(mod.tot.2,data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval_tot(mod.tot.3,data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval_tot(mod.tot.4,data2011, filter(data2012, dteday != '2012-10-29')) #starts to overfit
+get_mod_eval_tot(mod.tot.4.5,data2011, filter(data2012, dteday != '2012-10-29')) #yeaaah separate modeling is better
+get_mod_eval_tot(mod.tot.4.7,data2011, filter(data2012, dteday != '2012-10-29')) #yeaaah separate modeling is better
+```
+
+```{r}
+summary(mod.cas.2.7)
+summary(mod.cas.3.5)
+summary(mod.reg.4)
+```
+
 
 
 #### Model 3
@@ -307,15 +371,18 @@ get_mod_eval(mod.cas.best, mod.reg.best, data2011, filter(data2012, dteday != '2
 
 ```{r}
 p2 + geom_line(data2011, 
-            mapping = aes(dteday, predict(mod.cas.3, data2011), color = 'fitted'), 
-            size = 0.5, alpha = 0.7)
+            mapping = aes(dteday, predict(mod.cas.2.7, data2011), color = 'on holidays'), 
+            size = 0.5, alpha = 0) + 
+  geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.cas.3.5, data2011), color = 'fitted'), 
+            size = 0.5, alpha = 0.4)
 
 p1 + geom_line(data2011, 
             mapping = aes(dteday, predict(mod.reg.4, data2011), color = 'on holidays'), 
-            size = 0.5, alpha = 0) + 
+            size = 0.5, alpha = 0.4) + 
   geom_line(data2011, 
-            mapping = aes(dteday, predict(mod.reg.3, data2011), color = 'fitted'), 
-            size = 0.5, alpha = 0.8)
+            mapping = aes(dteday, predict(mod.reg.4.5, data2011), color = 'fitted'), 
+            size = 0.5, alpha = 0.4)
 
 ```
 

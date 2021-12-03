@@ -27,6 +27,17 @@ get_mod_eval <- function(mod.current.cas, mod.current.reg, data2011, data2012, s
   }
 }
 
+get_mod_eval_tot <-function(mod.current.tot, data2011, data2012, scale_2012=TRUE){
+  if (scale_2012){
+    return(rbind(get_rmse(data2011$cnt,        predict(mod.current.tot, data2011), '2011 total'),
+                 get_rmse(data2012$cnt,        predict(mod.current.tot, data2012)/0.608, '2012 total')))
+  }else{
+    return(
+      rbind(get_rmse(data2011$cnt,        predict(mod.current.tot, data2011), '2011 total'),
+            get_rmse(data2012$cnt,        predict(mod.current.tot, data2012), '2012 total')))
+  }
+}
+
 
 # Reference:
 

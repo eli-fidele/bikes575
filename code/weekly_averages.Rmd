@@ -45,16 +45,6 @@ source(file = "../R/plot-lynne.R")
 ```
 
 ```{r}
-rates_1 <- function(xs){
-  rng <- 2:nrow(xs)
-  rates <- xs$cnt[rng]/xs$cnt[rng - 1]
-  rates
-}
-```
-
-
-
-```{r}
 # Compute the (1-week lagged) weekly averages of a given variable
 weekly_avgs <- function(data, var){
   # Compute the averages of the variable by week
@@ -95,43 +85,7 @@ data2012 <- data2012 %>% add_weekly_averages
 ```
 
 ```{r}
-data2011 <- data2011 %>% mutate(week = ceiling(1:nrow(data2011)/7))
-data2012 <- data2012 %>% mutate(week = ceiling(1:nrow(data2012)/7))
-```
-
-```{r}
-cnt_avgs <- weekly_avgs(data2011, cnt)
-colnames(cnt_avgs)[2] <- 
-data2011 <- data2011 %>% left_join(cnt_avgs)
-
-reg_avgs <- weekly_avgs(data2011, registered)
-colnames(reg_avgs)[2] <- "wavg_reg"
-data2011 <- data2011 %>% left_join(reg_avgs)
-
-cas_avgs <- weekly_avgs(data2011, casual)
-colnames(cas_avgs)[2] <- "wavg_cas"
-data2011 <- data2011 %>% left_join(cas_avgs)
-```
-
-```{r}
-cnt_avgs <- weekly_avgs(data2012, cnt)
-colnames(cnt_avgs)[2] <- "wavg_cnt"
-data2012 <- data2012 %>% left_join(cnt_avgs)
-
-reg_avgs <- weekly_avgs(data2012, registered)
-colnames(reg_avgs)[2] <- "wavg_reg"
-data2012 <- data2012 %>% left_join(reg_avgs)
-
-cas_avgs <- weekly_avgs(data2012, casual)
-colnames(cas_avgs)[2] <- "wavg_cas"
-data2012 <- data2012 %>% left_join(cas_avgs)
-```
-
-```{r}
 write.csv(x = data2011, file = "data2011_G.csv")
-```
-
-```{r}
 write.csv(x = data2012, file = "data2012_G.csv")
 ```
 

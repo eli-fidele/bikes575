@@ -70,7 +70,7 @@ add_weekly_avg_var <- function(data, var, var_name){
 
 add_weekly_averages <- function(data){
   # Add the week variable to the dataset
-  data <- data %>% mutate(week = ceiling(1:nrow(data2011)/7))
+  data <- data %>% mutate(week = ceiling(1:nrow(data)/7))
   # Add the cnt, reg, and cas weekly averages to the data
   data <- data %>% add_weekly_avg_var(cnt, "wavg_cnt")
   data <- data %>% add_weekly_avg_var(registered, "wavg_reg")

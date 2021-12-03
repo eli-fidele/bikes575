@@ -54,6 +54,59 @@ rates_1 <- function(xs){
 
 ```{r}
 data2011 <- data2011 %>% mutate(week = ceiling(1:nrow(data2011)/7))
+data2012 <- data2012 %>% mutate(week = ceiling(1:nrow(data2012)/7))
+```
+
+```{r}
+weekly_avgs <- function(data, var){
+  weekly_cnts <- 
+    data %>% 
+      group_by(week) %>%
+      summarize(wavg = mean({{ var }}))
+  weekly_cnts$week <- weekly_cnts$week + 1
+  weekly_cnts %>% filter(week <= 53)
+}
+
+cnt_avgs <- weekly_avgs(data2011, cnt)
+colnames(cnt_avgs)[2] <- "wavg_cnt"
+reg_avgs <- weekly_avgs(data2011, registered)
+colnames(reg_avgs)[2] <- "wavg_reg"
+cas_avgs <- weekly_avgs(data2011, casual)
+colnames(cas_avgs)[2] <- "wavg_cas"
+```
+
+
+```{r}
+join_weekly_avgs <- function(data, weekavgs){data %>% right_join(weekavgs, by = week)}
+```
+
+```{r}
+data2011 <- data2011 %>% left_join(cnt_avgs)
+data2011 <- data2011 %>% left_join(reg_avgs)
+data2011 <- data2011 %>% left_join(cas_avgs)
+```
+
+```{r}
+data2012 <- data2012 %>% left_join(cnt_avgs)
+data2012 <- data2012 %>% left_join(reg_avgs)
+data2012 <- data2012 %>% left_join(cas_avgs)
+```
+```{r}
+write.csv(x = data2011, file = "data2011_G.csv")
+```
+
+```{r}
+write.csv(x = data2012, file = "data2012_G.csv")
+```
+
+
+
+
+
+
+
+```{r}
+data2011 <- data2011 %>% mutate(week = ceiling(1:nrow(data2011)/7))
 # Get weekly averages
 weekly_cnts <- 
   data2011 %>% 
@@ -78,6 +131,10 @@ data2011_W$avgs <- avgs
 
 ```{r}
 write.csv(x = data2011_W, file = "data2011_G.csv")
+```
+
+```{r}
+write.csv(x = data2012_W, file = "data2012_G.csv")
 ```
 
 ```{r}

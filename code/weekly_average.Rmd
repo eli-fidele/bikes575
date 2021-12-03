@@ -63,9 +63,9 @@ weekly_cnts %>%
 ```
 
 ```{r}
-rates_1 <- function(xs){
+rates_1 <- function(xs, var = "cnt"){
   rng <- 2:nrow(xs)
-  rates <- xs$cnt[rng]/xs$cnt[rng - 1]
+  rates <- xs[[var]][rng]/xs[[var]][rng - 1]
   rates
 }
 ```

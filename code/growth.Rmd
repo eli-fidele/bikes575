@@ -45,16 +45,151 @@ source(file = "../R/plot-lynne.R")
 ```
 
 ```{r}
-counts <- data2011$cnt
+mnth_tbl <- 
+  data2011 %>%
+  group_by(mnth) %>%
+  summarize(cnt = max(casual))
+mnth_tbl
 ```
 
 ```{r}
-#data2011[359,"holiday"] <- T
+part_i <- function(i){data2011 %>% filter(mnth == mnth_tbl$mnth[i]) %>% mutate(cnt_prop = casual/mnth_tbl$cnt[i])}
+month_avg_prop <- function(i){mean(part_i(i)$cnt_prop)}
+```
+
+```{r}
+vals <- map_dbl(1:12, month_avg_prop)
+vals
+mean(vals)
+quick_plot(vals)
+mean(map_dbl(1:12, month_avg_prop))
+```
+
+```{r}
+mnth_tbl <- 
+  data2011 %>%
+  group_by(mnth) %>%
+  summarize(cnt = max(casual))
+mnth_tbl
+part_i <- function(i){data2011 %>% filter(mnth == mnth_tbl$mnth[i]) %>% mutate(cnt_prop = casual/mnth_tbl$cnt[i])}
+month_avg_prop <- function(i){mean(part_i(i)$cnt_prop)}
+vals <- map_dbl(1:12, month_avg_prop)
+vals
+mean(vals)
+quick_plot(vals)
+mean(map_dbl(1:12, month_avg_prop))
+```
+
+
+
+
+
+```{r}
+mnth_tbl <- 
+  data2011 %>%
+  group_by(mnth) %>%
+  summarize(cnt = max(registered))
+mnth_tbl
+part_i <- function(i){data2011 %>% filter(mnth == mnth_tbl$mnth[i]) %>% mutate(cnt_prop = registered/mnth_tbl$cnt[i])}
+month_avg_prop <- function(i){mean(part_i(i)$cnt_prop)}
+```
+
+```{r}
+part_i(1)
 ```
 
 
 ```{r}
-data2011 %>% filter(holiday)
+vals <- map_dbl(1:12, month_avg_prop)
+vals
+mean(vals)
+quick_plot(vals)
+```
+
+
+
+
+
+
+
+
+
+```{r}
+data$
+```
+
+
+```{r}
+data2011_g <- read.csv("data2011_G.csv")
+```
+
+```{r}
+data2011_g <- data2011_g %>% filter(!holiday)
+```
+
+
+```{r}
+rates_week_reg <- data2011_g %>% group_by(week) %>% summarize(reg = mean(registered))
+```
+
+```{r}
+rates <- rates_1(rates_week_reg, var = "reg")
+var(rates)
+mean(rates)
+quick_plot(rates)
+```
+
+
+
+```{r}
+vals1 <- 1/vals
+```
+
+
+```{r}
+var_i <- function(i){var(part_i(i)$cnt_prop)}
+vals <- map_dbl(1:12, var_i) 
+mean(vals)
+quick_plot <- function(vals){ ggplot(data = data.frame(x = 1:12, y = vals)) + geom_point(aes(x, y)) }
+quick_plot(vals)
+```
+
+```{r}
+ggplot(data2011) + geom_point(aes(x = dteday, y = cnt))
+```
+
+
+```{r}
+jan %>% ggplot() + geom_point(aes(x = dteday, y = cnt_prop))
+which.min(jan[1:(which.max(jan$cnt)),]$cnt_prop)
+```
+
+
+```{r}
+curr_max <- data2011$cnt[1]
+max_is <- c()
+maxes <- c(curr_max)
+for(i in 1:nrow(data2011)){
+  curr <- data2011$cnt[i]
+  if(curr > curr_max){ 
+    curr_max <- curr
+    maxes <- c(maxes, curr)
+    max_is <- c(max_is, i)
+  }
+}
+```
+
+
+```{r}
+df_max <- data.frame(i = 1:22, y = maxes)
+
+ggplot(data2011, aes(x = dteday, y= cnt)) + geom_point(aes(color = mnth))
+```
+
+```{r}
+count_growth <- function(i, j){
+  data2011$cnt[i]/data2011$cnt[j]
+}
 ```
 
 

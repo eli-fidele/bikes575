@@ -52,10 +52,7 @@ rates_1 <- function(xs){
 }
 ```
 
-```{r}
-data2011 <- data2011 %>% mutate(week = ceiling(1:nrow(data2011)/7))
-data2012 <- data2012 %>% mutate(week = ceiling(1:nrow(data2012)/7))
-```
+
 
 ```{r}
 # Compute the (1-week lagged) weekly averages of a given variable
@@ -95,6 +92,11 @@ add_weekly_averages <- function(data){
 ```{r}
 data2011 <- data2011 %>% add_weekly_averages
 data2012 <- data2012 %>% add_weekly_averages
+```
+
+```{r}
+data2011 <- data2011 %>% mutate(week = ceiling(1:nrow(data2011)/7))
+data2012 <- data2012 %>% mutate(week = ceiling(1:nrow(data2012)/7))
 ```
 
 ```{r}

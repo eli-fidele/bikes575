@@ -58,50 +58,73 @@ data2012 <- data2012 %>% mutate(week = ceiling(1:nrow(data2012)/7))
 ```
 
 ```{r}
+# Compute the (1-week lagged) weekly averages of a given variable
 weekly_avgs <- function(data, var){
+  # Compute the averages of the variable by week
   weekly_cnts <- 
     data %>% 
       group_by(week) %>%
       summarize(wavg = mean({{ var }}))
+  # Lag week by 1
   weekly_cnts$week <- weekly_cnts$week + 1
+  # Remove excess weeks
   weekly_cnts %>% filter(week <= 53)
 }
 
+# Returns a dataset with an added column of weekly averages of a given variable
+add_weekly_avg_var <- function(data, var, var_name){
+  # Obtain the weekly averages of the desired variable
+  var_avgs <- data %>% weekly_avgs({{ var }})
+  # Rename the weekly average the desired variable name
+  colnames(var_avgs)[2] <- var_name
+  # Join the week column in the dataset by the weekly averages in the var_avgs dataframe
+  data %>% left_join(var_avgs)
+}
+
+add_weekly_averages <- function(data){
+  # Add the week variable to the dataset
+  data <- data %>% mutate(week = ceiling(1:nrow(data2011)/7))
+  # Add the cnt, reg, and cas weekly averages to the data
+  data <- data %>% add_weekly_avg_var(cnt, "wavg_cnt")
+  data <- data %>% add_weekly_avg_var(registered, "wavg_reg")
+  data <- data %>% add_weekly_avg_var(casual, "wavg_cas")
+  return(data)
+}
+```
+
+```{r}
+data2011 <- data2011 %>% add_weekly_averages
+data2012 <- data2012 %>% add_weekly_averages
+```
+
+```{r}
 cnt_avgs <- weekly_avgs(data2011, cnt)
-colnames(cnt_avgs)[2] <- "wavg_cnt"
+colnames(cnt_avgs)[2] <- 
+data2011 <- data2011 %>% left_join(cnt_avgs)
+
 reg_avgs <- weekly_avgs(data2011, registered)
 colnames(reg_avgs)[2] <- "wavg_reg"
+data2011 <- data2011 %>% left_join(reg_avgs)
+
 cas_avgs <- weekly_avgs(data2011, casual)
 colnames(cas_avgs)[2] <- "wavg_cas"
-```
-
-
-```{r}
-join_weekly_avgs <- function(data, weekavgs){data %>% right_join(weekavgs, by = week)}
-```
-
-```{r}
-data2011 <- data2011 %>% left_join(cnt_avgs)
-data2011 <- data2011 %>% left_join(reg_avgs)
 data2011 <- data2011 %>% left_join(cas_avgs)
 ```
-
 
 ```{r}
 cnt_avgs <- weekly_avgs(data2012, cnt)
 colnames(cnt_avgs)[2] <- "wavg_cnt"
+data2012 <- data2012 %>% left_join(cnt_avgs)
+
 reg_avgs <- weekly_avgs(data2012, registered)
 colnames(reg_avgs)[2] <- "wavg_reg"
+data2012 <- data2012 %>% left_join(reg_avgs)
+
 cas_avgs <- weekly_avgs(data2012, casual)
 colnames(cas_avgs)[2] <- "wavg_cas"
-```
-
-
-```{r}
-data2012 <- data2012 %>% left_join(cnt_avgs)
-data2012 <- data2012 %>% left_join(reg_avgs)
 data2012 <- data2012 %>% left_join(cas_avgs)
 ```
+
 ```{r}
 write.csv(x = data2011, file = "data2011_G.csv")
 ```
@@ -114,64 +137,3 @@ write.csv(x = data2012, file = "data2012_G.csv")
 
 
 
-
-
-```{r}
-data2011 <- data2011 %>% mutate(week = ceiling(1:nrow(data2011)/7))
-# Get weekly averages
-weekly_cnts <- 
-  data2011 %>% 
-    group_by(week) %>%
-    summarize(cnt = mean(cnt))
-# Take out last week
-weekly_cnts <- weekly_cnts[1:52,]
-# Get 1-delta growth rates
-weekly_growth <- rates_1(weekly_cnts)
-# Filter out any bad weeks
-data2011_W <- data2011 %>% filter(week %in% 2:52)
-```
-
-```{r}
-# Create the columns
-growths <- do.call("c", map(weekly_growth, .f = function(x){rep(x,7)}))
-avgs <- do.call("c", map(weekly_cnts$cnt[2:52], .f = function(x){rep(x,7)}))
-# Append the columns
-data2011_W$growths <- growths
-data2011_W$avgs <- avgs
-```
-
-```{r}
-write.csv(x = data2011_W, file = "data2011_G.csv")
-```
-
-```{r}
-write.csv(x = data2012_W, file = "data2012_G.csv")
-```
-
-```{r}
-data2012 <- data2012 %>% mutate(week = ceiling(1:nrow(data2012)/7))
-# Get weekly averages
-weekly_cnts <- 
-  data2012 %>% 
-    group_by(week) %>%
-    summarize(cnt = mean(cnt))
-# Take out last week
-weekly_cnts <- weekly_cnts[1:52,]
-# Get 1-delta growth rates
-weekly_growth <- rates_1(weekly_cnts)
-# Filter out any bad weeks
-data2012_W <- data2012 %>% filter(week %in% 2:52)
-```
-
-```{r}
-# Create the columns
-growths <- do.call("c", map(weekly_growth, .f = function(x){rep(x,7)}))
-avgs <- do.call("c", map(weekly_cnts$cnt[2:52], .f = function(x){rep(x,7)}))
-# Append the columns
-data2012_W$growths <- growths
-data2012_W$avgs <- avgs
-```
-
-```{r}
-write.csv(x = data2012_W, file = "data2012_G.csv")
-```

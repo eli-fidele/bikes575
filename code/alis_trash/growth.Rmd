@@ -44,6 +44,40 @@ source(file = "../R/plot.R")
 source(file = "../R/plot-lynne.R")
 ```
 
+## Clean(er) stuff
+
+
+
+
+```{r}
+data2011 <- data2011 %>% mutate(week = ceiling(1:nrow(data2011)/7))
+# Get weekly averages
+weekly_cnts <- 
+  data2011 %>% 
+    group_by(week) %>%
+    summarize(cnt = mean(cnt))
+# Take out last week
+weekly_cnts <- weekly_cnts[1:52,]
+# Get 1-delta growth rates
+weekly_growth <- rates_1(weekly_cnts)
+# Filter out any bad weeks
+data2011_W <- data2011 %>% filter(week %in% 2:52)
+```
+
+```{r}
+# Create the columns
+growths <- do.call("c", map(weekly_growth, .f = function(x){rep(x,7)}))
+avgs <- do.call("c", map(weekly_cnts$cnt[2:52], .f = function(x){rep(x,7)}))
+# Append the columns
+data2011_W$growths <- growths
+data2011_W$avgs <- avgs
+```
+
+```{r}
+write.csv(x = data2011_W, file = "data2011_G.csv")
+```
+
+## Older stuff
 ```{r}
 mnth_tbl <- 
   data2011 %>%

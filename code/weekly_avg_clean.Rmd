@@ -86,6 +86,17 @@ data2011 <- data2011 %>% left_join(reg_avgs)
 data2011 <- data2011 %>% left_join(cas_avgs)
 ```
 
+
+```{r}
+cnt_avgs <- weekly_avgs(data2012, cnt)
+colnames(cnt_avgs)[2] <- "wavg_cnt"
+reg_avgs <- weekly_avgs(data2012, registered)
+colnames(reg_avgs)[2] <- "wavg_reg"
+cas_avgs <- weekly_avgs(data2012, casual)
+colnames(cas_avgs)[2] <- "wavg_cas"
+```
+
+
 ```{r}
 data2012 <- data2012 %>% left_join(cnt_avgs)
 data2012 <- data2012 %>% left_join(reg_avgs)

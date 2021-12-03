@@ -19,6 +19,7 @@ library(tidyverse)
 library(GGally)
 library(cowplot)
 library(gglm)
+library(moderndive)
 #==============================#
 #        Global Settings       #
 #==============================#
@@ -300,20 +301,191 @@ mod.reg.best. <- lm(registered ~
 ```
 
 ```{r}
+summary(mod.cas.1.5)
+summary(mod.cas.1.5.5)
+```
+
+```{r}
+summary(mod.cas.1.5)$coef[,"Estimate"]
+summary(mod.cas.1.5.5)$coef[,"Estimate"]
+```
+
+
+
+####  Modeling Using the Preceeding Weekly Average
+```{r}
 data2011_augmented <- read.csv("data2011_G.csv", header = T)
 data2012_augmented <- read.csv("data2012_G.csv", header = T)
+data2011_augmented[data2011_augmented$dteday=='2011-12-25','holiday']
+data2012_augmented[data2012_augmented$dteday=='2012-12-25','holiday']
+```
+
+```{r}
+data2011_augmented[data2011_augmented$dteday=='2011-12-25','holiday'] <- TRUE
+data2011_augmented[data2011_augmented$dteday=='2011-12-25','holiday']
+```
+```{r}
+data2011_augmented$dteday <- as.Date(data2011_augmented$dteday)
+data2012_augmented$dteday <- as.Date(data2012_augmented$dteday)
+
+data2011_augmented$weathersit <- as.factor(data2011_augmented$weathersit)
+data2012_augmented$weathersit <- as.factor(data2012_augmented$weathersit)
+data2011_augmented$season <- as.factor(data2011_augmented$season)
+data2012_augmented$season <- as.factor(data2012_augmented$season)
+# data2011_augmented$weekday <- as.factor(data2011_augmented$weekday)
+# data2012_augmented$weekday <- as.factor(data2012_augmented$weekday)
+
+data2011_augmented <- na.omit(data2011_augmented)
+data2012_augmented <- na.omit(data2012_augmented)
 ```
 
 
 ```{r}
+mod.cas.0.0.5 <- lm(casual ~ 
+                   wavg_cas, data = data2011_augmented)
+mod.reg.0.0.5 <- lm(registered ~ 
+                   wavg_reg, data = data2011_augmented)
+mod.cas.0.5.5 <- lm(casual ~ 
+                   season:wavg_cas, data = data2011_augmented)
+mod.reg.0.5.5 <- lm(registered ~ 
+                   season:wavg_reg, data = data2011_augmented)
+
+mod.cas.1.5.5 <- lm(casual ~ 
+                   workingday + weathersit + atemp + I(atemp^2) + season + wavg_cas, data = data2011_augmented)
+mod.reg.1.5.5 <- lm(registered ~ 
+                   workingday + weathersit + atemp + I(atemp^2) + season + wavg_reg, data = data2011_augmented)
 mod.cas.2.7.5 <- lm(casual ~
-                   workingday:atemp + weathersit:season + holiday, data = data2011) #current best
+                   workingday:atemp + weathersit:season + holiday + wavg_cas, 
+                   data = data2011_augmented) #current best
 mod.cas.3.5.5 <- lm(casual ~
-                  season:workingday:atemp + weathersit:season + holiday, data = data2011) #overfitting but leads to best total
+                  season:workingday:atemp + weathersit:season + holiday + wavg_cas, 
+                  data = data2011_augmented) #overfitting but leads to best total
 mod.reg.4.0.5 <- lm(registered ~ 
-                  season:workingday:atemp + season:workingday:I(atemp^2) + weathersit + holiday, data = data2011) #current best
+                  season:workingday:atemp + season:workingday:I(atemp^2) + weathersit + holiday + wavg_reg, 
+                  data = data2011_augmented) #current best
 ```
 
+
+```{r}
+mod.cas.0.0.5.5 <- lm(casual ~ 
+                   wavg_cas + weekday, data = data2011_augmented)
+mod.reg.0.0.5.5 <- lm(registered ~ 
+                   wavg_reg + weekday, data = data2011_augmented)
+mod.cas.0.5.5.5 <- lm(casual ~ 
+                   season:wavg_cas + weekday, data = data2011_augmented) #season not helping
+mod.reg.0.5.5.5 <- lm(registered ~ 
+                   season:wavg_reg + weekday, data = data2011_augmented) #season not helping
+mod.cas.1.0.5.5 <- lm(casual ~ 
+                   wavg_cas + season:weekday + season:I(weekday^2) + workingday, data = data2011_augmented)
+mod.reg.1.0.5.5 <- lm(registered ~ 
+                   wavg_reg + season:weekday + season:I(weekday^2) + workingday, data = data2011_augmented)
+
+mod.cas.1.5.5.5 <- lm(casual ~ 
+                   workingday + weathersit + atemp + I(atemp^2) + season + wavg_cas + weekday, data = data2011_augmented)
+mod.reg.1.5.5.5 <- lm(registered ~ 
+                   workingday + weathersit + atemp + I(atemp^2) + season + wavg_reg + weekday, data = data2011_augmented)
+mod.cas.2.7.5.5 <- lm(casual ~
+                   workingday:atemp + weathersit:season + holiday + wavg_cas + weekday, 
+                   data = data2011_augmented) #current best
+mod.cas.3.5.5.5 <- lm(casual ~
+                  season:workingday:atemp + weathersit:season + holiday + wavg_cas + weekday, 
+                  data = data2011_augmented) #overfitting but leads to best total
+mod.reg.4.0.5.5 <- lm(registered ~ 
+                  season:workingday:atemp + season:workingday:I(atemp^2) + weathersit + holiday + wavg_reg + weekday, 
+                  data = data2011_augmented) #current best
+```
+
+```{r message=FALSE, warning=FALSE}
+get_mod_eval(mod.cas.0.0.5, mod.reg.0.0.5, 
+             data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval(mod.cas.0.5.5, mod.reg.0.5.5, 
+             data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+
+get_mod_eval(mod.cas.1.5.5, mod.reg.1.5.5, 
+             data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval(mod.cas.2.7.5, mod.reg.4.0.5, 
+             data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval(mod.cas.3.5.5, mod.reg.4.0.5, 
+             data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+```
+```{r message=FALSE, warning=FALSE}
+get_mod_eval(mod.cas.0.0.5.5, mod.reg.0.0.5.5, 
+             data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval(mod.cas.0.5.5.5, mod.reg.0.5.5.5, 
+             data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval(mod.cas.1.0.5.5, mod.reg.1.0.5.5, 
+             data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+
+
+get_mod_eval(mod.cas.1.5.5.5, mod.reg.1.5.5.5, 
+             data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval(mod.cas.2.7.5.5, mod.reg.4.0.5.5, 
+             data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval(mod.cas.3.5.5.5, mod.reg.4.0.5.5, 
+             data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+
+get_mod_eval(mod.cas.1.5.5.5, mod.reg.4.0.5.5, 
+             data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE) #what the? adding 2 best models together does not necessarily make a best total model?
+```
+
+```{r}
+ggplot()  + geom_line(data2011_augmented, 
+            mapping = aes(dteday, data2011_augmented$wavg_cnt, color = '1'), 
+            size = 0.5, alpha = 0.7) + 
+  geom_line(data2011_augmented, 
+            mapping = aes(dteday, data2012_augmented$wavg_cnt[-359], color = '2'), 
+            size = 0.5, alpha = 0.7)
+
+ggplot() + geom_line(data2011_augmented, 
+            mapping = aes(dteday, data2011_augmented$wavg_cnt / data2012_augmented$wavg_cnt[-359], color = '3'), 
+            size = 0.5, alpha = 0.7)
+```
+
+
+```{r}
+p2 + geom_line(data2011_augmented, 
+            mapping = aes(dteday, predict(mod.cas.1.0.5.5, data2011_augmented), color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+
+p1 + geom_line(data2011_augmented, 
+            mapping = aes(dteday, predict(mod.reg.1.0.5.5, data2011_augmented), color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+```
+
+```{r}
+p4 + geom_line(data2012_augmented, 
+            mapping = aes(dteday, predict(mod.cas.1.0.5.5, data2012_augmented), color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+
+p3 + geom_line(data2012_augmented, 
+            mapping = aes(dteday, predict(mod.reg.1.0.5.5, data2012_augmented), color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+```
+
+
+
+```{r}
+get_regression_summaries(mod.cas.3.5.5.5)
+```
+
+```{r}
+get_regression_summaries(mod.cas.3.5)
+```
+
+
+```{r}
+summary(mod.cas.3.5.5.5)
+summary(mod.reg.4.0.5.5)
+```
+
+```{r}
+get_regression_summaries(mod.cas.3.5.5.5)
+```
+
+
+
+
+#### Modeling the Total Count
 
 ```{r}
 # guess what, let's try directly modeling the total count! 
@@ -324,6 +496,57 @@ mod.tot.3   <- lm(cnt ~ season:workingday:atemp + season:I(atemp^2) + weathersit
 mod.tot.4   <- lm(cnt ~ season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season, data = data2011)
 mod.tot.4.5 <- lm(cnt ~ season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season + holiday, data = data2011) #cas.2.7 + reg.4
 mod.tot.4.7 <- lm(cnt ~ season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season + holiday, data = data2011) #cas.3.5 + reg.4...oh it's the same...
+```
+
+```{r message=FALSE, warning=FALSE}
+get_mod_eval_tot(mod.tot.1,data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval_tot(mod.tot.1.5,data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval_tot(mod.tot.2,data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval_tot(mod.tot.3,data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval_tot(mod.tot.4,data2011, filter(data2012, dteday != '2012-10-29')) #starts to overfit
+get_mod_eval_tot(mod.tot.4.5,data2011, filter(data2012, dteday != '2012-10-29')) #yeaaah separate modeling is better
+get_mod_eval_tot(mod.tot.4.7,data2011, filter(data2012, dteday != '2012-10-29')) #yeaaah separate modeling is better
+```
+
+##### With the weekly average: 
+
+```{r}
+# guess what
+mod.tot.1.0.5 <- lm(cnt ~ workingday + weathersit + atemp + I(atemp^2) + wavg_cnt, data = data2011_augmented)
+mod.tot.1.5.5 <- lm(cnt ~ workingday + weathersit + atemp + I(atemp^2) + holiday + season + wavg_cnt, data = data2011_augmented)
+mod.tot.2.0.5 <- lm(cnt ~ weathersit:workingday:atemp + I(atemp^2) + weathersit + season + wavg_cnt, data = data2011_augmented)
+mod.tot.3.0.5 <- lm(cnt ~ season:workingday:atemp + season:I(atemp^2) + weathersit + holiday + wavg_cnt, data = data2011_augmented)
+mod.tot.4.0.5 <- lm(cnt ~ season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season + wavg_cnt, data = data2011_augmented)
+mod.tot.4.5.5 <- lm(cnt ~ season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season + holiday + wavg_cnt, data = data2011_augmented) #cas.2.7 + reg.4
+```
+
+```{r}
+get_mod_eval_tot(mod.tot.1.0.5,data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval_tot(mod.tot.1.5.5,data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval_tot(mod.tot.2.0.5,data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval_tot(mod.tot.3.0.5,data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval_tot(mod.tot.4.0.5,data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE) #starts to overfit
+get_mod_eval_tot(mod.tot.4.5.5,data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE) #yeaaah separate modeling is better
+```
+##### With the weekly average and weekday:
+
+```{r}
+# guess what
+mod.tot.1.0.5.5 <- lm(cnt ~ workingday + weathersit + atemp + I(atemp^2) + wavg_cnt + weekday, data = data2011_augmented)
+mod.tot.1.5.5.5 <- lm(cnt ~ workingday + weathersit + atemp + I(atemp^2) + holiday + season + wavg_cnt + weekday, data = data2011_augmented)
+mod.tot.2.0.5.5 <- lm(cnt ~ weathersit:workingday:atemp + I(atemp^2) + weathersit + season + wavg_cnt + weekday, data = data2011_augmented)
+mod.tot.3.0.5.5 <- lm(cnt ~ season:workingday:atemp + season:I(atemp^2) + weathersit + holiday + wavg_cnt + weekday, data = data2011_augmented)
+mod.tot.4.0.5.5 <- lm(cnt ~ season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season + wavg_cnt + weekday, data = data2011_augmented)
+mod.tot.4.5.5.5 <- lm(cnt ~ season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season + holiday + wavg_cnt + weekday, data = data2011_augmented) #cas.2.7 + reg.4
+```
+
+```{r}
+get_mod_eval_tot(mod.tot.1.0.5.5,data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval_tot(mod.tot.1.5.5.5,data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval_tot(mod.tot.2.0.5.5,data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval_tot(mod.tot.3.0.5.5,data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval_tot(mod.tot.4.0.5.5,data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE) #starts to overfit
+get_mod_eval_tot(mod.tot.4.5.5.5,data2011_augmented, filter(data2012_augmented, dteday != '2012-10-29'), scale_2012 = FALSE) #yeaaah separate modeling is better
 ```
 
 
@@ -344,15 +567,6 @@ get_mod_eval(mod.cas.best,  mod.reg.best,  data2011, filter(data2012, dteday != 
 get_mod_eval(mod.cas.best., mod.reg.best., data2011, filter(data2012, dteday != '2012-10-29')) #outlier removal not really helping
 ```
 
-```{r}
-get_mod_eval_tot(mod.tot.1,data2011, filter(data2012, dteday != '2012-10-29'))
-get_mod_eval_tot(mod.tot.1.5,data2011, filter(data2012, dteday != '2012-10-29'))
-get_mod_eval_tot(mod.tot.2,data2011, filter(data2012, dteday != '2012-10-29'))
-get_mod_eval_tot(mod.tot.3,data2011, filter(data2012, dteday != '2012-10-29'))
-get_mod_eval_tot(mod.tot.4,data2011, filter(data2012, dteday != '2012-10-29')) #starts to overfit
-get_mod_eval_tot(mod.tot.4.5,data2011, filter(data2012, dteday != '2012-10-29')) #yeaaah separate modeling is better
-get_mod_eval_tot(mod.tot.4.7,data2011, filter(data2012, dteday != '2012-10-29')) #yeaaah separate modeling is better
-```
 
 ```{r}
 summary(mod.cas.2.7)
@@ -407,7 +621,7 @@ p3 + geom_line(data2012,
 ```{r}
 p2 + geom_line(data2011, 
             mapping = aes(dteday, predict(mod.cas.2, data2011), color = 'fitted'), 
-            size = 0.5, alpha = 0.7)
+            size = 0.5, alpha = 0)
 
 p1 + geom_line(data2011, 
             mapping = aes(dteday, predict(mod.reg.2, data2011), color = 'fitted'), 

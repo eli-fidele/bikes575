@@ -55,7 +55,7 @@ weekly_avgs <- function(data, var){
   # Lag week by 1
   weekly_cnts$week <- weekly_cnts$week + 1
   # Remove excess weeks
-  weekly_cnts %>% filter(week <= 53)
+  return(weekly_cnts %>% filter(week <= 53))
 }
 
 # Returns a dataset with an added column of weekly averages of a given variable
@@ -65,9 +65,11 @@ add_weekly_avg_var <- function(data, var, var_name){
   # Rename the weekly average the desired variable name
   colnames(var_avgs)[2] <- var_name
   # Join the week column in the dataset by the weekly averages in the var_avgs dataframe
-  data %>% left_join(var_avgs)
+  return(data %>% left_join(var_avgs))
 }
 
+# Given the bike dataset, returns the dataset with week 
+# column and weekly averages for the three response variables
 add_weekly_averages <- function(data){
   # Add the week variable to the dataset
   data <- data %>% mutate(week = ceiling(1:nrow(data)/7))
@@ -80,11 +82,10 @@ add_weekly_averages <- function(data){
 ```
 
 ```{r}
+# Add the weekly averages
 data2011 <- data2011 %>% add_weekly_averages
 data2012 <- data2012 %>% add_weekly_averages
-```
-
-```{r}
+# Write CSVs
 write.csv(x = data2011, file = "data2011_G.csv")
 write.csv(x = data2012, file = "data2012_G.csv")
 ```

@@ -50,5 +50,29 @@ local_cnt_avg <- function(i, w){
 }
 ```
 
+```{r}
+wrapped_ratio <- function(var){
+  var_col <- data2011[[var]]
+  var_col[1]/var_col[nrow(data2011)]
+}
+```
 
+
+```{r}
+data2011$cnt[1]/data2011$cnt[nrow(data2011)]
+```
+
+```{r}
+reg <- wrapped_ratio("registered")
+cas <- wrapped_ratio("casual")
+tot <- wrapped_ratio("cnt")
+k <- (mean(data2011$registered)/mean(data2011$cnt))
+g <- k * reg + (1-k) * cas
+```
+
+```{r}
+# Use casual instead of rehistered, argue it captures egenral interest better
+# all registered users were once causal users but not all casual users will become registered users.
+# Subset or containment
+```
 

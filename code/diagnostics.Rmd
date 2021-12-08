@@ -1,15 +1,45 @@
 ---
-title: "diagnostics"
-author: "Taqi"
-date: "12/2/2021"
-output: pdf_document
+title: 'Final Report: Bike-Sharing Data Analysis'
+subtitle: "MA 575 Fall 2021 - C3 Team #2"
+author: "Ali Taqi, Hsin-Chang Lin, Huiru Yang, Ryan Mahoney, Yulin Li"
+date: "12/09/2021"
+output: 
+  pdf_document: 
+    number_sections: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-```{r}
-
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.align = "center")
+#==============================#
+#       Import Libraries       #
+#==============================#
+library(tidyverse)
+library(GGally)
+library(cowplot)
+library(gglm)
+library(moderndive)
+#==============================#
+#        Global Settings       #
+#==============================#
+# Center ggplot titles
+theme_update(plot.title = element_text(hjust = 0.5))
+#=============================#
+#        Obtain Dataset       #
+#=============================#
+# Source the wrangling scripts
+source(file = "../R/wrangle-lynne.R")
+# Import and wrangle data
+bike_day <- read.csv("../data/bike-day.csv", header = T)
+# Use the wrangling "wrapper" function to clean the data (fxn sourced from wrangle.R)
+data <- wrangle_init(bike_day)
+# Partition the 2011/2012 data
+data2011 <- in_2011(data); data2012 <- in_2012(data)
+#============================#
+#       Source Scripts       #
+#============================#
+# Import any models (and fitted values, if applicable)
+source(file = "../R/model-lynne.R")
+# Import any plots or plot wrapper functions
+source(file = "../R/plot-lynne.R")
 ```
 

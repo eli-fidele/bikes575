@@ -302,7 +302,7 @@ mod.reg.best. <- lm(registered ~
 
 ```{r}
 summary(mod.cas.1.5)
-summary(mod.cas.1.5.5)
+#summary(mod.cas.1.5.5)
 ```
 
 ```{r}

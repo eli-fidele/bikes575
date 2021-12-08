@@ -1,0 +1,359 @@
+---
+title: 'Lab Report: Bike-Sharing Data Analysis'
+subtitle: "MA 575 Fall 2021 - C3 Team #2"
+author: "Ali Taqi, Hsin-Chang Lin, Huiru Yang, Ryan Mahoney, Yulin Li"
+date: "12/01/2021"
+output: 
+  pdf_document: 
+    number_sections: true
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.align = "center", fig.height = 4, fig.width = 6)
+#==============================#
+#       Import Libraries       #
+#==============================#
+library(tidyverse)
+library(GGally)
+library(cowplot)
+library(gglm)
+library(moderndive)
+#==============================#
+#        Global Settings       #
+#==============================#
+# Center ggplot titles
+theme_update(plot.title = element_text(hjust = 0.5))
+#=============================#
+#        Obtain Dataset       #
+#=============================#
+# Source the wrangling scripts
+source(file = "wrangle.R")
+# Import and wrangle data
+bike_day <- read.csv("../data/bike-day.csv", header = T)
+# Use the wrangling "wrapper" function to clean the data (fxn sourced from wrangle.R)
+data <- wrangle_init(bike_day)
+# Partition the 2011/2012 data
+data2011 <- in_2011(data); data2012 <- in_2012(data)
+# Get the augmented data with week variables
+data2011AUG <- read.csv("../code/data2011_G.csv", header = T)
+data2012AUG <- read.csv("../code/data2012_G.csv", header = T)
+data2011AUG <- data2011AUG %>% wrangle_aug
+data2012AUG <- data2012AUG %>% wrangle_aug
+#============================#
+#       Source Scripts       #
+#============================#
+# Import any models (and fitted values, if applicable)
+source(file = "model.R")
+source(file = "model-wk.R")
+source(file = "model-tot.R")
+source(file = "diagnostics.R")
+# Import any plots or plot wrapper functions
+source(file = "plot.R")
+```
+
+```{r}
+gridExtra::grid.arrange(p1, p2, p3, p4)
+```
+
+## Modeling
+
+- for casual counts: adding temp^2 makes the prediction even more unstable.
+- for registered counts: adding temp^2 seems necessary. 
+
+```{r, print = TRUE}
+summary(mod.cas.1.5)
+#summary(mod.cas.1.5.5)
+```
+
+```{r}
+summary(mod.cas.1.5)$coef[,"Estimate"]
+#summary(mod.cas.1.5.5)$coef[,"Estimate"]
+```
+
+
+
+####  Modeling Using the Preceeding Weekly Average
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+evaluate_model <- function(cas, reg){
+  get_mod_eval(cas, reg, data2011AUG, data2012AUG %>% filter(dteday != '2012-10-29'), scale_2012 = FALSE)
+}
+```
+
+
+```{r message=FALSE, warning=FALSE}
+get_mod_eval(mod.cas.0.0.5, mod.reg.0.0.5, 
+             data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval(mod.cas.0.5.5, mod.reg.0.5.5, 
+             data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+
+get_mod_eval(mod.cas.1.5.5, mod.reg.1.5.5, 
+             data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval(mod.cas.2.7.5, mod.reg.4.0.5, 
+             data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval(mod.cas.3.5.5, mod.reg.4.0.5, 
+             data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+```
+```{r message=FALSE, warning=FALSE}
+get_mod_eval(mod.cas.0.0.5.5, mod.reg.0.0.5.5, 
+             data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval(mod.cas.0.5.5.5, mod.reg.0.5.5.5, 
+             data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval(mod.cas.1.0.5.5, mod.reg.1.0.5.5, 
+             data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+
+
+get_mod_eval(mod.cas.1.5.5.5, mod.reg.1.5.5.5, 
+             data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval(mod.cas.2.7.5.5, mod.reg.4.0.5.5, 
+             data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval(mod.cas.3.5.5.5, mod.reg.4.0.5.5, 
+             data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+
+get_mod_eval(mod.cas.1.5.5.5, mod.reg.4.0.5.5, 
+             data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE) #what the? adding 2 best models together does not necessarily make a best total model?
+```
+
+```{r}
+ggplot()  + geom_line(data2011AUG, 
+            mapping = aes(dteday, data2011AUG$wavg_cnt, color = '1'), 
+            size = 0.5, alpha = 0.7) + 
+  geom_line(data2011AUG, 
+            mapping = aes(dteday, data2012AUG$wavg_cnt[-359], color = '2'), 
+            size = 0.5, alpha = 0.7)
+
+ggplot() + geom_line(data2011AUG, 
+            mapping = aes(dteday, data2011AUG$wavg_cnt / data2012AUG$wavg_cnt[-359], color = '3'), 
+            size = 0.5, alpha = 0.7)
+```
+
+
+```{r}
+p2 + geom_line(data2011AUG, 
+            mapping = aes(dteday, predict(mod.cas.1.0.5.5, data2011AUG), color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+
+p1 + geom_line(data2011AUG, 
+            mapping = aes(dteday, predict(mod.reg.1.0.5.5, data2011AUG), color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+```
+
+```{r}
+p4 + geom_line(data2012AUG, 
+            mapping = aes(dteday, predict(mod.cas.1.0.5.5, data2012AUG), color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+
+p3 + geom_line(data2012AUG, 
+            mapping = aes(dteday, predict(mod.reg.1.0.5.5, data2012AUG), color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+```
+
+
+
+```{r}
+get_regression_summaries(mod.cas.3.5.5.5)
+```
+
+```{r}
+get_regression_summaries(mod.cas.3.5)
+```
+
+
+```{r}
+summary(mod.cas.3.5.5.5)
+summary(mod.reg.4.0.5.5)
+```
+
+```{r}
+get_regression_summaries(mod.cas.3.5.5.5)
+```
+
+
+
+
+#### Modeling the Total Count
+
+```{r}
+# guess what, let's try directly modeling the total count! 
+mod.tot.1   <- lm(cnt ~ workingday + weathersit + atemp + I(atemp^2), data = data2011)
+mod.tot.1.5 <- lm(cnt ~ workingday + weathersit + atemp + I(atemp^2) + holiday + season, data = data2011)
+mod.tot.2   <- lm(cnt ~ weathersit:workingday:atemp + I(atemp^2) + weathersit + season, data = data2011)
+mod.tot.3   <- lm(cnt ~ season:workingday:atemp + season:I(atemp^2) + weathersit + holiday, data = data2011)
+mod.tot.4   <- lm(cnt ~ season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season, data = data2011)
+mod.tot.4.5 <- lm(cnt ~ season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season + holiday, data = data2011) #cas.2.7 + reg.4
+mod.tot.4.7 <- lm(cnt ~ season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season + holiday, data = data2011) #cas.3.5 + reg.4...oh it's the same...
+```
+
+```{r message=FALSE, warning=FALSE}
+get_mod_eval_tot(mod.tot.1,data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval_tot(mod.tot.1.5,data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval_tot(mod.tot.2,data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval_tot(mod.tot.3,data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval_tot(mod.tot.4,data2011, filter(data2012, dteday != '2012-10-29')) #starts to overfit
+get_mod_eval_tot(mod.tot.4.5,data2011, filter(data2012, dteday != '2012-10-29')) #yeaaah separate modeling is better
+get_mod_eval_tot(mod.tot.4.7,data2011, filter(data2012, dteday != '2012-10-29')) #yeaaah separate modeling is better
+```
+
+##### With the weekly average: 
+
+```{r}
+# guess what
+mod.tot.1.0.5 <- lm(cnt ~ workingday + weathersit + atemp + I(atemp^2) + wavg_cnt, data = data2011AUG)
+mod.tot.1.5.5 <- lm(cnt ~ workingday + weathersit + atemp + I(atemp^2) + holiday + season + wavg_cnt, data = data2011AUG)
+mod.tot.2.0.5 <- lm(cnt ~ weathersit:workingday:atemp + I(atemp^2) + weathersit + season + wavg_cnt, data = data2011AUG)
+mod.tot.3.0.5 <- lm(cnt ~ season:workingday:atemp + season:I(atemp^2) + weathersit + holiday + wavg_cnt, data = data2011AUG)
+mod.tot.4.0.5 <- lm(cnt ~ season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season + wavg_cnt, data = data2011AUG)
+mod.tot.4.5.5 <- lm(cnt ~ season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season + holiday + wavg_cnt, data = data2011AUG) #cas.2.7 + reg.4
+```
+
+```{r}
+get_mod_eval_tot(mod.tot.1.0.5,data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval_tot(mod.tot.1.5.5,data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval_tot(mod.tot.2.0.5,data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval_tot(mod.tot.3.0.5,data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval_tot(mod.tot.4.0.5,data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE) #starts to overfit
+get_mod_eval_tot(mod.tot.4.5.5,data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE) #yeaaah separate modeling is better
+```
+##### With the weekly average and weekday:
+
+```{r}
+# guess what
+mod.tot.1.0.5.5 <- lm(cnt ~ workingday + weathersit + atemp + I(atemp^2) + wavg_cnt + weekday, data = data2011AUG)
+mod.tot.1.5.5.5 <- lm(cnt ~ workingday + weathersit + atemp + I(atemp^2) + holiday + season + wavg_cnt + weekday, data = data2011AUG)
+mod.tot.2.0.5.5 <- lm(cnt ~ weathersit:workingday:atemp + I(atemp^2) + weathersit + season + wavg_cnt + weekday, data = data2011AUG)
+mod.tot.3.0.5.5 <- lm(cnt ~ season:workingday:atemp + season:I(atemp^2) + weathersit + holiday + wavg_cnt + weekday, data = data2011AUG)
+mod.tot.4.0.5.5 <- lm(cnt ~ season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season + wavg_cnt + weekday, data = data2011AUG)
+mod.tot.4.5.5.5 <- lm(cnt ~ season:workingday:atemp + season:workingday:I(atemp^2) + weathersit:season + holiday + wavg_cnt + weekday, data = data2011AUG) #cas.2.7 + reg.4
+```
+
+```{r}
+get_mod_eval_tot(mod.tot.1.0.5.5,data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval_tot(mod.tot.1.5.5.5,data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval_tot(mod.tot.2.0.5.5,data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval_tot(mod.tot.3.0.5.5,data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE)
+get_mod_eval_tot(mod.tot.4.0.5.5,data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE) #starts to overfit
+get_mod_eval_tot(mod.tot.4.5.5.5,data2011AUG, filter(data2012AUG, dteday != '2012-10-29'), scale_2012 = FALSE) #yeaaah separate modeling is better
+```
+
+
+#### Model Evals
+
+```{r message=FALSE, warning=FALSE}
+get_mod_eval(mod.cas.1, mod.reg.1,     data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval(mod.cas.1.5, mod.reg.1.5, data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval(mod.cas.2, mod.reg.2,     data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval(mod.cas.2.5, mod.reg.2.5, data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval(mod.cas.2.7, mod.reg.3.7, data2011, filter(data2012, dteday != '2012-10-29'))
+get_mod_eval(mod.cas.3, mod.reg.3,     data2011, filter(data2012, dteday != '2012-10-29')) #casual overfitting
+get_mod_eval(mod.cas.3.5, mod.reg.4,   data2011, filter(data2012, dteday != '2012-10-29')) #best total (casual overfitting)
+# get_mod_eval(mod.cas.3.5, mod.reg.4.5, data2011, filter(data2012, dteday != '2012-10-29')) #now reg overfitting too
+
+# real current best!!!
+get_mod_eval(mod.cas.best,  mod.reg.best,  data2011, filter(data2012, dteday != '2012-10-29')) #best reg + best cas
+get_mod_eval(mod.cas.best., mod.reg.best., data2011, filter(data2012, dteday != '2012-10-29')) #outlier removal not really helping
+```
+
+
+```{r}
+summary(mod.cas.2.7)
+summary(mod.cas.3.5)
+summary(mod.reg.4)
+```
+
+
+
+#### Model 3
+
+- Problem: 
+  - underfit in the middle of a week -> might need to incorporate the weekday variable
+  - or will need to remove the outlier
+  
+
+```{r}
+p2 + geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.cas.2.7, data2011), color = 'on holidays'), 
+            size = 0.5, alpha = 0) + 
+  geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.cas.3.5, data2011), color = 'fitted'), 
+            size = 0.5, alpha = 0.4)
+
+p1 + geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.reg.4, data2011), color = 'on holidays'), 
+            size = 0.5, alpha = 0.4) + 
+  geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.reg.4.5, data2011), color = 'fitted'), 
+            size = 0.5, alpha = 0.4)
+
+```
+
+```{r}
+p4 + geom_line(data2012, 
+            mapping = aes(dteday, predict(mod.cas.3, data2012), color = 'fitted'), 
+            size = 0.5, alpha = 0) + 
+  geom_line(data2012, 
+            mapping = aes(dteday, predict(mod.cas.3, data2012)/0.608, color = 'fitted'), 
+            size = 0.5, alpha = 0.8)
+
+p3 + geom_line(data2012, 
+            mapping = aes(dteday, predict(mod.reg.4, data2012)/0.608, color = 'on holidays'), 
+            size = 0.5, alpha = 0) + 
+  geom_line(data2012, 
+            mapping = aes(dteday, predict(mod.reg.3, data2012)/0.608, color = 'fitted'), 
+            size = 0.5, alpha = 0.8)
+```
+
+#### Model 2: previous best
+
+```{r}
+p2 + geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.cas.2, data2011), color = 'fitted'), 
+            size = 0.5, alpha = 0)
+
+p1 + geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.reg.2, data2011), color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+
+```
+
+```{r}
+p4 + geom_line(data2012, 
+            mapping = aes(dteday, predict(mod.cas.2, data2012)/0.608, color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+
+p3 + geom_line(data2012, 
+            mapping = aes(dteday, predict(mod.reg.2, data2012)/0.608, color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+```
+
+### Inspecting Data
+
+```{r}
+p1 + geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.reg.2, data2011), color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+```
+
+
+
+```{r}
+# data2011[data2011$cnt <= 800, ]
+# Use filter() from "dplyr (data plyer)" also in tidyverse 
+# data2011 %>% filter(cnt <= 800)
+
+# Equivalent code!
+filter(data2011, (registered <= 1000) & (dteday > '2011-06-01'))
+```
+
+```{r}
+# data2012[data2012$cnt <= 1000, ]
+```
+
+
+

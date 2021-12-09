@@ -1,0 +1,96 @@
+---
+title: 'Lab Report: Bike-Sharing Data Analysis'
+subtitle: "MA 575 Fall 2021 - C3 Team #2"
+author: "Ali Taqi, Hsin-Chang Lin, Huiru Yang, Ryan Mahoney, Yulin Li"
+date: "12/01/2021"
+output: 
+  pdf_document: 
+    number_sections: true
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.align = "center", fig.height = 4, fig.width = 6)
+#==============================#
+#       Import Libraries       #
+#==============================#
+library(tidyverse)
+library(GGally)
+library(cowplot)
+library(gglm)
+library(moderndive)
+#==============================#
+#        Global Settings       #
+#==============================#
+# Center ggplot titles
+theme_update(plot.title = element_text(hjust = 0.5))
+#=============================#
+#        Obtain Dataset       #
+#=============================#
+# Source the wrangling scripts
+source(file = "../R/wrangle-lynne.R")
+# Import and wrangle data
+bike_day <- read.csv("../data/bike-day.csv", header = T)
+# Use the wrangling "wrapper" function to clean the data (fxn sourced from wrangle.R)
+data <- wrangle_init(bike_day)
+# Partition the 2011/2012 data
+data2011 <- in_2011(data); data2012 <- in_2012(data)
+#============================#
+#       Source Scripts       #
+#============================#
+# Import any models (and fitted values, if applicable)
+source(file = "../R/model-lynne.R")
+# Import any plots or plot wrapper functions
+source(file = "../R/plot.R")
+source(file = "../R/plot-lynne.R")
+```
+
+```{r}
+# Compute the (1-week lagged) weekly averages of a given variable
+weekly_avgs <- function(data, var){
+  # Compute the averages of the variable by week
+  weekly_cnts <- 
+    data %>% 
+      group_by(week) %>%
+      summarize(wavg = mean({{ var }}))
+  # Lag week by 1
+  weekly_cnts$week <- weekly_cnts$week + 1
+  # Remove excess weeks
+  return(weekly_cnts %>% filter(week <= 53))
+}
+
+# Returns a dataset with an added column of weekly averages of a given variable
+add_weekly_avg_var <- function(data, var, var_name){
+  # Obtain the weekly averages of the desired variable
+  var_avgs <- data %>% weekly_avgs({{ var }})
+  # Rename the weekly average the desired variable name
+  colnames(var_avgs)[2] <- var_name
+  # Join the week column in the dataset by the weekly averages in the var_avgs dataframe
+  return(data %>% left_join(var_avgs))
+}
+
+# Given the bike dataset, returns the dataset with week 
+# column and weekly averages for the three response variables
+add_weekly_averages <- function(data){
+  # Add the week variable to the dataset
+  data <- data %>% mutate(week = ceiling(1:nrow(data)/7))
+  # Add the cnt, reg, and cas weekly averages to the data
+  data <- data %>% add_weekly_avg_var(cnt, "wavg_cnt")
+  data <- data %>% add_weekly_avg_var(registered, "wavg_reg")
+  data <- data %>% add_weekly_avg_var(casual, "wavg_cas")
+  return(data)
+}
+```
+
+```{r}
+# Add the weekly averages
+data2011 <- data2011 %>% add_weekly_averages
+data2012 <- data2012 %>% add_weekly_averages
+# Write CSVs
+write.csv(x = data2011, file = "data2011_G.csv")
+write.csv(x = data2012, file = "data2012_G.csv")
+```
+
+
+
+
+

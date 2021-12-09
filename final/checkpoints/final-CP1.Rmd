@@ -1,0 +1,294 @@
+---
+title: 'Lab Report: Bike-Sharing Data Analysis'
+subtitle: "MA 575 Fall 2021 - C3 Team #2"
+author: "Ali Taqi, Hsin-Chang Lin, Huiru Yang, Ryan Mahoney, Yulin Li"
+date: "12/01/2021"
+output: 
+  pdf_document: 
+    number_sections: true
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.align = "center", warning = F, message = F, fig.height = 4, fig.width = 6)
+#==============================#
+#       Import Libraries       #
+#==============================#
+library(tidyverse)
+library(GGally)
+library(cowplot)
+library(gglm)
+library(moderndive)
+#==============================#
+#        Global Settings       #
+#==============================#
+# Center ggplot titles
+theme_update(plot.title = element_text(hjust = 0.5))
+#=============================#
+#        Obtain Dataset       #
+#=============================#
+# Source the wrangling scripts
+source(file = "wrangle.R")
+# Import and wrangle data
+bike_day <- read.csv("../data/bike-day.csv", header = T)
+# Use the wrangling "wrapper" function to clean the data (fxn sourced from wrangle.R)
+data <- wrangle_init(bike_day)
+# Partition the 2011/2012 data
+data2011 <- in_2011(data); data2012 <- in_2012(data)
+# Get the augmented data with week variables
+data2011AUG <- read.csv("../code/data2011_G.csv", header = T)
+data2012AUG <- read.csv("../code/data2012_G.csv", header = T)
+data2011AUG <- data2011AUG %>% wrangle_aug
+data2012AUG <- data2012AUG %>% wrangle_aug
+#============================#
+#       Source Scripts       #
+#============================#
+# Import any models (and fitted values, if applicable)
+source(file = "model.R")
+source(file = "model-wk.R")
+source(file = "model-tot.R")
+source(file = "diagnostics.R")
+# Import any plots or plot wrapper functions
+source(file = "plot.R")
+```
+
+```{r}
+gridExtra::grid.arrange(p1, p2, p3, p4)
+```
+
+## Modeling
+
+- for casual counts: adding temp^2 makes the prediction even more unstable.
+- for registered counts: adding temp^2 seems necessary. 
+
+```{r, print = TRUE}
+#summary(mod.cas.1.5)
+#summary(mod.cas.1.5.5)
+```
+
+```{r}
+#summary(mod.cas.1.5)$coef[,"Estimate"]
+#summary(mod.cas.1.5.5)$coef[,"Estimate"]
+```
+
+####  Modeling Using the Preceeding Weekly Average
+
+```{r}
+evaluate_model <- function(cas, reg){
+  get_mod_eval(cas, reg, data2011AUG, data2012AUG %>% filter(dteday != '2012-10-29'), scale_2012 = FALSE)
+}
+```
+
+```{r message=FALSE, warning=FALSE}
+evaluate_model(mod.cas.0.0.5, mod.reg.0.0.5)
+evaluate_model(mod.cas.0.5.5, mod.reg.0.5.5)
+evaluate_model(mod.cas.1.5.5, mod.reg.1.5.5)
+evaluate_model(mod.cas.2.7.5, mod.reg.4.0.5)
+evaluate_model(mod.cas.2.7.5, mod.reg.4.0.5)
+evaluate_model(mod.cas.3.5.5, mod.reg.4.0.5)
+```
+
+```{r message=FALSE, warning=FALSE}
+evaluate_model(mod.cas.0.0.5.5, mod.reg.0.0.5.5)
+evaluate_model(mod.cas.0.5.5.5, mod.reg.0.5.5.5)
+evaluate_model(mod.cas.1.5.5.5, mod.reg.1.5.5.5)
+evaluate_model(mod.cas.2.7.5.5, mod.reg.4.0.5.5)
+evaluate_model(mod.cas.3.5.5.5, mod.reg.4.0.5.5)
+evaluate_model(mod.cas.1.5.5.5, mod.reg.4.0.5.5) #what the? adding 2 best models together does not necessarily make a best total model?
+```
+
+```{r}
+pw1 <- 
+  ggplot()  + geom_line(data2011AUG, 
+            mapping = aes(dteday, data2011AUG$wavg_cnt, color = '1'), 
+            size = 0.5, alpha = 0.7) + 
+  geom_line(data2011AUG, 
+            mapping = aes(dteday, data2012AUG$wavg_cnt[-359], color = '2'), 
+            size = 0.5, alpha = 0.7)
+
+pw2 <- ggplot() + geom_line(data2011AUG, 
+            mapping = aes(dteday, data2011AUG$wavg_cnt / data2012AUG$wavg_cnt[-359], color = '3'), 
+            size = 0.5, alpha = 0.7)
+```
+
+```{r}
+#p2l
+#p1l
+#p4l
+#p3l
+```
+
+```{r}
+#get_regression_summaries(mod.cas.3.5.5.5)
+#get_regression_summaries(mod.cas.3.5)
+```
+
+```{r}
+#summary(mod.cas.3.5.5.5)
+#summary(mod.reg.4.0.5.5)
+#get_regression_summaries(mod.cas.3.5.5.5)
+```
+
+#### Modeling the Total Count
+
+```{r}
+evaluate_tot_model <- function(tot, train_data = data2011, test_data = data2012, scale_2012 = TRUE){
+  get_mod_eval_tot(tot, train_data, test_data %>% filter(dteday != '2012-10-29'), scale_2012 = scale_2012)
+}
+```
+
+```{r message=FALSE, warning=FALSE}
+evaluate_tot_model(mod.tot.1)
+evaluate_tot_model(mod.tot.1.5)
+evaluate_tot_model(mod.tot.2)
+evaluate_tot_model(mod.tot.3)
+evaluate_tot_model(mod.tot.4) #starts to overfit
+evaluate_tot_model(mod.tot.4.5) #yeaaah separate modeling is better
+evaluate_tot_model(mod.tot.4.7) #yeaaah separate modeling is better
+```
+
+##### With the weekly average: 
+
+```{r}
+evaluate_tot_model_v2 <- function(tot){
+  evaluate_tot_model(tot, train_data = data2011AUG, test_data = data2012AUG, scale_2012 = FALSE)
+}
+```
+
+```{r message=FALSE, warning=FALSE}
+evaluate_tot_model_v2(mod.tot.1.0.5)
+evaluate_tot_model_v2(mod.tot.1.5.5)
+evaluate_tot_model_v2(mod.tot.2.0.5)
+evaluate_tot_model_v2(mod.tot.3.0.5)
+evaluate_tot_model_v2(mod.tot.4.0.5) #starts to overfit
+evaluate_tot_model_v2(mod.tot.4.5.5) #yeaaah separate modeling is better
+```
+
+##### With the weekly average and weekday:
+
+```{r message=FALSE, warning=FALSE}
+evaluate_tot_model_v2(mod.tot.1.0.5.5)
+evaluate_tot_model_v2(mod.tot.1.5.5.5)
+evaluate_tot_model_v2(mod.tot.2.0.5.5)
+evaluate_tot_model_v2(mod.tot.3.0.5.5)
+evaluate_tot_model_v2(mod.tot.4.0.5.5) #starts to overfit
+evaluate_tot_model_v2(mod.tot.4.5.5.5) #yeaaah separate modeling is better
+```
+
+#### Model Evals
+
+```{r}
+evaluate_model_v2 <- function(cas, reg){
+  get_mod_eval(cas, reg, data2011, data2012 %>% filter(dteday != '2012-10-29'), scale_2012 = FALSE)
+}
+```
+
+```{r}
+evaluate_model_v2(mod.cas.1, mod.reg.1)
+evaluate_model_v2(mod.cas.1.5, mod.reg.1.5)
+evaluate_model_v2(mod.cas.2, mod.reg.2)
+evaluate_model_v2(mod.cas.2.5, mod.reg.2.5)
+evaluate_model_v2(mod.cas.2.7, mod.reg.3.7)
+evaluate_model_v2(mod.cas.3, mod.reg.3)  #casual overfitting
+evaluate_model_v2(mod.cas.3.5, mod.reg.4) #best total (casual overfitting)
+
+# real current best!!!
+evaluate_model_v2(mod.cas.best,  mod.reg.best)  #best reg + best cas
+evaluate_model_v2(mod.cas.best., mod.reg.best.)  #outlier removal not really helping
+```
+
+```{r}
+#summary(mod.cas.2.7)
+#summary(mod.cas.3.5)
+#summary(mod.reg.4)
+```
+
+
+
+#### Model 3
+
+- Problem: 
+  - underfit in the middle of a week -> might need to incorporate the weekday variable
+  - or will need to remove the outlier
+  
+
+```{r}
+p2 + geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.cas.2.7, data2011), color = 'on holidays'), 
+            size = 0.5, alpha = 0) + 
+  geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.cas.3.5, data2011), color = 'fitted'), 
+            size = 0.5, alpha = 0.4)
+
+p1 + geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.reg.4, data2011), color = 'on holidays'), 
+            size = 0.5, alpha = 0.4) + 
+  geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.reg.4.5, data2011), color = 'fitted'), 
+            size = 0.5, alpha = 0.4)
+
+```
+
+```{r}
+p4 + geom_line(data2012, 
+            mapping = aes(dteday, predict(mod.cas.3, data2012), color = 'fitted'), 
+            size = 0.5, alpha = 0) + 
+  geom_line(data2012, 
+            mapping = aes(dteday, predict(mod.cas.3, data2012)/0.608, color = 'fitted'), 
+            size = 0.5, alpha = 0.8)
+
+p3 + geom_line(data2012, 
+            mapping = aes(dteday, predict(mod.reg.4, data2012)/0.608, color = 'on holidays'), 
+            size = 0.5, alpha = 0) + 
+  geom_line(data2012, 
+            mapping = aes(dteday, predict(mod.reg.3, data2012)/0.608, color = 'fitted'), 
+            size = 0.5, alpha = 0.8)
+```
+
+#### Model 2: previous best
+
+```{r}
+p2 + geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.cas.2, data2011), color = 'fitted'), 
+            size = 0.5, alpha = 0)
+
+p1 + geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.reg.2, data2011), color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+
+```
+
+```{r}
+p4 + geom_line(data2012, 
+            mapping = aes(dteday, predict(mod.cas.2, data2012)/0.608, color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+
+p3 + geom_line(data2012, 
+            mapping = aes(dteday, predict(mod.reg.2, data2012)/0.608, color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+```
+
+### Inspecting Data
+
+```{r}
+p1 + geom_line(data2011, 
+            mapping = aes(dteday, predict(mod.reg.2, data2011), color = 'fitted'), 
+            size = 0.5, alpha = 0.7)
+```
+
+
+
+```{r}
+# data2011[data2011$cnt <= 800, ]
+# Use filter() from "dplyr (data plyer)" also in tidyverse 
+# data2011 %>% filter(cnt <= 800)
+
+# Equivalent code!
+filter(data2011, (registered <= 1000) & (dteday > '2011-06-01'))
+```
+
+```{r}
+# data2012[data2012$cnt <= 1000, ]
+```
+
+
+

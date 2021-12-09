@@ -1,4 +1,45 @@
 
+
+########################################################################
+
+########################################################################
+
+LOOCV <- function(predictors, response, train_data, summarize = T){
+  is <- 1:nrow(train_data)
+  residuals <- purrr::map_dbl(is, function(i){.LOOCV_i(i, predictors, response, train_data)})
+  res_table <- data.frame(i = is, residual = residuals)
+  if(summarize){ return(sqrt(mean(res_table$residual^2))) }
+  return(res_table)
+}
+
+.LOOCV_i <- function(i, predictors, response, train_data){
+  # Choose observation i as our test data
+  test_data <- train_data[i,]
+  # Omit it from the training data
+  train_data <- train_data %>% anti_join(test_data)
+  # Parse the predictor string vector into a formula then fit the model
+  model <- lm(formula = .parseFormula(predictors, response), data = train_data)
+  # Evaluate the residual of the omitted observation
+  yhat <- predict(model, test_data)
+  y <- test_data[[response]]
+  epsilon <- (yhat - y)
+  # Return the residual
+  return(epsilon)
+}
+
+.parseFormula <- function(predictors, response = "cnt"){
+  f <- as.formula(
+    paste(response, 
+          paste(predictors, collapse = " + "), 
+          sep = " ~ "))
+  return(f)
+}
+
+########################################################################
+
+########################################################################
+
+
 get_rmse <- function(y, y_hat, name='none'){
   rmse <- sqrt(mean((y - y_hat)^2))
   normalized_rmse <- sqrt(mean((y - y_hat)^2)) / sd(y)

@@ -55,13 +55,15 @@ source(file = "../R/plot-lynne.R")
 
 ```{r}
 LOOCV <- function(predictors, response, train_data){
-  
+  is <- 1:nrow(train_data)
+  residuals <- purrr::map_dbl(is, function(i){.LOOCV_i(i, predictors, response, train_data)})
+  res_table <- data.frame(i = is, residual = residuals)
+  return(res_table)
 }
 ```
 
-
 ```{r}
-.LOOCV_i_helper <- function(i, predictors, response, train_data){
+.LOOCV_i <- function(i, predictors, response, train_data){
   # Choose observation i as our test data
   test_data <- train_data[i,]
   # Omit it from the training data
@@ -75,30 +77,12 @@ LOOCV <- function(predictors, response, train_data){
   # Return the residual
   return(epsilon)
 }
-
-.LOOCV_i <- function(i, predictors, train_data){
-  # Call helper
-  ls <- .LOOCV_i_helper(i, predictors, train_data)
-  model <- ls[[1]]
-  test_data <- ls[[2]]
-  yhat <- predict(model, test_data)
-  y <- test_data[["cnt"]]
-  epsilon <- (yhat-y)
-  return(epsilon)
-}
 ```
 
 ```{r}
 LOOCV_residuals <- purrr::map_dbl(.x = 1:nrow(data2011), .f = function(i){.LOOCV_i(i, varset1, data2011)})
 plot(LOOCV_residuals)
 ```
-
-
-```{r}
-LOOCV <- function(){}
-```
-
-
 
 ## Explicit Formula and Sampling Fraction of Testing Data
 

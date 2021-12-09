@@ -59,45 +59,46 @@ gridExtra::grid.arrange(p1, p2, p3, p4)
 
 ## Modeling
 
-```{r}
-.parseFormula <- function(predictors, response = "cnt"){
-  f <- as.formula(
-        paste(response, 
-              paste(predictors, collapse = " + "), 
-              sep = " ~ "))
-  return(f)
-}
-```
+- for casual counts: adding temp^2 makes the prediction even more unstable.
+- for registered counts: adding temp^2 seems necessary. 
+
+####  Modeling Using the Preceeding Weekly Average
 
 ```{r, echo = TRUE}
-lm.cas <- function(varset, train_data = data2011){
-  model <- lm(formula = .parseFormula(predictors = varset, response = "casual"), data = train_data)
-  model
-}
-lm.reg <- function(varset, train_data = data2011){
-  model <- lm(formula = .parseFormula(predictors = varset, response = "registered"), data = train_data)
-  model
-}
 evaluate_model <- function(cas, reg){
   get_mod_eval(cas, reg, data2011AUG, data2012AUG %>% filter(dteday != '2012-10-29'), scale_2012 = FALSE)
 }
 ```
 
 ```{r message=FALSE, warning=FALSE, render = lemon_print}
-# Choose predictors
-varset0 <- c("season:workingday:atemp", "weathersit:season", "holiday", "wavg_cas")
-varset1 <- c("season:workingday:atemp", "season:workingday:I(atemp^2)", "weathersit", "holiday", "wavg_reg")
-# Fit the linear models
-mod.cas.3.5.5 <- lm.cas(varset0, data2011AUG)
-mod.reg.4.0.5 <- lm.reg(varset1, data2011AUG)
-# Evaluate them
+evaluate_model(mod.cas.0.0.5, mod.reg.0.0.5)
+evaluate_model(mod.cas.0.5.5, mod.reg.0.5.5)
+evaluate_model(mod.cas.1.5.5, mod.reg.1.5.5)
+evaluate_model(mod.cas.2.7.5, mod.reg.4.0.5)
+evaluate_model(mod.cas.2.7.5, mod.reg.4.0.5)
 evaluate_model(mod.cas.3.5.5, mod.reg.4.0.5)
 ```
 
 ```{r message=FALSE, warning=FALSE, render = lemon_print}
-mod.cas.3.5.5.5 <- lm.cas(c(varset0,"weekday"), data2011AUG)
-mod.reg.4.0.5.5 <- lm.reg(c(varset1,"weekday"), data2011AUG)
+evaluate_model(mod.cas.0.0.5.5, mod.reg.0.0.5.5)
+evaluate_model(mod.cas.0.5.5.5, mod.reg.0.5.5.5)
+evaluate_model(mod.cas.1.5.5.5, mod.reg.1.5.5.5)
+evaluate_model(mod.cas.2.7.5.5, mod.reg.4.0.5.5)
 evaluate_model(mod.cas.3.5.5.5, mod.reg.4.0.5.5)
+evaluate_model(mod.cas.1.5.5.5, mod.reg.4.0.5.5) #what the? adding 2 best models together does not necessarily make a best total model?
+```
+
+```{r}
+pw1 <- 
+  ggplot()  + geom_line(data2011AUG, 
+            mapping = aes(dteday, data2011AUG$wavg_cnt, color = '1'), 
+            size = 0.5, alpha = 0.7) + 
+  geom_line(data2011AUG, 
+            mapping = aes(dteday, data2012AUG$wavg_cnt[-359], color = '2'), 
+            size = 0.5, alpha = 0.7)
+pw2 <- ggplot() + geom_line(data2011AUG, 
+            mapping = aes(dteday, data2011AUG$wavg_cnt / data2012AUG$wavg_cnt[-359], color = '3'), 
+            size = 0.5, alpha = 0.7)
 ```
 
 #### Modeling the Total Count
@@ -109,7 +110,13 @@ evaluate_tot_model <- function(tot, train_data = data2011, test_data = data2012,
 ```
 
 ```{r message=FALSE, warning=FALSE, render = lemon_print}
+evaluate_tot_model(mod.tot.1)
+evaluate_tot_model(mod.tot.1.5)
+evaluate_tot_model(mod.tot.2)
 evaluate_tot_model(mod.tot.3)
+evaluate_tot_model(mod.tot.4) #starts to overfit
+evaluate_tot_model(mod.tot.4.5) #yeaaah separate modeling is better
+evaluate_tot_model(mod.tot.4.7) #yeaaah separate modeling is better
 ```
 
 ##### With the weekly average: 
@@ -121,13 +128,23 @@ evaluate_tot_model_v2 <- function(tot){
 ```
 
 ```{r message=FALSE, warning=FALSE, render = lemon_print}
+evaluate_tot_model_v2(mod.tot.1.0.5)
+evaluate_tot_model_v2(mod.tot.1.5.5)
+evaluate_tot_model_v2(mod.tot.2.0.5)
 evaluate_tot_model_v2(mod.tot.3.0.5)
+evaluate_tot_model_v2(mod.tot.4.0.5) #starts to overfit
+evaluate_tot_model_v2(mod.tot.4.5.5) #yeaaah separate modeling is better
 ```
 
 ##### With the weekly average and weekday:
 
 ```{r message=FALSE, warning=FALSE, render = lemon_print}
+evaluate_tot_model_v2(mod.tot.1.0.5.5)
+evaluate_tot_model_v2(mod.tot.1.5.5.5)
+evaluate_tot_model_v2(mod.tot.2.0.5.5)
 evaluate_tot_model_v2(mod.tot.3.0.5.5)
+evaluate_tot_model_v2(mod.tot.4.0.5.5) #starts to overfit
+evaluate_tot_model_v2(mod.tot.4.5.5.5) #yeaaah separate modeling is better
 ```
 
 #### Model Evals
@@ -139,7 +156,17 @@ evaluate_model_v2 <- function(cas, reg){
 ```
 
 ```{r message=FALSE, warning=FALSE, render = lemon_print}
-evaluate_model_v2(mod.cas.2.7, mod.reg.4)
+evaluate_model_v2(mod.cas.1, mod.reg.1)
+evaluate_model_v2(mod.cas.1.5, mod.reg.1.5)
+evaluate_model_v2(mod.cas.2, mod.reg.2)
+evaluate_model_v2(mod.cas.2.5, mod.reg.2.5)
+evaluate_model_v2(mod.cas.2.7, mod.reg.3.7)
+evaluate_model_v2(mod.cas.3, mod.reg.3)  #casual overfitting
+evaluate_model_v2(mod.cas.3.5, mod.reg.4) #best total (casual overfitting)
+
+# real current best!!!
+evaluate_model_v2(mod.cas.best,  mod.reg.best)  #best reg + best cas
+evaluate_model_v2(mod.cas.best., mod.reg.best.)  #outlier removal not really helping
 ```
 
 

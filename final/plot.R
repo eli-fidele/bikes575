@@ -148,6 +148,19 @@ p4 <- p4 +
              mapping = aes(dteday, registered, color='on holidays'), 
              size = 1.5, pch = 16, alpha = 0.2)
 
+## Weekly Line plots
+
+pw1 <- 
+  ggplot()  + geom_line(data2011AUG, 
+                        mapping = aes(dteday, data2011AUG$wavg_cnt, color = '1'), 
+                        size = 0.5, alpha = 0.7) + 
+  geom_line(data2011AUG, 
+            mapping = aes(dteday, data2012AUG$wavg_cnt[-359], color = '2'), 
+            size = 0.5, alpha = 0.7)
+pw2 <- ggplot() + geom_line(data2011AUG, 
+                            mapping = aes(dteday, data2011AUG$wavg_cnt / data2012AUG$wavg_cnt[-359], color = '3'), 
+                            size = 0.5, alpha = 0.7)
+
 ### Weekly stuff
 
 p2l <- p2 + geom_line(data2011AUG, 

@@ -44,6 +44,90 @@ source(file = "../R/plot-lynne.R")
 ```
 
 ```{r}
+.parseFormula <- function(predictors, response = "cnt"){
+  f <- as.formula(
+        paste(response, 
+              paste(predictors, collapse = " + "), 
+              sep = " ~ "))
+  return(f)
+}
+```
+
+```{r}
+LOOCV <- function(predictors, response, train_data){
+  
+}
+```
+
+
+```{r}
+.LOOCV_i_helper <- function(i, predictors, response, train_data){
+  # Choose observation i as our test data
+  test_data <- train_data[i,]
+  # Omit it from the training data
+  train_data <- train_data %>% anti_join(test_data)
+  # Parse the predictor string vector into a formula then fit the model
+  model <- lm(formula = .parseFormula(predictors, response), data = train_data)
+  # Evaluate the residual of the omitted observation
+  yhat <- predict(model, test_data)
+  y <- test_data[[response]]
+  epsilon <- (yhat - y)
+  # Return the residual
+  return(epsilon)
+}
+
+.LOOCV_i <- function(i, predictors, train_data){
+  # Call helper
+  ls <- .LOOCV_i_helper(i, predictors, train_data)
+  model <- ls[[1]]
+  test_data <- ls[[2]]
+  yhat <- predict(model, test_data)
+  y <- test_data[["cnt"]]
+  epsilon <- (yhat-y)
+  return(epsilon)
+}
+```
+
+```{r}
+LOOCV_residuals <- purrr::map_dbl(.x = 1:nrow(data2011), .f = function(i){.LOOCV_i(i, varset1, data2011)})
+plot(LOOCV_residuals)
+```
+
+
+```{r}
+LOOCV <- function(){}
+```
+
+
+
+## Explicit Formula and Sampling Fraction of Testing Data
+
+```{r}
+cross_validate <- function(predictors, train_data, p){
+  test_data <- train_data %>% sample_frac(size = p)
+  train_data <- train_data %>% anti_join(test_data)
+  f <- .parseFormula(predictors)
+  model <- lm(f, data = train_data)
+  list(model, train_data, test_data)
+}
+```
+
+```{r}
+cross_validate1 <- function(predictors, train_data, p){
+  ls <- cross_validate(predictors, train_data, p)
+  test_data <- ls[[3]]
+  yhat <- predict(ls[[1]], test_data)
+  y <- test_data[["cnt"]]
+  y - yhat
+}
+```
+
+```{r}
+#cross_validate(varset1, data2011, p = 1/365)
+#cross_validate1(varset1, data2011, p = 1/365)
+```
+
+```{r}
 
 ```
 

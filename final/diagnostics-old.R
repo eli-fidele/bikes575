@@ -1,4 +1,3 @@
-
 get_rmse <- function(y, y_hat, name='none'){
   rmse <- sqrt(mean((y - y_hat)^2))
   normalized_rmse <- sqrt(mean((y - y_hat)^2)) / sd(y)

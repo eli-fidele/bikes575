@@ -62,9 +62,19 @@ gridExtra::grid.arrange(p1, p2, p3, p4)
 - for casual counts: adding temp^2 makes the prediction even more unstable.
 - for registered counts: adding temp^2 seems necessary. 
 
+```{r, print = TRUE}
+#summary(mod.cas.1.5)
+#summary(mod.cas.1.5.5)
+```
+
+```{r}
+#summary(mod.cas.1.5)$coef[,"Estimate"]
+#summary(mod.cas.1.5.5)$coef[,"Estimate"]
+```
+
 ####  Modeling Using the Preceeding Weekly Average
 
-```{r, echo = TRUE}
+```{r}
 evaluate_model <- function(cas, reg){
   get_mod_eval(cas, reg, data2011AUG, data2012AUG %>% filter(dteday != '2012-10-29'), scale_2012 = FALSE)
 }
@@ -102,9 +112,27 @@ pw2 <- ggplot() + geom_line(data2011AUG,
             size = 0.5, alpha = 0.7)
 ```
 
+```{r}
+#p2l
+#p1l
+#p4l
+#p3l
+```
+
+```{r}
+#get_regression_summaries(mod.cas.3.5.5.5)
+#get_regression_summaries(mod.cas.3.5)
+```
+
+```{r}
+#summary(mod.cas.3.5.5.5)
+#summary(mod.reg.4.0.5.5)
+#get_regression_summaries(mod.cas.3.5.5.5)
+```
+
 #### Modeling the Total Count
 
-```{r, echo = TRUE}
+```{r}
 evaluate_tot_model <- function(tot, train_data = data2011, test_data = data2012, scale_2012 = TRUE){
   get_mod_eval_tot(tot, train_data, test_data %>% filter(dteday != '2012-10-29'), scale_2012 = scale_2012)
 }
@@ -122,7 +150,7 @@ evaluate_tot_model(mod.tot.4.7) #yeaaah separate modeling is better
 
 ##### With the weekly average: 
 
-```{r, echo = TRUE}
+```{r}
 evaluate_tot_model_v2 <- function(tot){
   evaluate_tot_model(tot, train_data = data2011AUG, test_data = data2012AUG, scale_2012 = FALSE)
 }
@@ -170,6 +198,11 @@ evaluate_model_v2(mod.cas.best,  mod.reg.best)  #best reg + best cas
 evaluate_model_v2(mod.cas.best., mod.reg.best.)  #outlier removal not really helping
 ```
 
+```{r}
+#summary(mod.cas.2.7)
+#summary(mod.cas.3.5)
+#summary(mod.reg.4)
+```
 
 
 

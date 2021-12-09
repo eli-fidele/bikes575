@@ -49,11 +49,11 @@ mod.reg.4.0.5.5 <- lm(registered ~
                         season:workingday:atemp + season:workingday:I(atemp^2) + weathersit + holiday + wavg_reg + weekday, 
                       data = data2011AUG) #current best
 
-
-mls_week <- ls(mod.cas.0.0.5, mod.reg.0.0.5, mod.cas.0.5.5, mod.reg.0.5.5,  mod.cas.1.5.5, mod.reg.1.5.5, 
-               mod.cas.2.7.5, mod.cas.3.5.5, mod.reg.4.0.5, mod.cas.0.0.5.5, mod.reg.0.0.5.5, mod.cas.0.5.5.5, 
-               mod.reg.0.5.5.5, mod.cas.1.0.5.5, mod.reg.1.0.5.5, mod.cas.1.5.5.5, mod.reg.1.5.5.5, mod.cas.2.7.5.5, 
-               mod.cas.3.5.5.5, mod.reg.4.0.5.5)
+# 
+# mls_week <- ls(mod.cas.0.0.5, mod.reg.0.0.5, mod.cas.0.5.5, mod.reg.0.5.5,  mod.cas.1.5.5, mod.reg.1.5.5, 
+#                mod.cas.2.7.5, mod.cas.3.5.5, mod.reg.4.0.5, mod.cas.0.0.5.5, mod.reg.0.0.5.5, mod.cas.0.5.5.5, 
+#                mod.reg.0.5.5.5, mod.cas.1.0.5.5, mod.reg.1.0.5.5, mod.cas.1.5.5.5, mod.reg.1.5.5.5, mod.cas.2.7.5.5, 
+#                mod.cas.3.5.5.5, mod.reg.4.0.5.5)
 
 # mls_week <- ls(mod.cas.0.0.5, mod.reg.0.0.5, # 1, 2
 #                mod.cas.0.5.5, mod.reg.0.5.5, # 3, 4

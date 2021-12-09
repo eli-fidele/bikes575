@@ -147,3 +147,21 @@ p4 <- p4 +
   geom_point(data2012[data2012$holiday, ], 
              mapping = aes(dteday, registered, color='on holidays'), 
              size = 1.5, pch = 16, alpha = 0.2)
+
+### Weekly stuff
+
+p2l <- p2 + geom_line(data2011AUG, 
+                      mapping = aes(dteday, predict(mod.cas.1.0.5.5, data2011AUG), color = 'fitted'), 
+                      size = 0.5, alpha = 0.7)
+
+p1l <- p1 + geom_line(data2011AUG, 
+                      mapping = aes(dteday, predict(mod.reg.1.0.5.5, data2011AUG), color = 'fitted'), 
+                      size = 0.5, alpha = 0.7)
+
+p4l <- p4 + geom_line(data2012AUG, 
+                      mapping = aes(dteday, predict(mod.cas.1.0.5.5, data2012AUG), color = 'fitted'), 
+                      size = 0.5, alpha = 0.7)
+
+p3l <- p3 + geom_line(data2012AUG, 
+                      mapping = aes(dteday, predict(mod.reg.1.0.5.5, data2012AUG), color = 'fitted'), 
+                      size = 0.5, alpha = 0.7)

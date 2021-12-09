@@ -151,30 +151,30 @@ p4 <- p4 +
 ## Weekly Line plots
 
 pw1 <- 
-  ggplot()  + geom_line(data2011AUG, 
-                        mapping = aes(dteday, data2011AUG$wavg_cnt, color = '1'), 
+  ggplot()  + geom_line(data2011, 
+                        mapping = aes(dteday, data2011$wavg_cnt, color = '1'), 
                         size = 0.5, alpha = 0.7) + 
-  geom_line(data2011AUG, 
-            mapping = aes(dteday, data2012AUG$wavg_cnt[-359], color = '2'), 
+  geom_line(data2011, 
+            mapping = aes(dteday, data2012$wavg_cnt[-359], color = '2'), 
             size = 0.5, alpha = 0.7)
-pw2 <- ggplot() + geom_line(data2011AUG, 
-                            mapping = aes(dteday, data2011AUG$wavg_cnt / data2012AUG$wavg_cnt[-359], color = '3'), 
+pw2 <- ggplot() + geom_line(data2011, 
+                            mapping = aes(dteday, data2011$wavg_cnt / data2012$wavg_cnt[-359], color = '3'), 
                             size = 0.5, alpha = 0.7)
 
 ### Weekly stuff
 
-p2l <- p2 + geom_line(data2011AUG, 
-                      mapping = aes(dteday, predict(mod.cas.1.0.5.5, data2011AUG), color = 'fitted'), 
+p2l <- p2 + geom_line(data2011, 
+                      mapping = aes(dteday, predict(mod.cas.1.0.5.5, data2011), color = 'fitted'), 
                       size = 0.5, alpha = 0.7)
 
-p1l <- p1 + geom_line(data2011AUG, 
-                      mapping = aes(dteday, predict(mod.reg.1.0.5.5, data2011AUG), color = 'fitted'), 
+p1l <- p1 + geom_line(data2011, 
+                      mapping = aes(dteday, predict(mod.reg.1.0.5.5, data2011), color = 'fitted'), 
                       size = 0.5, alpha = 0.7)
 
-p4l <- p4 + geom_line(data2012AUG, 
-                      mapping = aes(dteday, predict(mod.cas.1.0.5.5, data2012AUG), color = 'fitted'), 
+p4l <- p4 + geom_line(data2012, 
+                      mapping = aes(dteday, predict(mod.cas.1.0.5.5, data2012), color = 'fitted'), 
                       size = 0.5, alpha = 0.7)
 
-p3l <- p3 + geom_line(data2012AUG, 
-                      mapping = aes(dteday, predict(mod.reg.1.0.5.5, data2012AUG), color = 'fitted'), 
+p3l <- p3 + geom_line(data2012, 
+                      mapping = aes(dteday, predict(mod.reg.1.0.5.5, data2012), color = 'fitted'), 
                       size = 0.5, alpha = 0.7)

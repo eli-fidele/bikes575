@@ -1,38 +1,4 @@
 
-# Compute the (1-week lagged) weekly averages of a given variable
-weekly_avgs <- function(data, var){
-  # Compute the averages of the variable by week
-  weekly_cnts <- 
-    data %>% 
-    group_by(week) %>%
-    summarize(wavg = mean({{ var }}))
-  # Lag week by 1
-  weekly_cnts$week <- weekly_cnts$week + 1
-  # Remove excess weeks
-  return(weekly_cnts %>% filter(week <= 53))
-}
-
-# Returns a dataset with an added column of weekly averages of a given variable
-add_weekly_avg_var <- function(data, var, var_name){
-  # Obtain the weekly averages of the desired variable
-  var_avgs <- data %>% weekly_avgs({{ var }})
-  # Rename the weekly average the desired variable name
-  colnames(var_avgs)[2] <- var_name
-  # Join the week column in the dataset by the weekly averages in the var_avgs dataframe
-  return(data %>% left_join(var_avgs))
-}
-
-# Given the bike dataset, returns the dataset with week 
-# column and weekly averages for the three response variables
-add_weekly_averages <- function(data){
-  # Add the week variable to the dataset
-  data <- data %>% mutate(week = ceiling(1:nrow(data)/7))
-  # Add the cnt, reg, and cas weekly averages to the data
-  data <- data %>% add_weekly_avg_var(cnt, "wavg_cnt")
-  data <- data %>% add_weekly_avg_var(registered, "wavg_reg")
-  data <- data %>% add_weekly_avg_var(casual, "wavg_cas")
-  return(data)
-}
 
 #========================#
 #         Wrangling      #
@@ -71,6 +37,45 @@ wrangle_aug <- function(data){
   data$weathersit <- as.factor(data$weathersit)
   data$season <- as.factor(data$season)
   #data <- na.omit(data)
+  return(data)
+}
+
+
+#==========================#
+#      Weekly Averages     #
+#==========================#
+# Compute the (1-week lagged) weekly averages of a given variable
+weekly_avgs <- function(data, var){
+  # Compute the averages of the variable by week
+  weekly_cnts <- 
+    data %>% 
+    group_by(week) %>%
+    summarize(wavg = mean({{ var }}))
+  # Lag week by 1
+  weekly_cnts$week <- weekly_cnts$week + 1
+  # Remove excess weeks
+  return(weekly_cnts %>% filter(week <= 53))
+}
+
+# Returns a dataset with an added column of weekly averages of a given variable
+add_weekly_avg_var <- function(data, var, var_name){
+  # Obtain the weekly averages of the desired variable
+  var_avgs <- data %>% weekly_avgs({{ var }})
+  # Rename the weekly average the desired variable name
+  colnames(var_avgs)[2] <- var_name
+  # Join the week column in the dataset by the weekly averages in the var_avgs dataframe
+  return(data %>% left_join(var_avgs))
+}
+
+# Given the bike dataset, returns the dataset with week 
+# column and weekly averages for the three response variables
+add_weekly_averages <- function(data){
+  # Add the week variable to the dataset
+  data <- data %>% mutate(week = ceiling(1:nrow(data)/7))
+  # Add the cnt, reg, and cas weekly averages to the data
+  data <- data %>% add_weekly_avg_var(cnt, "wavg_cnt")
+  data <- data %>% add_weekly_avg_var(registered, "wavg_reg")
+  data <- data %>% add_weekly_avg_var(casual, "wavg_cas")
   return(data)
 }
 

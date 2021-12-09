@@ -52,10 +52,7 @@ source(file = "plot.R")
 ```
 
 ```{r}
-gridExtra::grid.arrange(p1, p2, p3, p4)
-```
-
-```{r}
+#gridExtra::grid.arrange(p1, p2, p3, p4)
 
 ```
 
@@ -73,6 +70,10 @@ gridExtra::grid.arrange(p1, p2, p3, p4)
 ```
 
 ```{r, echo = TRUE}
+lm.tot <- function(varset, train_data = data2011){
+  model <- lm(formula = .parseFormula(predictors = varset, response = "cnt"), data = train_data)
+  model
+}
 lm.cas <- function(varset, train_data = data2011){
   model <- lm(formula = .parseFormula(predictors = varset, response = "casual"), data = train_data)
   model
@@ -91,8 +92,8 @@ evaluate_model <- function(cas, reg){
 varset0 <- c("season:workingday:atemp", "weathersit:season", "holiday", "wavg_cas")
 varset1 <- c("season:workingday:atemp", "season:workingday:I(atemp^2)", "weathersit", "holiday", "wavg_reg")
 # Fit the linear models
-mod.cas.3.5.5 <- lm.cas(varset0, data2011)
-mod.reg.4.0.5 <- lm.reg(varset1, data2011)
+mod.cas.3.5.5 <- lm.cas(varset0)
+mod.reg.4.0.5 <- lm.reg(varset1)
 # Evaluate them
 evaluate_model(mod.cas.3.5.5, mod.reg.4.0.5)
 ```
@@ -103,12 +104,6 @@ res_table
 rmse <- LOOCV(varset0, "casual", data2011, summarize = T)
 rmse
 ```
-
-```{r}
-cas_reg_crosscheck <- function(predictors, )
-```
-
-
 
 ```{r message=FALSE, warning=FALSE, render = lemon_print}
 mod.cas.3.5.5.5 <- lm.cas(c(varset0,"weekday"), data2011)

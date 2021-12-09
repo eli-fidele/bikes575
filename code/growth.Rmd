@@ -45,6 +45,11 @@ source(file = "../R/plot-lynne.R")
 ```
 
 ```{r}
+
+```
+
+
+```{r}
 local_cnt_avg <- function(i, w){
   data
 }

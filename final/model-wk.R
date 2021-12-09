@@ -31,9 +31,9 @@ mod.cas.0.5.5.5 <- lm(casual ~
 mod.reg.0.5.5.5 <- lm(registered ~ 
                         season:wavg_reg + weekday, data = data2011) #season not helping
 mod.cas.1.0.5.5 <- lm(casual ~ 
-                        wavg_cas + season:weekday + season:I(weekday^2) + workingday, data = data2011)
+                        wavg_cas + season:weekday + season:I(atemp^2) + workingday, data = data2011) # changed I(weekday^2) to atemp^2 since wasnt working..
 mod.reg.1.0.5.5 <- lm(registered ~ 
-                        wavg_reg + season:weekday + season:I(weekday^2) + workingday, data = data2011)
+                        wavg_reg + season:weekday + season:I(atemp^2) + workingday, data = data2011) # assuming it was a typo
 
 mod.cas.1.5.5.5 <- lm(casual ~ 
                         workingday + weathersit + atemp + I(atemp^2) + season + wavg_cas + weekday, data = data2011)

@@ -293,11 +293,18 @@ mod.reg.best <- mod.reg.4
 
 # try removing the y-space outlier
 mod.cas.best. <- lm(casual ~
-                   season:workingday:atemp + weathersit:season + holiday, 
+                   workingday:atemp + weathersit:season + holiday, 
                    data = filter(data2011, dteday != '2011-08-29'))
 mod.reg.best. <- lm(registered ~
                   season:workingday:atemp + season:workingday:I(atemp^2) + weathersit + holiday, 
                   data = filter(data2011, dteday != '2011-08-29'))
+
+# mod.cas.best. <- lm(casual ~
+#                    season:workingday:atemp + weathersit:season + holiday, 
+#                    data = filter(data2011, dteday != '2011-08-29'))
+# mod.reg.best. <- lm(registered ~
+#                   season:workingday:atemp + season:workingday:I(atemp^2) + weathersit + holiday, 
+#                   data = filter(data2011, dteday != '2011-08-29'))
 ```
 
 ```{r}
@@ -638,6 +645,14 @@ p3 + geom_line(data2012,
             mapping = aes(dteday, predict(mod.reg.2, data2012)/0.608, color = 'fitted'), 
             size = 0.5, alpha = 0.7)
 ```
+
+#### Plotting the Errors
+```{r}
+plot_percentage_error(mod.current.cas, mod.current.reg, data2011, data2012, scale_2012=TRUE)
+
+```
+
+
 
 ### Inspecting Data
 

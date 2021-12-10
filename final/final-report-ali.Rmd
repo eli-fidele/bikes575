@@ -178,6 +178,11 @@ In this process, the model statistics such as p-values are not relied on as much
 
 ## Diagonostic Analysis 
 
+```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+knitr::include_graphics("graphics/reg-2011-simple.pdf")
+```
+
+
 interpretation for the final model as well as residual diagnostics
 
 ## Validation and Problemshooting

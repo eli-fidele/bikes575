@@ -1,8 +1,7 @@
 
-
-#========================#
-#         Wrangling      #
-#========================#
+#======================#
+#       Wrangling      #
+#======================#
 # Initial wrangling
 wrangle_init <- function(data, omit_NA = TRUE, omit_idx = TRUE){
   # Boolean variables (from int to logical type)
@@ -39,7 +38,6 @@ wrangle_aug <- function(data){
   #data <- na.omit(data)
   return(data)
 }
-
 
 #==========================#
 #      Weekly Averages     #

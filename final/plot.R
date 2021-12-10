@@ -17,8 +17,9 @@ plot_user_counts <- function(data, user, compare = FALSE){
   ##########################
   ## Graphical parameters ##
   ##########################
-  size0 <- 1.5; size1 <- 0.3
-  pch0 <- 16; pch1 <- 20
+  size0 <- 1.5; size1 <- 0.3 
+  pch0 <- 16; pch1 <- 20 
+  fsize0 <- 13; fsize1 <- 10; fsize2 <- 11 # Font sizes
   ###############
   ## Main plot ##
   ###############
@@ -29,9 +30,16 @@ plot_user_counts <- function(data, user, compare = FALSE){
     # General plot settings
     labs(x = 'Date', y = 'Daily Registered Count', title = .title_helper(user)) + 
     theme_grey(base_size = 5.5) + 
-    theme(plot.title = element_text(hjust = 0.5),
-          plot.subtitle = element_text(hjust = 0.5),
-          plot.caption = element_text(hjust = 0.5)) +
+    theme(plot.title = element_text(hjust = 0.5, size = fsize0, face = "bold"),
+          plot.subtitle = element_text(hjust = 0.5, size = fsize1),
+          plot.caption = element_text(hjust = 0.5, size = fsize1),
+          axis.text.x = element_text(size = fsize2),
+          axis.text.y = element_text(size = fsize2),
+          axis.title.x = element_text(size = fsize2),
+          axis.title.y = element_text(size = fsize2),
+          legend.title=element_text(size = fsize0), 
+          legend.text=element_text(size = fsize1),
+          legend.position = "bottom")+
     # Geoms
     geom_line(mapping = aes(x = dteday, .data[[user]], color = 'trends'), 
               size = size1, alpha = 0.8) + 

@@ -44,10 +44,11 @@ data2012 <- data2012 %>% add_weekly_averages
 #       Source Scripts       #
 #============================#
 # Import any models (and fitted values, if applicable)
-source(file = "model-build.R")
 source(file = "model.R")
+source(file = "model-base.R")
 source(file = "model-wk.R")
 source(file = "model-tot.R")
+# Import diagnostics functions
 source(file = "diagnostics.R")
 # Import any plots or plot wrapper functions
 source(file = "plot.R")
@@ -177,6 +178,15 @@ In this process, the model statistics such as p-values are not relied on as much
 
 
 ## Diagonostic Analysis 
+
+```{r, fig.height = 4, fig.width = 6.25}
+update <- T
+if(update)
+{
+  myplot <- data2011 %>% plot_user_counts(user = "registered", compare = T)
+  ggsave(filename = "graphics/reg-2011-simple.pdf", plot = myplot)
+}
+```
 
 ```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
 knitr::include_graphics("graphics/reg-2011-simple.pdf")

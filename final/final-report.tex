@@ -1,0 +1,624 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+  twocolumn]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Lab Report: Bike-Sharing Data Analysis},
+  pdfauthor={Ali Taqi, Hsin-Chang Lin, Huiru Yang, Ryan Mahoney, Yulin Li},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{5}
+\ifluatex
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\title{Lab Report: Bike-Sharing Data Analysis}
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{MA 575 Fall 2021 - C3 Team \#2}
+\author{Ali Taqi, Hsin-Chang Lin, Huiru Yang, Ryan Mahoney, Yulin Li}
+\date{12/01/2021}
+
+\begin{document}
+\maketitle
+
+\twocolumn
+
+\hypertarget{text-1}{%
+\section{text 1}\label{text-1}}
+
+contents\ldots{}
+
+contents\ldots{}
+
+\[\text{cnt \~ workingday + weathersit + atemp + atemp\^2}\]
+
+\hypertarget{modeling}{%
+\subsection{Modeling}\label{modeling}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lm.tot }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(varset, }\AttributeTok{train\_data =}\NormalTok{ data2011)\{}
+\NormalTok{  model }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(}\AttributeTok{formula =} \FunctionTok{.parseFormula}\NormalTok{(}\AttributeTok{predictors =}\NormalTok{ varset, }\AttributeTok{response =} \StringTok{"cnt"}\NormalTok{), }\AttributeTok{data =}\NormalTok{ train\_data)}
+\NormalTok{  model}
+\NormalTok{\}}
+\NormalTok{lm.cas }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(varset, }\AttributeTok{train\_data =}\NormalTok{ data2011)\{}
+\NormalTok{  model }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(}\AttributeTok{formula =} \FunctionTok{.parseFormula}\NormalTok{(}\AttributeTok{predictors =}\NormalTok{ varset, }\AttributeTok{response =} \StringTok{"casual"}\NormalTok{), }\AttributeTok{data =}\NormalTok{ train\_data)}
+\NormalTok{  model}
+\NormalTok{\}}
+\NormalTok{lm.reg }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(varset, }\AttributeTok{train\_data =}\NormalTok{ data2011)\{}
+\NormalTok{  model }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(}\AttributeTok{formula =} \FunctionTok{.parseFormula}\NormalTok{(}\AttributeTok{predictors =}\NormalTok{ varset, }\AttributeTok{response =} \StringTok{"registered"}\NormalTok{), }\AttributeTok{data =}\NormalTok{ train\_data)}
+\NormalTok{  model}
+\NormalTok{\}}
+\NormalTok{evaluate\_model }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(cas, reg)\{}
+  \FunctionTok{get\_mod\_eval}\NormalTok{(cas, reg, data2011, data2012 }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(dteday }\SpecialCharTok{!=} \StringTok{\textquotesingle{}2012{-}10{-}29\textquotesingle{}}\NormalTok{), }\AttributeTok{scale\_2012 =} \ConstantTok{FALSE}\NormalTok{)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##       i     residual
+## 1     1           NA
+## 2     2           NA
+## 3     3           NA
+## 4     4           NA
+## 5     5           NA
+## 6     6           NA
+## 7     7           NA
+## 8     8    15.771726
+## 9     9    54.771620
+## 10   10    10.976268
+## 11   11   -63.033080
+## 12   12    40.170622
+## 13   13    14.107165
+## 14   14    46.171842
+## 15   15    19.578340
+## 16   16    82.761920
+## 17   17  -174.769138
+## 18   18     2.908704
+## 19   19    17.444086
+## 20   20   -44.412558
+## 21   21   -38.807854
+## 22   22   -76.422846
+## 23   23   -92.276743
+## 24   24   -86.323830
+## 25   25  -161.011678
+## 26   26  -257.784195
+## 27   27   120.763016
+## 28   28   -21.668177
+## 29   29   176.923624
+## 30   30   242.455428
+## 31   31   -82.867231
+## 32   32   -24.288500
+## 33   33   -24.295041
+## 34   34    11.526739
+## 35   35   -74.780239
+## 36   36   147.344598
+## 37   37   110.014507
+## 38   38   112.616356
+## 39   39    33.826421
+## 40   40  -152.759870
+## 41   41   -11.928931
+## 42   42   -34.160856
+## 43   43    60.616782
+## 44   44   147.994045
+## 45   45   159.424541
+## 46   46    38.361793
+## 47   47    38.301056
+## 48   48   147.921525
+## 49   49   -89.529915
+## 50   50   201.237340
+## 51   51  -166.608768
+## 52   52    62.964353
+## 53   53    59.150562
+## 54   54    68.871752
+## 55   55    42.546349
+## 56   56   102.680262
+## 57   57    57.745766
+## 58   58   -74.306926
+## 59   59   202.234514
+## 60   60    84.546215
+## 61   61    60.735518
+## 62   62    16.712465
+## 63   63  -129.679170
+## 64   64   -82.635114
+## 65   65   471.179814
+## 66   66   -54.907595
+## 67   67   -46.500474
+## 68   68   -61.815934
+## 69   69   257.784195
+## 70   70   -96.180876
+## 71   71  -161.078289
+## 72   72  -319.847863
+## 73   73   -56.393840
+## 74   74  -126.473598
+## 75   75   -97.055619
+## 76   76   -22.438816
+## 77   77  -386.857373
+## 78   78  -559.220004
+## 79   79  -430.198092
+## 80   80   -27.100992
+## 81   81   120.131769
+## 82   82   131.391713
+## 83   83   127.447479
+## 84   84   171.987128
+## 85   85   -94.126098
+## 86   86   242.690883
+## 87   87   258.506932
+## 88   88   176.789830
+## 89   89   142.859557
+## 90   90  -929.958591
+## 91   91   -13.727870
+## 92   92   -99.157419
+## 93   93  -549.628424
+## 94   94  -142.314468
+## 95   95   163.502408
+## 96   96    89.570049
+## 97   97   -44.762325
+## 98   98   109.667926
+## 99   99    53.190575
+## 100 100   -62.478072
+## 101 101  -375.081032
+## 102 102   198.012310
+## 103 103   197.387713
+## 104 104    84.236803
+## 105 105   666.835359
+## 106 106   929.958591
+## 107 107  -214.857664
+## 108 108   -34.596802
+## 109 109    36.993404
+## 110 110    63.732827
+## 111 111  -145.630531
+## 112 112   168.428593
+## 113 113  -304.163902
+## 114 114  -322.254010
+## 115 115  -104.000939
+## 116 116     7.444792
+## 117 117   -58.229178
+## 118 118   -78.797488
+## 119 119  -262.427536
+## 120 120  -526.235215
+## 121 121   112.058502
+## 122 122  -317.637181
+## 123 123   -32.411646
+## 124 124   211.685262
+## 125 125    51.003037
+## 126 126  -216.741109
+## 127 127   -47.537721
+## 128 128   188.768518
+## 129 129    44.084511
+## 130 130    11.646039
+## 131 131   163.087321
+## 132 132    11.044071
+## 133 133  -192.633463
+## 134 134   479.852216
+## 135 135  -151.354043
+## 136 136   -51.296427
+## 137 137  -149.280218
+## 138 138    -9.927755
+## 139 139  -226.414701
+## 140 140  -204.955986
+## 141 141  -589.841167
+## 142 142   135.683641
+## 143 143  -286.867823
+## 144 144   -92.948758
+## 145 145    19.149265
+## 146 146    26.803100
+## 147 147  -102.199623
+## 148 148  -166.216818
+## 149 149  -535.498562
+## 150 150   366.673299
+## 151 151   220.154692
+## 152 152   199.088658
+## 153 153    96.058503
+## 154 154  -109.397676
+## 155 155   -34.070176
+## 156 156    24.250829
+## 157 157   182.202336
+## 158 158   111.704858
+## 159 159   254.495492
+## 160 160   210.570209
+## 161 161    90.008741
+## 162 162   269.547735
+## 163 163   460.138344
+## 164 164   -85.540138
+## 165 165    47.822076
+## 166 166     2.076929
+## 167 167    51.530802
+## 168 168   -86.372791
+## 169 169    94.033291
+## 170 170    86.265486
+## 171 171  -111.997470
+## 172 172  -129.444592
+## 173 173   100.764515
+## 174 174  -173.563837
+## 175 175  -168.422393
+## 176 176   -61.377641
+## 177 177  -206.609943
+## 178 178  -201.163960
+## 179 179    40.750265
+## 180 180   -31.410834
+## 181 181  -193.041695
+## 182 182  -434.854840
+## 183 183  -459.811696
+## 184 184  -751.611588
+## 185 185 -1893.485625
+## 186 186  -232.672135
+## 187 187    33.306289
+## 188 188    62.475681
+## 189 189   -35.536730
+## 190 190  -156.253612
+## 191 191   111.396445
+## 192 192   125.386826
+## 193 193   178.171047
+## 194 194   148.985733
+## 195 195    71.113579
+## 196 196  -368.726948
+## 197 197  -700.888572
+## 198 198  -263.627347
+## 199 199   -58.814598
+## 200 200   -21.401049
+## 201 201    91.503857
+## 202 202  -206.347205
+## 203 203    64.014572
+## 204 204   874.375503
+## 205 205   795.371244
+## 206 206   193.428966
+## 207 207    35.660940
+## 208 208    38.249805
+## 209 209   131.897251
+## 210 210     8.758530
+## 211 211   126.262838
+## 212 212   164.102133
+## 213 213   -33.516610
+## 214 214  -112.850433
+## 215 215    86.900331
+## 216 216  -246.922730
+## 217 217  -278.621685
+## 218 218    20.877830
+## 219 219   449.011991
+## 220 220  -102.314770
+## 221 221  -191.493797
+## 222 222  -118.458791
+## 223 223    -3.890998
+## 224 224  -251.192842
+## 225 225    47.345469
+## 226 226   220.026990
+## 227 227    91.770396
+## 228 228   110.017958
+## 229 229   138.454718
+## 230 230   173.468887
+## 231 231  -135.761468
+## 232 232  -227.365214
+## 233 233   473.170828
+## 234 234   -24.549241
+## 235 235  -448.105959
+## 236 236  -134.387153
+## 237 237   198.306775
+## 238 238    15.675385
+## 239 239  1415.585963
+## 240 240   326.923680
+## 241 241   153.365001
+## 242 242   122.940699
+## 243 243   191.550442
+## 244 244    88.813401
+## 245 245  -178.075028
+## 246 246  -286.831718
+## 247 247  -896.333406
+## 248 248   145.237106
+## 249 249   -27.112686
+## 250 250    49.786160
+## 251 251   -22.756350
+## 252 252   269.982941
+## 253 253   -59.651761
+## 254 254    63.585592
+## 255 255   172.830332
+## 256 256   159.592461
+## 257 257   185.192482
+## 258 258   329.299937
+## 259 259   120.914976
+## 260 260    65.939264
+## 261 261   362.410789
+## 262 262    82.220717
+## 263 263   349.466451
+## 264 264   216.174098
+## 265 265   193.245704
+## 266 266   263.902656
+## 267 267  -207.634293
+## 268 268    94.370605
+## 269 269   -87.827335
+## 270 270   101.437774
+## 271 271    99.640757
+## 272 272   186.213870
+## 273 273   -68.939330
+## 274 274   615.195601
+## 275 275   183.111572
+## 276 276   -95.313666
+## 277 277   178.294678
+## 278 278   220.251452
+## 279 279    35.079100
+## 280 280  -238.597061
+## 281 281  -681.551425
+## 282 282  -818.438602
+## 283 283   104.113283
+## 284 284  -202.989854
+## 285 285    48.199331
+## 286 286   208.472300
+## 287 287   -91.852753
+## 288 288  -241.988576
+## 289 289   -58.905585
+## 290 290    71.239757
+## 291 291   -90.960889
+## 292 292   141.760820
+## 293 293   230.951744
+## 294 294   -76.783584
+## 295 295  -161.698586
+## 296 296  -300.668799
+## 297 297   -78.232187
+## 298 298   -60.811545
+## 299 299    -1.455165
+## 300 300   136.486079
+## 301 301  -398.646494
+## 302 302   107.299092
+## 303 303    31.893195
+## 304 304    31.752488
+## 305 305    68.131673
+## 306 306    94.847118
+## 307 307   181.521682
+## 308 308  -245.235414
+## 309 309  -333.117869
+## 310 310    34.460727
+## 311 311    21.933048
+## 312 312    42.808019
+## 313 313   109.653799
+## 314 314  -109.227994
+## 315 315   234.634511
+## 316 316  -287.147988
+## 317 317   289.362150
+## 318 318    85.837928
+## 319 319   -63.853829
+## 320 320   -33.065947
+## 321 321  -133.620343
+## 322 322   -85.475438
+## 323 323   -75.583206
+## 324 324   374.490732
+## 325 325  -132.787642
+## 326 326   -14.269960
+## 327 327   126.210010
+## 328 328   421.706556
+## 329 329  -730.803915
+## 330 330  -151.515200
+## 331 331   600.946338
+## 332 332   369.297994
+## 333 333   184.704819
+## 334 334    55.919446
+## 335 335    50.255035
+## 336 336    15.416000
+## 337 337    87.445438
+## 338 338   317.216347
+## 339 339  -104.899424
+## 340 340   -29.094419
+## 341 341   -72.795437
+## 342 342   -45.186960
+## 343 343   -31.703946
+## 344 344    92.266557
+## 345 345   170.392974
+## 346 346   -39.802544
+## 347 347    13.786641
+## 348 348  -198.691024
+## 349 349   -42.101837
+## 350 350  -151.658052
+## 351 351   -21.391401
+## 352 352   291.260565
+## 353 353  -155.524258
+## 354 354  -128.472743
+## 355 355   211.541965
+## 356 356    79.288858
+## 357 357   206.087083
+## 358 358   364.737610
+## 359 359    41.784638
+## 360 360   -17.783762
+## 361 361    68.724995
+## 362 362   -27.217996
+## 363 363   -46.928296
+## 364 364  -221.003981
+## 365 365   106.846532
+\end{verbatim}
+
+\begin{verbatim}
+## [1] 263.4928
+\end{verbatim}
+
+\begin{longtable}[]{@{}lrrr@{}}
+\toprule
+name & rmse & normalized\_rmse & percentage\_error \\ \addlinespace
+\midrule
+\endhead
+2011 casual & 232.3173 & 0.4176347 & 40.63261 \\ \addlinespace
+2011 registered & 400.2508 & 0.3775557 & 15.20903 \\ \addlinespace
+2011 total & 515.2415 & 0.3737009 & 15.67909 \\ \addlinespace
+2012 casual & 456.3095 & 0.6018668 & 34.66799 \\ \addlinespace
+2012 registered & 1483.1830 & 1.0548580 & 30.63626 \\ \addlinespace
+2012 total & 1772.2694 & 1.0029624 & 29.50882 \\ \addlinespace
+\bottomrule
+\end{longtable}
+
+\hypertarget{modeling-the-total-count}{%
+\paragraph{Modeling the Total Count}\label{modeling-the-total-count}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{evaluate\_tot\_model }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(tot, }\AttributeTok{train\_data =}\NormalTok{ data2011, }\AttributeTok{test\_data =}\NormalTok{ data2012, }\AttributeTok{scale\_2012 =} \ConstantTok{TRUE}\NormalTok{)\{}
+  \FunctionTok{get\_mod\_eval\_tot}\NormalTok{(tot, train\_data, test\_data }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(dteday }\SpecialCharTok{!=} \StringTok{\textquotesingle{}2012{-}10{-}29\textquotesingle{}}\NormalTok{), }\AttributeTok{scale\_2012 =}\NormalTok{ scale\_2012)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}lrrr@{}}
+\toprule
+name & rmse & normalized\_rmse & percentage\_error \\ \addlinespace
+\midrule
+\endhead
+2011 total & 544.4919 & 0.3949160 & 17.20829 \\ \addlinespace
+2012 total & 977.2584 & 0.5530499 & 17.13115 \\ \addlinespace
+\bottomrule
+\end{longtable}
+
+\hypertarget{with-the-weekly-average}{%
+\subparagraph{With the weekly average:}\label{with-the-weekly-average}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{evaluate\_tot\_model\_v2 }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(tot)\{}
+  \FunctionTok{evaluate\_tot\_model}\NormalTok{(tot, }\AttributeTok{train\_data =}\NormalTok{ data2011, }\AttributeTok{test\_data =}\NormalTok{ data2012, }\AttributeTok{scale\_2012 =} \ConstantTok{FALSE}\NormalTok{)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}lrrr@{}}
+\toprule
+name & rmse & normalized\_rmse & percentage\_error \\ \addlinespace
+\midrule
+\endhead
+2011 total & 527.5401 & 0.3826210 & 16.71148 \\ \addlinespace
+2012 total & 1745.6728 & 0.9879108 & 29.16381 \\ \addlinespace
+\bottomrule
+\end{longtable}
+
+\hypertarget{with-the-weekly-average-and-weekday}{%
+\subparagraph{With the weekly average and
+weekday:}\label{with-the-weekly-average-and-weekday}}
+
+\begin{longtable}[]{@{}lrrr@{}}
+\toprule
+name & rmse & normalized\_rmse & percentage\_error \\ \addlinespace
+\midrule
+\endhead
+2011 total & 519.7186 & 0.3769481 & 16.27720 \\ \addlinespace
+2012 total & 1729.1349 & 0.9785517 & 29.06766 \\ \addlinespace
+\bottomrule
+\end{longtable}
+
+\hypertarget{model-evals}{%
+\paragraph{Model Evals}\label{model-evals}}
+
+\begin{longtable}[]{@{}lrrr@{}}
+\toprule
+name & rmse & normalized\_rmse & percentage\_error \\ \addlinespace
+\midrule
+\endhead
+2011 casual & 262.3837 & 0.4716848 & 48.61389 \\ \addlinespace
+2011 registered & 417.4867 & 0.3938144 & 15.95029 \\ \addlinespace
+2011 total & 549.3818 & 0.3984626 & 16.86622 \\ \addlinespace
+2012 casual & 524.0291 & 0.6911881 & 37.88552 \\ \addlinespace
+2012 registered & 1935.6453 & 1.3766547 & 40.02335 \\ \addlinespace
+2012 total & 2299.5893 & 1.3013832 & 37.97317 \\ \addlinespace
+\bottomrule
+\end{longtable}
+
+\end{document}

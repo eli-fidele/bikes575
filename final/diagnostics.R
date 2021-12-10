@@ -5,7 +5,7 @@
 
 ########################################################################
 
-LOOCV <- function(predictors, response, train_data, summarize = T){
+LOOCV <- function(predictors, response, train_data = data2011, summarize = T){
   is <- 1:nrow(train_data)
   residuals <- purrr::map_dbl(is, function(i){.LOOCV_i(i, predictors, response, train_data)})
   res_table <- data.frame(i = is, residual = residuals)

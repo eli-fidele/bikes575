@@ -6,6 +6,8 @@ date: "12/01/2021"
 output: 
   pdf_document: 
     number_sections: true
+classoption: twocolumn
+
 ---
 
 ```{r setup, include = FALSE}
@@ -56,6 +58,26 @@ source(file = "plot.R")
 
 ```
 
+```{r, echo=FALSE, results='asis'}
+cat("\\twocolumn")
+```
+
+# text 1
+
+:::::::::::::: {.columns}
+::: {.column width="40%"}
+
+contents...
+
+:::
+::: {.column width="60%"}
+
+contents...
+
+:::
+::::::::::::::
+
+
 
 ## Modeling
 
@@ -95,8 +117,9 @@ varset1 <- c("season:workingday:atemp", "season:workingday:I(atemp^2)", "weather
 mod.cas.3.5.5 <- lm.cas(varset0)
 mod.reg.4.0.5 <- lm.reg(varset1)
 # Evaluate them
-evaluate_model(mod.cas.3.5.5, mod.reg.4.0.5)
+#evaluate_model(mod.cas.3.5.5, mod.reg.4.0.5)
 ```
+
 
 ```{r}
 res_table <- LOOCV(varset0, "casual", data2011, summarize = F)
@@ -109,6 +132,7 @@ rmse
 mod.cas.3.5.5.5 <- lm.cas(c(varset0,"weekday"), data2011)
 mod.reg.4.0.5.5 <- lm.reg(c(varset1,"weekday"), data2011)
 evaluate_model(mod.cas.3.5.5.5, mod.reg.4.0.5.5)
+LOOCV(predictors = varset0, response = "casual", train_data = data2011)
 ```
 
 #### Modeling the Total Count
@@ -152,6 +176,7 @@ evaluate_model_v2 <- function(cas, reg){
 ```{r message=FALSE, warning=FALSE, render = lemon_print}
 evaluate_model_v2(mod.cas.2.7, mod.reg.4)
 ```
+
 
 
 

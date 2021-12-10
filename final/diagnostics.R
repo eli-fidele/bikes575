@@ -49,16 +49,35 @@ get_rmse <- function(y, y_hat, name='none'){
   return(data.frame('name' = name, 'rmse' = rmse, 'normalized_rmse' = normalized_rmse, 'percentage_error' = percentage_error))
 }
 
-########################################################################
+get_loocv_rmse = function(model) {
+  loocv_rmse <- sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
+  return(data.frame('loocv_rmse' = loocv_rmse))
+}
+
+get_loocv_rmse_tot = function(cas, reg) {
+  res_cas <- resid(cas) / (1 - hatvalues(cas))
+  res_reg <- resid(reg) / (1 - hatvalues(reg))
+  loocv_rmse <- sqrt(mean((res_cas + res_reg) ^ 2))
+  return(data.frame('loocv_rmse' = loocv_rmse))
+}
 
 ########################################################################
 
-get_mod_eval_2011 <- function(cas, reg, data2011 = data2011, scale_2012 = TRUE){
+########################################################################
+
+get_mod_eval_2011 <- function(cas, reg){
+  ret1 <- rbind(get_rmse(data2011$casual,     predict(cas, data2011), '2011 casual'),
+               get_rmse(data2011$registered, predict(reg, data2011), '2011 registered'),
+               get_rmse(data2011$cnt,        predict(cas, data2011) + predict(reg, data2011), '2011 total'))
+  
+  ret2 <- rbind(
+    get_loocv_rmse(cas),
+    get_loocv_rmse(reg),
+    get_loocv_rmse_tot(cas, reg)
+  )
+  
   return(
-    rbind(get_rmse(data2011$casual,     predict(cas, data2011), '2011 casual'),
-          get_rmse(data2011$registered, predict(reg, data2011), '2011 registered'),
-          get_rmse(data2011$cnt,        predict(cas, data2011) + predict(reg, data2011), '2011 total')
-         )
+    cbind(ret1, ret2)
   )
 }
 
@@ -75,8 +94,26 @@ get_mod_eval <- function(cas, reg, data2011, data2012, scale_2012 = TRUE){
   )
 }
 
+get_mod_eval_tot_2011 <-function(tot){
+  ret1 <- rbind(get_rmse(data2011$cnt, predict(tot, data2011), '2011 total'))
+  
+  ret2 <- rbind(
+    get_loocv_rmse(tot)
+  )
+  
+  return(
+    cbind(ret1, ret2)
+  )
+}
+  
+#   {
+#   return(rbind(get_rmse(data2011$cnt, predict(tot, data2011), '2011 total'),
+#                get_loocv_rmse(tot)))
+# }
+
 get_mod_eval_tot <-function(tot, data2011, data2012, scale_2012 = TRUE){
   if(scale_2012){G_FACTOR <- 0.608} else{G_FACTOR <- 1}
     return(rbind(get_rmse(data2011$cnt, predict(tot, data2011), '2011 total'),
-                 get_rmse(data2012$cnt, predict(tot, data2012)/G_FACTOR, '2012 total')))
+                 get_rmse(data2012$cnt, predict(tot, data2012)/G_FACTOR, '2012 total'), 
+                 get_loocv_rmse(tot)))
 }

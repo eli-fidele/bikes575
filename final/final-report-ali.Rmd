@@ -169,7 +169,21 @@ get_mod_eval_2011(mod.cas.1.final, mod.reg.1.final)
 get_mod_eval_tot_2011(mod.tot.1.final)
 ```
 
-
+\begin{table}[h]
+\centering
+ \begin{tabular}{||c || c || c || c || c||} 
+ \hline
+ Model & rmse & n-rmse & \% Error & cv-rmse \\ [0.4ex] 
+ \hline\hline
+ \text{2011 cas} & 309.97 & 0.56 & 72.87 & 314.86\\ 
+ \hline
+ \text{2011 reg} & 584.55 & 0.52 & 25.37 & 594.36\\ 
+ \hline
+ \text{2011 tot} & 722.15 & 0.52 & 25.44 & 734.18\\
+ \hline
+\end{tabular}
+\caption{Diagnostics for Model 1}
+\end{table}
 
 In this process, the model statistics such as p-values are not relied on as much, because the colinearity issues worsen, which might weaken the significance of 
 
@@ -179,7 +193,7 @@ In this process, the model statistics such as p-values are not relied on as much
 
 ## Diagonostic Analysis 
 
-```{r, fig.height = 4, fig.width = 6.25}
+```{r, fig.height = 6, fig.width = 7.25}
 update <- T
 if(update)
 {

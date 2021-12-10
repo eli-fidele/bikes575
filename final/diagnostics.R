@@ -45,20 +45,33 @@ get_rmse <- function(y, y_hat, name='none'){
   rmse <- sqrt(mean((y - y_hat)^2, na.rm = TRUE))
   normalized_rmse <- sqrt(mean(((y - y_hat)^2), na.rm = TRUE)) / sd(y)
   percentage_error <- mean(abs(y - y_hat) / y, na.rm = TRUE) * 100
-  
-  return(data.frame('name' = name, 'rmse' = rmse, 'normalized_rmse' = normalized_rmse, 'percentage_error' = percentage_error))
+  # Round the numbers
+  digits <- 2
+  rmse <- round(rmse, digits)
+  normalized_rmse <- round(normalized_rmse, digits)
+  percentage_error <- round(percentage_error, digits)
+  # Return the dataframe row
+  return(data.frame('name' = name, 'rmse' = rmse, 'nrmse' = normalized_rmse, 'prc_err' = percentage_error))
 }
 
 get_loocv_rmse = function(model) {
   loocv_rmse <- sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
-  return(data.frame('loocv_rmse' = loocv_rmse))
+  # Round the numbers
+  digits <- 2
+  loocv_rmse <- round(loocv_rmse, digits)
+  # Return the dataframe row
+  return(data.frame('CV_rmse' = loocv_rmse))
 }
 
 get_loocv_rmse_tot = function(cas, reg) {
   res_cas <- resid(cas) / (1 - hatvalues(cas))
   res_reg <- resid(reg) / (1 - hatvalues(reg))
   loocv_rmse <- sqrt(mean((res_cas + res_reg) ^ 2))
-  return(data.frame('loocv_rmse' = loocv_rmse))
+  # Round the numbers
+  digits <- 2
+  loocv_rmse <- round(loocv_rmse, digits)
+  # Return the dataframe row
+  return(data.frame('CV_rmse' = loocv_rmse))
 }
 
 ########################################################################
@@ -66,9 +79,9 @@ get_loocv_rmse_tot = function(cas, reg) {
 ########################################################################
 
 get_mod_eval_2011 <- function(cas, reg){
-  ret1 <- rbind(get_rmse(data2011$casual,     predict(cas, data2011), '2011 casual'),
-               get_rmse(data2011$registered, predict(reg, data2011), '2011 registered'),
-               get_rmse(data2011$cnt,        predict(cas, data2011) + predict(reg, data2011), '2011 total'))
+  ret1 <- rbind(get_rmse(data2011$casual,     predict(cas, data2011), '2011 cas'),
+               get_rmse(data2011$registered, predict(reg, data2011), '2011 reg'),
+               get_rmse(data2011$cnt,        predict(cas, data2011) + predict(reg, data2011), '2011 tot'))
   
   ret2 <- rbind(
     get_loocv_rmse(cas),
@@ -84,18 +97,18 @@ get_mod_eval_2011 <- function(cas, reg){
 get_mod_eval <- function(cas, reg, data2011, data2012, scale_2012 = TRUE){
   if(scale_2012){G_FACTOR <- 0.608} else{G_FACTOR <- 1}
   return(
-    rbind(get_rmse(data2011$casual,     predict(cas, data2011), '2011 casual'),
-          get_rmse(data2011$registered, predict(reg, data2011), '2011 registered'),
-          get_rmse(data2011$cnt,        predict(cas, data2011) + predict(reg, data2011), '2011 total'),
-          get_rmse(data2012$casual,     predict(cas, data2012)/G_FACTOR, '2012 casual'),
-          get_rmse(data2012$registered, predict(reg, data2012)/G_FACTOR, '2012 registered'),
-          get_rmse(data2012$cnt,        predict(cas, data2012)/G_FACTOR + predict(reg, data2012)/G_FACTOR, '2012 total')
+    rbind(get_rmse(data2011$casual,     predict(cas, data2011), '2011 cas'),
+          get_rmse(data2011$registered, predict(reg, data2011), '2011 reg'),
+          get_rmse(data2011$cnt,        predict(cas, data2011) + predict(reg, data2011), '2011 tot'),
+          get_rmse(data2012$casual,     predict(cas, data2012)/G_FACTOR, '2012 cas'),
+          get_rmse(data2012$registered, predict(reg, data2012)/G_FACTOR, '2012 reg'),
+          get_rmse(data2012$cnt,        predict(cas, data2012)/G_FACTOR + predict(reg, data2012)/G_FACTOR, '2012 tot')
          )
   )
 }
 
 get_mod_eval_tot_2011 <-function(tot){
-  ret1 <- rbind(get_rmse(data2011$cnt, predict(tot, data2011), '2011 total'))
+  ret1 <- rbind(get_rmse(data2011$cnt, predict(tot, data2011), '2011 tot'))
   
   ret2 <- rbind(
     get_loocv_rmse(tot)
@@ -113,7 +126,7 @@ get_mod_eval_tot_2011 <-function(tot){
 
 get_mod_eval_tot <-function(tot, data2011, data2012, scale_2012 = TRUE){
   if(scale_2012){G_FACTOR <- 0.608} else{G_FACTOR <- 1}
-    return(rbind(get_rmse(data2011$cnt, predict(tot, data2011), '2011 total'),
-                 get_rmse(data2012$cnt, predict(tot, data2012)/G_FACTOR, '2012 total'), 
+    return(rbind(get_rmse(data2011$cnt, predict(tot, data2011), '2011 tot'),
+                 get_rmse(data2012$cnt, predict(tot, data2012)/G_FACTOR, '2012 tot'), 
                  get_loocv_rmse(tot)))
 }

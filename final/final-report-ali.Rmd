@@ -150,16 +150,11 @@ In the model building and selection process, we start from the simplest models, 
 **Beginning Models**
 
 1. For **total count**: 
-
-$$\text{cnt} \sim workingday + weathersit + atemp + atemp^2$$
-
+$$\text{cnt} \sim \text{wkngday + weathersit + atemp + atemp}^2$$
 2. For **registered count**: 
-
-$$ \text{registered} \sim workingday + weathersit + atemp + atemp^2$$ 
-
+$$\text{reg} \sim \text{wkngday + weathersit + atemp + atemp}^2$$ 
 3. For **casual count**: 
-
-$$ \text{casual} \sim \text{workingday + weathersit + atemp}$$
+$$\text{cas} \sim \text{wkngday + weathersit + atemp}$$
 
 (Table 3, 4, 5: eval tables for total, registered and casual)
 

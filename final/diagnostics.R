@@ -53,7 +53,7 @@ get_rmse <- function(y, y_hat, name='none'){
 
 ########################################################################
 
-get_mod_eval_2011 <- function(cas, reg, scale_2012 = TRUE){
+get_mod_eval_2011 <- function(cas, reg, data2011 = data2011, scale_2012 = TRUE){
   return(
     rbind(get_rmse(data2011$casual,     predict(cas, data2011), '2011 casual'),
           get_rmse(data2011$registered, predict(reg, data2011), '2011 registered'),
@@ -62,7 +62,7 @@ get_mod_eval_2011 <- function(cas, reg, scale_2012 = TRUE){
   )
 }
 
-get_mod_eval <- function(cas, reg, scale_2012 = TRUE){
+get_mod_eval <- function(cas, reg, data2011, data2012, scale_2012 = TRUE){
   if(scale_2012){G_FACTOR <- 0.608} else{G_FACTOR <- 1}
   return(
     rbind(get_rmse(data2011$casual,     predict(cas, data2011), '2011 casual'),
@@ -75,7 +75,7 @@ get_mod_eval <- function(cas, reg, scale_2012 = TRUE){
   )
 }
 
-get_mod_eval_tot <-function(tot, scale_2012 = TRUE){
+get_mod_eval_tot <-function(tot, data2011, data2012, scale_2012 = TRUE){
   if(scale_2012){G_FACTOR <- 0.608} else{G_FACTOR <- 1}
     return(rbind(get_rmse(data2011$cnt, predict(tot, data2011), '2011 total'),
                  get_rmse(data2012$cnt, predict(tot, data2012)/G_FACTOR, '2012 total')))

@@ -1,0 +1,437 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+  twocolumn]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Bike-Sharing Data Analysis: Prediction of Daily Bike Rental Counts Based on Multiple Linear Regression},
+  pdfauthor={Ali Taqi, Hsin-Chang Lin, Huiru Yang, Ryan Mahoney, Yulin Li},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{5}
+
+\title{Bike-Sharing Data Analysis: Prediction of Daily Bike Rental Counts Based
+on Multiple Linear Regression}
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{Final Project Report · MA 575 Fall 2021 · C3 · Team \#2}
+\author{Ali Taqi, Hsin-Chang Lin, Huiru Yang, Ryan Mahoney, Yulin Li}
+\date{12/10/2021}
+
+\begin{document}
+\maketitle
+
+In this project, the following question is to be answered: If we have
+the past history of bike rental counts as well as records of
+environmental and seasonal conditions, how and how well could we predict
+the bike rental counts in the future? In this project, such questions
+are approached by predictive modeling of daily bike rental counts from a
+2011-2012 Bike Sharing dataset {[}1{]}. The daily bike rental counts are
+predicted with models based on Multiple Linear Regression (MLS) using
+the environmental and seasonal variables as predictors. The initial goal
+of this project is to train the model using only the 2011 data, and then
+validate the prediction power of the model on the 2012 data. Given the
+limited time span of available training data, issues are found in the
+validation process using the 2012 data; the impact of user base on the
+future predictions is brought to our attention. The initial models are
+then revisited and corrected to account for the effect of user base. The
+refined models are expected to have better prediction powers than the
+initial MLS models, but a full validation would require further
+availability of bike rental data.
+
+\hypertarget{introduction}{%
+\section{Introduction}\label{introduction}}
+
+Bike sharing has become a world-wide phenomenon. Optimization of
+inventories and dynamic reallocation of bike-sharing resources are of
+growing interests from both a business and an environmental point of
+view. Both of these tasks require accurate predictions of bike rental
+behaviors at least on the daily level.
+
+(further motivates \& applications?)
+
+In this project, we strive to answer the following question:
+
+\begin{itemize}
+\item
+  If we have the past history of bike rental counts as well as records
+  of environmental and seasonal conditions, how and how well could we
+  predict the bike rental counts in the future?
+\item
+  In particular, how and how well could we predict for the next whole
+  year, and what about for the next few days?
+\end{itemize}
+
+Such questions are approached by predictive modeling of daily bike
+rental counts from a 2011-2012 Bike Sharing dataset {[}1{]}. The
+modeling approach is based on Multiple Linear Regression (MLS), and the
+daily bike rental counts are predicted using the environmental variables
+(e.g., weather conditions) and seasonal variables (e.g., holiday
+schedules) as predictors.
+
+\hypertarget{background}{%
+\section{Background}\label{background}}
+
+The aim of this project is to achieve the best model(s) that can be
+obtained from past data for the use of predictions for the future,
+preferably predictions one year ahead. To validate the prediction power
+of models under this setting, the basic goal of this project is to train
+all models using only the 2011 data, and then test them on the 2012
+data.
+
+The response variable to be predicted is the \textbf{daily} bike rental
+count. In the dataset being studied {[}1{]}, the following 3 types of
+bike rental counts are recorded:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  the count of bike rentals by \textbf{casual} users
+\item
+  the count of bike rentals by \textbf{registered} users
+\item
+  the \textbf{total} count, which is the sum of casual count and
+  registered count.
+\end{enumerate}
+
+Two main types of predictors are included in the dataset, the
+environmental ones and the seasonal ones:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  environmental variables
+\end{enumerate}
+
+(Table 1: A sample of the data - variable names, meanings, units, sample
+values)
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  seasonal variables
+\end{enumerate}
+
+(Table 2: A sample of the data - variable names, meanings, units, sample
+values)
+
+\hypertarget{modeling-analysis}{%
+\section{Modeling \& Analysis}\label{modeling-analysis}}
+
+\hypertarget{pre-processing}{%
+\subsection{Pre-processing}\label{pre-processing}}
+
+\hypertarget{type-conversion}{%
+\subsubsection{Type Conversion}\label{type-conversion}}
+
+To be noticed, the value of categorical variables indicates type labels
+and has very limited physical meaning in the magnitude of those values,
+which thus cannot be used in the same way as the numeric variables in
+MLS models. The categorical variables therefore needs to be recognized
+before the actual modeling process and to be carefully handled.
+
+The below variables are interpreted as Boolean variables and are
+transformed into \texttt{logical}-type variables in \texttt{R}:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{holiday} (holiday or not)
+\item
+  \texttt{workingday} (working day or not)
+\end{itemize}
+
+The below variables are interpreted as categorical variables and are
+transformed into \texttt{factor}-type variables in \texttt{R}:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{season} (season, from 1 to 4)
+\item
+  \texttt{yr} (year, from 0 to 1)
+\item
+  \texttt{mnth} (month, from 1 to 12)
+\item
+  \texttt{weekday} (weekday, from 0 to 6)
+\item
+  \texttt{weathersit} (weather type, from 1 to 4)
+\end{itemize}
+
+\hypertarget{value-conversion}{%
+\subsubsection{Value Conversion}\label{value-conversion}}
+
+The recorded values of \texttt{temp} (measured temperature),
+\texttt{atemp} (feeling temperature), \texttt{hum} (measured humidity)
+and \texttt{windspeed} (measured wind speed) in the data set being
+studied here are the normalized ones; all recorded values are the ones
+that have been divided by the maximum of measured values {[}1{]}. For
+example, the recorded values of \texttt{temp} (measured temperature) are
+obtained by dividing the original measured values by 41 (max) and are
+thus all less than or equal to 1.
+
+In this project, these normalized records are scaled back to their
+original values for the sake of easier interpretations. For example, the
+recorded values of \texttt{temp} (measured temperature) are multiplied
+by 41 (max) in the pre-processing process, which recovers the original
+scale of temperatures in Celsius.
+
+\hypertarget{variable-selection}{%
+\subsection{Variable Selection}\label{variable-selection}}
+
+\hypertarget{response-transformation}{%
+\subsubsection{Response Transformation}\label{response-transformation}}
+
+Notably, the behaviors of rental counts from different user types are
+considerably different.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \textbf{Patterns with weekdays} (see Figure 1,2): Over the time span
+  of a week, the casual count usually reaches its minimum in the middle
+  of a week (grey dots mostly) and its maximum on weekends (green dots
+  mostly), while the registered count does the opposite.
+\item
+  \textbf{Patterns with temperatures} (see Figure 3): The casual count
+  seems more linear in both the feeling and measured temperatures
+  (\texttt{atemp} and \texttt{temp}), while the registered count seems
+  to be (at least) quadratic.
+\end{enumerate}
+
+We therefore expect that the registered counts and casual counts will
+follow different distributions and should thus be predicted by separate
+models. Furthermore, for the casual count, avoiding unnecessary higher
+other terms has the benefit of more stable computations and model
+structures. The prediction of total counts will then be obtained by
+adding the predicted registered counts and predicted casual counts
+together.
+
+\hypertarget{predictor-selection}{%
+\subsubsection{Predictor Selection}\label{predictor-selection}}
+
+Given the predictive nature of modeling in the current problem setting,
+the predicted response is of greater interests than the actual value of
+the parameter estimates, as opposed to that in an inference task. This,
+to some degree, relaxes the constraint forbidding colinearity in the
+predictors, since colinearity will only lead to instability in the
+parameter estimates but not in the predictions; however, we should still
+seek to minimize colinearity at least in our beginning model, which
+would lead to clearer model structures as well as better
+interpretability of model statistics at the early stage of modeling,
+which could provide us clearer directions in the improvement process
+that follows.
+
+With the above considerations in mind, the predictors in the beginning
+model are selected following the 2-step approach below:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  The scatter plot matrix for the whole set of variables are plotted for
+  the 2011 training dataset, and all predictors that seem to be
+  significant, i.e., predictors with which the response variable (daily
+  rental count, \texttt{cnt}) exhibits a notable visual pattern, are
+  selected.
+\item
+  From the selected predictors above, all the highly correlated
+  predictors are removed. Within a group of correlated predictors, only
+  the one that has the largest correlation coefficient with the response
+  variable as well as having the strongest causal relation with the
+  response (in the intuitive sense) will be kept.
+\end{enumerate}
+
+It is important that the investigation is done for all predictors for
+the sake of minimal loss of information. Note that in practice, the
+whole set of predictors is divided into two groups, environmental and
+seasonal, and plotted separately, for better readability of the large
+scatter plot matrices. The separation is justified by the fact that most
+environmental variables, such as weathers, are expected to be
+independent of the seasonal variables, such as weekdays and holiday
+schedules.
+
+At last, the above process leaves us with a small subset of the very
+core predictors for our beginning model: \texttt{weathersit},
+\texttt{atemp} and \texttt{weekday}.
+
+\hypertarget{initial-modeling}{%
+\subsection{Initial Modeling}\label{initial-modeling}}
+
+\textbf{Beginning Models}
+
+\[\text{cnt \~ workingday + weathersit + atemp + atemp\^{2}}\]
+
+\[ \text{registered ~ workingday + weathersit + atemp + atemp^2}\]
+
+\[ \text{casual ~ workingday + weathersit + atemp}\]
+
+In this process, the model statistics such as p-values are not relied on
+as much, because the colinearity issues worsen, which might weaken the
+significance of
+
+\textbf{Final Models}
+
+\hypertarget{diagonostic-analysis}{%
+\subsection{Diagonostic Analysis}\label{diagonostic-analysis}}
+
+interpretation for the final model as well as residual diagnostics
+
+\hypertarget{validation-and-problemshooting}{%
+\subsection{Validation and
+Problemshooting}\label{validation-and-problemshooting}}
+
+\hypertarget{refined-model}{%
+\subsection{Refined Model}\label{refined-model}}
+
+\hypertarget{prediction-of-the-yearly-growth-ratio}{%
+\subsubsection{Prediction of the Yearly Growth
+Ratio}\label{prediction-of-the-yearly-growth-ratio}}
+
+The modeling is based on the assumption that the growth trend will
+remain the same in the future years as that in the year of 2011. Note
+that this is NOT saying that the user base is supposed to remain
+unchanged throughout the entire year; the fact that the same scaling
+factor works at all points in the entire year is due to the fact that
+the MLS model in the later part of the year, e.g., in fall and winter,
+are already trained to compensate for rental count growth due to user
+growth using the environmental and seasonal variables.
+
+\hypertarget{prediction-without-the-yearly-growth-ratio}{%
+\subsubsection{Prediction without the Yearly Growth
+Ratio}\label{prediction-without-the-yearly-growth-ratio}}
+
+\hypertarget{prediction}{%
+\section{Prediction}\label{prediction}}
+
+\hypertarget{unadjusted-model}{%
+\subsection{Unadjusted Model}\label{unadjusted-model}}
+
+\hypertarget{refined-model-1}{%
+\subsection{Refined Model}\label{refined-model-1}}
+
+\hypertarget{discussion}{%
+\section{Discussion}\label{discussion}}
+
+Models for both long-term and short-term predictions are included.
+
+To be noticed, at least one more year's data is needed for a final
+validation of the refined model, which is not available for the moment.
+This is to be left for the future work.
+
+Time series
+
+\hypertarget{appendix}{%
+\section{Appendix}\label{appendix}}
+
+\hypertarget{preprocessing}{%
+\subsection{Preprocessing}\label{preprocessing}}
+
+\hypertarget{type-conversion-1}{%
+\subsubsection{Type Conversion}\label{type-conversion-1}}
+
+(codes here)
+
+\hypertarget{value-conversion-1}{%
+\subsubsection{Value Conversion}\label{value-conversion-1}}
+
+(codes here)
+
+\hypertarget{variable-selection-1}{%
+\subsection{Variable Selection}\label{variable-selection-1}}
+
+\hypertarget{predictors-selection}{%
+\subsubsection{Predictors Selection}\label{predictors-selection}}
+
+\hypertarget{predictors-selection-1}{%
+\subsubsection{Predictors Selection}\label{predictors-selection-1}}
+
+\hypertarget{response-transformation-1}{%
+\subsubsection{Response
+Transformation}\label{response-transformation-1}}
+
+\hypertarget{initial-modeling-1}{%
+\subsection{Initial Modeling}\label{initial-modeling-1}}
+
+\hypertarget{beginning-model}{%
+\subsubsection{Beginning Model}\label{beginning-model}}
+
+\hypertarget{final-model}{%
+\subsubsection{Final Model}\label{final-model}}
+
+\hypertarget{diagonostic-analysis-1}{%
+\subsection{Diagonostic Analysis}\label{diagonostic-analysis-1}}
+
+\hypertarget{validation-and-problemshooting-1}{%
+\subsection{Validation and
+Problemshooting}\label{validation-and-problemshooting-1}}
+
+\hypertarget{refined-model-2}{%
+\subsection{Refined Model}\label{refined-model-2}}
+
+\hypertarget{prediction-of-the-yearly-growth-ratio-1}{%
+\subsubsection{Prediction of the Yearly Growth
+Ratio}\label{prediction-of-the-yearly-growth-ratio-1}}
+
+\hypertarget{prediction-without-the-yearly-growth-ratio-1}{%
+\subsubsection{Prediction without the Yearly Growth
+Ratio}\label{prediction-without-the-yearly-growth-ratio-1}}
+
+\end{document}

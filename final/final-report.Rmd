@@ -74,6 +74,8 @@ contents...
 
 contents...
 
+$$\text{cnt \~ workingday + weathersit + atemp + atemp\^2}$$
+
 :::
 ::::::::::::::
 
@@ -132,7 +134,7 @@ rmse
 mod.cas.3.5.5.5 <- lm.cas(c(varset0,"weekday"), data2011)
 mod.reg.4.0.5.5 <- lm.reg(c(varset1,"weekday"), data2011)
 evaluate_model(mod.cas.3.5.5.5, mod.reg.4.0.5.5)
-LOOCV(predictors = varset0, response = "casual", train_data = data2011)
+# LOOCV(predictors = varset0, response = "casual", train_data = data2011)
 ```
 
 #### Modeling the Total Count

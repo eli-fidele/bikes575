@@ -1,4 +1,19 @@
 
+#=========================#
+#      Miscellaneous      #
+#=========================#
+
+# Enumerate all the pairs in the lower-triangular matrix scheme 
+# In other words, (i < j or i - j < 0) so that day_i preceeds day_j
+.unique_pairs_lower <- function(N){
+  is <- do.call("c", purrr::map(1:N, function(i){rep(i,N)}))
+  js <- rep(1:N, N)
+  # Helper function: selects elements only if they are upper triangular
+  .LowerTri <- function(i, j){if(i > j) { c(i = i, j = j) }}
+  pairs <- do.call("rbind", purrr::map2(is, js, .f = .LowerTri))
+  data.frame(pairs)
+}
+
 #===================================#
 #     Dataframe Wrapper Functions   #
 #===================================#
@@ -138,21 +153,45 @@ plot_window <- function(tbl_window){
     labs(title = "g estimates by window size w")
 }
 
+#---------------------------------------------------------------------------#
 #===========================================================================#
+#                           Primary Code Script                        
 #===========================================================================#
+#---------------------------------------------------------------------------#
 
-
-#=========================#
-#      Miscellaneous      #
-#=========================#
-
-# Enumerate all the pairs in the lower-triangular matrix scheme 
-# In other words, (i < j or i - j < 0) so that day_i preceeds day_j
-.unique_pairs_lower <- function(N){
-  is <- do.call("c", purrr::map(1:N, function(i){rep(i,N)}))
-  js <- rep(1:N, N)
-  # Helper function: selects elements only if they are upper triangular
-  .LowerTri <- function(i, j){if(i > j) { c(i = i, j = j) }}
-  pairs <- do.call("rbind", purrr::map2(is, js, .f = .LowerTri))
-  data.frame(pairs)
+# Control flow for avoiding computational/time waste
+recompute <- F
+if(recompute){
+  # Obtain the exhaustive dataset of loss values for every unique day ordered pair
+  df_loss <- data_2011 %>% get_df_loss
+  # Write CSV to avoid future recomputation
+  write.csv(df_loss, "df_loss.csv", row.names = F)
+} else{ 
+  df_loss <- read.csv("df_loss.csv")
 }
+
+#====================================================#
+#   Estimate Performance over Bound Paramater Space
+#====================================================#
+
+# Set a sequence of index bounds
+idx_bds <- seq(122, 365, 8)
+# Set a sequence of loss bounds: more critical
+loss_bds <- seq(1, 4, 0.10)
+# Obtain the parameter dataframe of g estimates
+df_param <- df_loss %>% get_df_param(idx_bds, loss_bds)
+# Plot the estimates over bound parameter space
+plot_g <- df_param %>% g_plot()
+
+#========================#
+#    Window Technique    #
+#========================#
+
+# Obtain the table of g esimates by window paramater w
+tbl_window <- purrr::map_dfr(1:20, function(w){data.frame(w = w, g_w = window_g(w))})
+# Plot the values
+plot_w <- plot_window(tbl_window)
+
+#===========================================================================#
+#---------------------------------------------------------------------------#
+#===========================================================================#

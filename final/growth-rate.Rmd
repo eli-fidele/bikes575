@@ -69,10 +69,6 @@ head(df_param)
 ## Plots: Loss Technique
 
 ```{r}
-#df_param %>% triangle_plot()
-```
-
-```{r}
 df_param %>% g_plot()
 ```
 

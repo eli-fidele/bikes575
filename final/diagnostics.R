@@ -94,17 +94,27 @@ get_mod_eval_2011 <- function(cas, reg){
   )
 }
 
-get_mod_eval <- function(cas, reg, data2011, data2012, scale_2012 = TRUE){
+get_mod_eval <- function(cas, reg, data2011, data2012, scale_2012 = TRUE, include_2011 = F){
   if(scale_2012){G_FACTOR <- 0.608} else{G_FACTOR <- 1}
-  return(
-    rbind(get_rmse(data2011$casual,     predict(cas, data2011), '2011 cas'),
-          get_rmse(data2011$registered, predict(reg, data2011), '2011 reg'),
-          get_rmse(data2011$cnt,        predict(cas, data2011) + predict(reg, data2011), '2011 tot'),
-          get_rmse(data2012$casual,     predict(cas, data2012)/G_FACTOR, '2012 cas'),
-          get_rmse(data2012$registered, predict(reg, data2012)/G_FACTOR, '2012 reg'),
-          get_rmse(data2012$cnt,        predict(cas, data2012)/G_FACTOR + predict(reg, data2012)/G_FACTOR, '2012 tot')
-         )
-  )
+  
+  if(include_2011){
+    return(
+      rbind(get_rmse(data2011$casual,     predict(cas, data2011), '2011 cas'),
+            get_rmse(data2011$registered, predict(reg, data2011), '2011 reg'),
+            get_rmse(data2011$cnt,        predict(cas, data2011) + predict(reg, data2011), '2011 tot'),
+            get_rmse(data2012$casual,     predict(cas, data2012)/G_FACTOR, '2012 cas'),
+            get_rmse(data2012$registered, predict(reg, data2012)/G_FACTOR, '2012 reg'),
+            get_rmse(data2012$cnt,        predict(cas, data2012)/G_FACTOR + predict(reg, data2012)/G_FACTOR, '2012 tot')
+      )
+    )
+  }else{
+    return(
+      rbind(
+            get_rmse(data2012$casual,     predict(cas, data2012)/G_FACTOR, '2012 cas'),
+            get_rmse(data2012$registered, predict(reg, data2012)/G_FACTOR, '2012 reg'),
+            get_rmse(data2012$cnt,        predict(cas, data2012)/G_FACTOR + predict(reg, data2012)/G_FACTOR, '2012 tot')
+           ))
+  }
 }
 
 get_mod_eval_tot_2011 <-function(tot){

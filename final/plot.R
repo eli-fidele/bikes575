@@ -140,13 +140,15 @@ predict2011cas_plot <- function(model){
   p2_compare + geom_line(data2011, mapping = aes(dteday, fitted_vals, color = 'fitted'), size = 0.5, alpha = 0.7)
 }
 
-predict2012reg_plot <- function(model){
-  fitted_vals <- predict(model, data2012)
+predict2012reg_plot <- function(model, scale_2012 = F){
+  if(scale_2012){G_FACTOR <- 0.608} else{G_FACTOR <- 1}
+  fitted_vals <- predict(model, data2012) / G_FACTOR
   p3_compare + geom_line(data2012, mapping = aes(dteday, fitted_vals, color = 'fitted'), size = 0.5, alpha = 0.7)
 }
 
-predict2012cas_plot <- function(model){
-  fitted_vals <- predict(model, data2012)
+predict2012cas_plot <- function(model, scale_2012 = F){
+  if(scale_2012){G_FACTOR <- 0.608} else{G_FACTOR <- 1}
+  fitted_vals <- predict(model, data2012) / G_FACTOR
   p4_compare + geom_line(data2012, mapping = aes(dteday, fitted_vals, color = 'fitted'), size = 0.5, alpha = 0.7)
 }
 

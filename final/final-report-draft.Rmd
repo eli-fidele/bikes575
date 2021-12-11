@@ -185,7 +185,7 @@ At last, the above process leaves us with a small subset of the very core predic
 
 In the model building and selection process, we start from the simplest models, which have the minimal number of predictors all in the additive form, as the beginning models.  
 
-**Beginning Models**
+### Beginning Models
 
 1. For **total count**: 
 $$\text{cnt} \sim \text{wkngday + weathersit + atemp + atemp}^2$$
@@ -251,7 +251,7 @@ if(update)
 knitr::include_graphics("graphics/cas-2011-mod-1-final.pdf")
 ```
 
-**Procedures**
+### Procedures
 
 Starting from the beginning models, we perform model building and selection in an iterative manner, for the registered and casual counts separately: 
 
@@ -272,17 +272,15 @@ Note that in this process, the model statistics (e.g., p-values) are also checke
 2. As the model becomes more and more complex in this process, the colinearity issues worsen, which might weaken the significance of inter-correlated predictors (i.e., it might turn out that none of those predictors are indicated as significant in the summary table), while this is not to say that none of those predictors are necessary for the model to have more accurate predictions. 
 
 
-**Final Models**
+### Final Models
 
 At the end of the iterative modeling process, we arrive at the following final models: 
 
 1. For **registered count**: 
-$$\text{reg} \sim \text{holiday + season:weathersit + }$$
-$$\text{season:workingday:atemp}^2$$ 
+$$\text{reg} \sim \text{holiday + season:weathersit + season:workingday:atemp}^2$$ 
 
 2. For **casual count**: 
-$$\text{cas} \sim \text{holiday + season:weathersit + }$$ 
-$$\text{season:workingday:atemp + season:workingday:atemp}^2$$
+$$\text{cas} \sim \text{holiday + season:weathersit + season:workingday:atemp + season:workingday:atemp}^2$$
 
 ```{r echo=FALSE}
 mod.cas.2.final <- lm.cas(c("holiday", "season:weathersit", "season:workingday:atemp"))
@@ -292,7 +290,7 @@ get_mod_eval_2011(mod.cas.2.final, mod.reg.2.final)
 ```
 
 ```{r, fig.height = 6, fig.width = 7.25}
-update <- 
+update <- F
 if(update)
 {
   myplot <- predict2011reg_plot(mod.reg.2.final)
@@ -305,7 +303,7 @@ knitr::include_graphics("graphics/reg-2011-mod-2-final.pdf")
 ```
 
 ```{r, fig.height = 6, fig.width = 7.25}
-update <- T
+update <- F
 if(update)
 {
   myplot <- predict2011cas_plot(mod.cas.2.final)
@@ -317,11 +315,58 @@ if(update)
 knitr::include_graphics("graphics/cas-2011-mod-2-final.pdf")
 ```
 
+```{r echo=FALSE}
+# data.frame(summary(mod.reg.2.final)$coef[,"Estimate"])
+# data.frame(summary(mod.cas.2.final)$coef[,"Estimate"])
+```
+
+
+In the final models, the interaction terms between feeling temperature, working day, and seasons indicate users' different reaction to temperature and weather change on different weekdays. 
+
+Notably, using the weekday variable in place of the working day variable will would result in a rise in the LOOCV RMSE, which indicates an overfitting issue, and so does adding any other variable to the model at this point. 
+
 ## Diagonostic Analysis 
 
 interpretation for the final model as well as residual diagnostics
 
+(Figure ?: 2011 fitted vs residual plot and normal qq-plot for registered counts)
+
+(Figure ?: 2011 fitted vs residual plot and normal qq-plot for casual counts)
+
+
 ## Validation and Problemshooting
+
+```{r, fig.height = 6, fig.width = 7.25}
+update <- F
+if(update)
+{
+  myplot <- predict2012reg_plot(mod.reg.2.final)
+  ggsave(filename = "graphics/reg-2012-mod-2-final.pdf", plot = myplot)
+}
+```
+
+```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+knitr::include_graphics("graphics/reg-2012-mod-2-final.pdf")
+```
+
+```{r, fig.height = 6, fig.width = 7.25}
+update <- F
+if(update)
+{
+  myplot <- predict2012cas_plot(mod.cas.2.final)
+  ggsave(filename = "graphics/cas-2012-mod-2-final.pdf", plot = myplot)
+}
+```
+
+```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+knitr::include_graphics("graphics/cas-2012-mod-2-final.pdf")
+```
+
+```{r echo=FALSE}
+evaluate_model(mod.cas.2.final, mod.reg.2.final)
+evaluate_model(mod.cas.2.final, mod.reg.2.final, scale_2012 = T)
+```
+
 
 ## Refined Model 
 
@@ -335,16 +380,57 @@ The modeling is based on the assumption that the growth trend will remain the sa
 
 ## Unadjusted Model 
 
+(For the 2012 Fitted versus Actual Plot, see Figure ? in Section ?.)
+
+(Table ?: 2012 Metrics)
+
 ## Refined Model 
+
+```{r, fig.height = 6, fig.width = 7.25}
+update <- F
+if(update)
+{
+  myplot <- predict2012reg_plot(mod.reg.2.final, scale_2012 = T)
+  ggsave(filename = "graphics/reg-2012-mod-2-refined-final.pdf", plot = myplot)
+}
+```
+
+```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+knitr::include_graphics("graphics/reg-2012-mod-2-refined-final.pdf")
+```
+
+```{r, fig.height = 6, fig.width = 7.25}
+update <- F
+if(update)
+{
+  myplot <- predict2012cas_plot(mod.cas.2.final, scale_2012 = T)
+  ggsave(filename = "graphics/cas-2012-mod-2-refined-final.pdf", plot = myplot)
+}
+```
+
+```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+knitr::include_graphics("graphics/cas-2012-mod-2-refined-final.pdf")
+```
+
+
 
 
 # Discussion 
+
+(Figure ?: 2011-2012 residual plot by time for registered counts)
+(Figure ?: 2011-2012 residual plot by time for casual counts)
+
+
 
 Models for both long-term and short-term predictions are included. 
 
 To be noticed, at least one more year's data is needed for a final validation of the refined model, which is not available for the moment. This is to be left for the future work.  
 
 Time series 
+
+# References
+
+[1] Fanaee-T, Hadi, and Gama, Joao, "Event labeling combining ensemble detectors and background knowledge", Progress in Artificial Intelligence (2013): pp. 1-15, Springer Berlin Heidelberg, doi:10.1007/s13748-013-0040-3.
 
 # Appendix
 
@@ -359,8 +445,9 @@ Time series
 ## Variable Selection 
 
 ### Predictors Selection
+(Figure ?: Scatter plot matrix for Group 1 predictors)
 
-### Predictors Selection
+(Figure ?: Scatter plot matrix for Group 2 predictors)
 
 ### Response Transformation
 

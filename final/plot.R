@@ -156,10 +156,10 @@ predict2012cas_plot <- function(model, scale_2012 = F){
 #      Predicition Plots      #
 #=============================#
 
-p1_preds <- predict2011reg_plot(mod.cas.1.0.5.5)
-p2_preds <- predict2011cas_plot(mod.cas.1.0.5.5)
-p3_preds <- predict2012reg_plot(mod.cas.1.0.5.5)
-p4_preds <- predict2012cas_plot(mod.cas.1.0.5.5)
+# p1_preds <- predict2011reg_plot(mod.cas.1.0.5.5)
+# p2_preds <- predict2011cas_plot(mod.cas.1.0.5.5)
+# p3_preds <- predict2012reg_plot(mod.cas.1.0.5.5)
+# p4_preds <- predict2012cas_plot(mod.cas.1.0.5.5)
 
 #=========================#
 #      Miscellaneous      #

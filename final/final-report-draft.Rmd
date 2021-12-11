@@ -52,8 +52,8 @@ data2012 <- data2012 %>% add_weekly_averages
 #       Source Scripts       #
 #============================#
 # Import any models (and fitted values, if applicable)
-source(file = "model.R")
 source(file = "model-build.R")
+source(file = "model.R")
 # Import diagnostics functions
 source(file = "diagnostics.R")
 # Import any plots or plot wrapper functions
@@ -163,7 +163,7 @@ knitr::include_graphics("graphics/cas-2011-simple.pdf")
 
 (Figure 3: casual vs temp & atemp, reg vs temp & atemp)
 
-We therefore expect that the registered counts and casual counts will follow different distributions and should thus be predicted by separate models. Furthermore, for the casual count, avoiding unnecessary higher other terms has the benefit of more stable computations and model structures. The prediction of total counts will then be obtained by adding the predicted registered counts and predicted casual counts together. 
+We therefore expect that the registered counts and casual counts will follow different distributions and should thus be predicted by separate models. Furthermore, for the casual count, avoiding unnecessary higher other terms has the benefit of more stable computations and model structures. The prediction of total counts will then be obtained by adding the predicted registered counts and predicted casual counts together.  
 
 ### Predictor Selection
 
@@ -194,10 +194,6 @@ $$\text{cas} \sim \text{wkngday + weathersit + atemp}$$
 
 
 ```{r echo=FALSE}
-mod.cas.1.final <- lm.cas(c("workingday", "weathersit", "atemp"))
-mod.reg.1.final <- lm.reg(c("workingday", "weathersit", "atemp", "I(atemp^2)"))
-mod.tot.1.final <- lm.tot(c("workingday", "weathersit", "atemp", "I(atemp^2)"))
-
 get_mod_eval_2011(mod.cas.1.final, mod.reg.1.final)
 get_mod_eval_tot_2011(mod.tot.1.final)
 ```
@@ -281,9 +277,6 @@ $$\text{reg} \sim \text{holiday + season:weathersit + season:workingday:atemp}^2
 $$\text{cas} \sim \text{holiday + season:weathersit + season:workingday:atemp + season:workingday:atemp}^2$$
 
 ```{r echo=FALSE}
-mod.cas.2.final <- lm.cas(c("holiday", "season:weathersit", "season:workingday:atemp"))
-mod.reg.2.final <- lm.reg(c("holiday", "season:weathersit", "season:workingday:atemp", "season:workingday:I(atemp^2)"))
-
 get_mod_eval_2011(mod.cas.2.final, mod.reg.2.final)
 ```
 

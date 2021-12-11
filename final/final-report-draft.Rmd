@@ -92,11 +92,11 @@ The response variable to be predicted is the **daily** bike rental count. In the
 
 Two main types of predictors are included in the dataset, the environmental ones and the seasonal ones: 
 
-1. environmental variables 
+1. **environmental** variables 
   
   (Table 1: A sample of the data - variable names, meanings, units, sample values)
 
-2. seasonal variables
+2. **seasonal** variables
 
   (Table 2: A sample of the data - variable names, meanings, units, sample values)
 
@@ -187,8 +187,6 @@ In the model building and selection process, we start from the simplest models, 
 
 **Beginning Models**
 
-**Beginning Models**
-
 1. For **total count**: 
 $$\text{cnt} \sim \text{wkngday + weathersit + atemp + atemp}^2$$
 2. For **registered count**: 
@@ -196,7 +194,6 @@ $$\text{reg} \sim \text{wkngday + weathersit + atemp + atemp}^2$$
 3. For **casual count**: 
 $$\text{cas} \sim \text{wkngday + weathersit + atemp}$$
 
-(Table 3, 4: eval tables for total and registered + casual)
 
 ```{r echo=FALSE}
 mod.cas.1.final <- lm.cas(c("workingday", "weathersit", "atemp"))
@@ -223,7 +220,11 @@ get_mod_eval_tot_2011(mod.tot.1.final)
 \caption{Diagnostics for Model 1}
 \end{table}
 
-(Figure ?,?,?: Fitted vs Actual for 2011 total, cas, reg)
+(Table 3, 4: eval tables for total and registered + casual)
+
+The percentage error of 2011 predicted total counts computed by the sum of the registered and casual models is less than that computed by the single total model (see Table 3,4), which demonstrates the power of separate modeling for registered and casual users. Therefore, we will continue with the scheme of separate modeling in the later development. 
+
+(Figure ?,?: Fitted vs Actual for 2011 cas, reg)
 
 ```{r, fig.height = 6, fig.width = 7.25}
 update <- F
@@ -237,12 +238,40 @@ if(update)
 ```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
 knitr::include_graphics("graphics/reg-2011-mod-1-final.pdf")
 ```
+```{r, fig.height = 6, fig.width = 7.25}
+update <- T
+if(update)
+{
+  myplot <- predict2011cas_plot(mod.cas.1.final)
+  ggsave(filename = "graphics/cas-2011-mod-1-final.pdf", plot = myplot)
+}
+```
 
+```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+knitr::include_graphics("graphics/cas-2011-mod-1-final.pdf")
+```
 
-In this process, the model statistics such as p-values are not relied on as much, because the colinearity issues worsen, which might weaken the significance of 
+Starting from these beginning models, we perform model building and selection in an iterative manner, for the registered and casual counts separately: 
+
+- Starting from a (relatively) simpler version of the model, the 2011 fitted response using this model is plotted along with the actual response against time (see, for example, Figure ?,?); the numeric metrics (RMSE, normalized RMSE, percentage error and LOOCV RMSE) are obtained as well (see, for example, Table ?,?). 
+
+- From the 2011 fitted versus actual plot, patterns in the biases can usually be visually recognized; combined with commonsense, this provides us with ideas of new variables potentially needed to account for the unexplained biases. 
+
+For example, for the beginning models of registered and casual counts, both response variables are being consistently overestimated in the 2011 spring and underestimated in the later part of the year (see Figure ?,?), which indicates that the users' response to weather and temperature might differ across seasons. This makes sense because each label of the weather type includes several different kinds of weathers (e.g., slightly snowy and slightly rainy days are both labeled as `3`), which could cast different level of difficulties on biking activities, and it is still insufficient to fully distinguish between those weathers given only temperature information. Additionally, the level of biases also differ considerably between workdays (grey dots) and weekends (mostly green dots), which indicates that the weekday variables might also be needed. 
+
+- The new variables, one at a time, are then added to the simple model to create a more complex model. Both additive terms and interactive terms will be attempted. Then the version with the most significant improvement, according to the fitted versus actual plot and the numeric metrics, will be kept for the next round. 
+
+In this iterative process of modeling, we look at the Leave-One-Out-Cross-Validation (LOOCV) RMSE as a proxy for the extent of overfitting. The model building process stops when the LOOCV RMSE starts to ramp up as model complexity increases, typically becoming considerably larger than the RMSE (compared to the previous models). 
+
+Note that in this process, the model statistics (e.g., p-values) are also checked but are not relied on as much, out of the following two considerations: 
+
+1. There is no guarantee in the normality of residual distributions as well as correct model forms, in which case the summary statistics might thus be invalid at all, especially in the intermediate stage of modeling with the incomplete models. 
+
+2. As the model becomes more and more complex in this process, the colinearity issues worsen, which might weaken the significance of inter-correlated predictors (i.e., it might turn out that none of those predictors are indicated as significant in the summary table), while this is not to say that none of those predictors are necessary for the model to have more accurate predictions. 
 
 **Final Models**
 
+Proceeding as described in the former section, the
 
 
 ## Diagonostic Analysis 

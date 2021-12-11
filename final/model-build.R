@@ -18,6 +18,6 @@ lm.reg <- function(varset, train_data = data2011){
   model <- lm(formula = .parseFormula(predictors = varset, response = "registered"), data = train_data)
   model
 }
-evaluate_model <- function(cas, reg){
-  get_mod_eval(cas, reg, data2011, data2012 %>% filter(dteday != '2012-10-29'), scale_2012 = FALSE)
+evaluate_model <- function(cas, reg, scale_2012 = FALSE){
+  get_mod_eval(cas, reg, data2011, data2012 %>% filter(dteday != '2012-10-29'), scale_2012)
 }

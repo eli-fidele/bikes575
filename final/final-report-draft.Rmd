@@ -53,9 +53,7 @@ data2012 <- data2012 %>% add_weekly_averages
 #============================#
 # Import any models (and fitted values, if applicable)
 source(file = "model.R")
-source(file = "model-base.R")
-source(file = "model-wk.R")
-source(file = "model-tot.R")
+source(file = "model-build.R")
 # Import diagnostics functions
 source(file = "diagnostics.R")
 # Import any plots or plot wrapper functions
@@ -321,7 +319,7 @@ knitr::include_graphics("graphics/cas-2011-mod-2-final.pdf")
 ```
 
 
-In the final models, the interaction terms between feeling temperature, working day, and seasons indicate users' different reaction to temperature and weather change on different weekdays. 
+The final models are built with considerations of real-life experience and commonsense, the interaction terms between feeling temperature, working day, and seasons indicate users' different reaction to temperature and weather change on different weekdays. 
 
 Notably, using the weekday variable in place of the working day variable will would result in a rise in the LOOCV RMSE, which indicates an overfitting issue, and so does adding any other variable to the model at this point. 
 

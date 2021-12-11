@@ -45,17 +45,43 @@ data2012 <- data2012 %>% add_weekly_averages
 #============================#
 # Import any models (and fitted values, if applicable)
 source(file = "model.R")
-source(file = "model-base.R")
-source(file = "model-wk.R")
-source(file = "model-tot.R")
+all_models <- F
+if(all_models){  
+  source(file = "model-base.R")
+  source(file = "model-wk.R")
+  source(file = "model-tot.R")
+}
+source(file = "models-final.R")
 # Import diagnostics
 source(file = "diagnostics.R")
 # Import any plots or plot wrapper functions
 source(file = "plot.R")
+# Source code for growth rate estimate
+source(file = "growth.R")
 ```
+
+## Modeling
 
 ```{r, fig.height = 4, fig.width = 4}
 data2011 %>% plot_user_counts(user = "registered", compare = T)
 ggsave(filename = "graphics/reg-2011-simple.pdf")
+# knitr::include_graphics("graphics/reg-2011-simple.pdf")
 ```
+
+## Growth Rate
+
+```{r}
+# From source script, save the growth plot
+plot_g
+ggsave(filename = "graphics/growth-loss.pdf", plot_g)
+# knitr::include_graphics("graphics/growth-loss.pdf")
+```
+
+```{r}
+# From source script, save the growth plot
+plot_w
+ggsave(filename = "graphics/growth-window.pdf", plot_w)
+# knitr::include_graphics("graphics/growth-window.pdf")
+```
+
 

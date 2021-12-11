@@ -154,18 +154,18 @@ In the model building and selection process, we start from the simplest models, 
 $$\text{cnt} \sim \text{wkngday + weathersit + atemp + atemp}^2$$
 2. For **registered count**: 
 $$\text{reg} \sim \text{wkngday + weathersit + atemp + atemp}^2$$ 
+
 3. For **casual count**: 
 $$\text{cas} \sim \text{wkngday + weathersit + atemp}$$
 
 (Table 3, 4, 5: eval tables for total, registered and casual)
 
-```{r}
+```{r include=FALSE}
 mod.cas.1.final <- lm.cas(c("workingday", "weathersit", "atemp"))
 mod.reg.1.final <- lm.reg(c("workingday", "weathersit", "atemp", "I(atemp^2)"))
 mod.tot.1.final <- lm.tot(c("workingday", "weathersit", "atemp", "I(atemp^2)"))
 
 get_mod_eval_2011(mod.cas.1.final, mod.reg.1.final)
-
 get_mod_eval_tot_2011(mod.tot.1.final)
 ```
 
@@ -184,6 +184,8 @@ get_mod_eval_tot_2011(mod.tot.1.final)
 \end{tabular}
 \caption{Diagnostics for Model 1}
 \end{table}
+
+
 
 In this process, the model statistics such as p-values are not relied on as much, because the colinearity issues worsen, which might weaken the significance of 
 

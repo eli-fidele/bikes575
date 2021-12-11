@@ -77,16 +77,24 @@ g_estimate <- function(df_loss, idx_bound, loss_bound){
 triangle_plot <- function(df_param){
   df_param %>%
     ggplot() +
-    geom_point(aes(x = idx_bd, y = loss_bd, color = g))
+    geom_point(aes(x = idx_bd, y = loss_bd, color = g)) +
+    labs(x = "Index (Difference) Lower Bound", y = "Loss Upper Bound", title = "Growth Factor Estimates by Bound Parameters")
 }
 
 g_plot <- function(df_param){
+  # Filter bounds to obtain a good window frame
+  df_param <- df_param %>% filter(idx_bd > 10, loss_bd < 5)
+  # Create the proportion of maximum pairs variable (for alpha)
+  df_param <- df_param %>% mutate(perc_pairs_omitted = 1 - n/max(df_param$n))
+  # Scatterplot
   df_param %>%
-    filter(idx_bd > 10, loss_bd < 5) %>%
     ggplot() +
-    geom_point(aes(color = idx_bd, x = loss_bd, y = g, alpha = 1 - (1.5 - (62000/2*62000 - 1.35*n)))) +
+    geom_point(aes(color = idx_bd, x = loss_bd, y = g, alpha = perc_pairs_omitted)) +
     geom_abline(slope = 0, intercept = 3.35) +
-    theme(legend.position = "none")
+    theme(legend.position = "bottom") +
+    labs(x = "Loss Upper Bound", y = "g", title = "Growth Factor Esimates by Loss Upper Bound") +
+    #scale_alpha(guide = "none") +
+    scale_color_gradient(low = "palevioletred2", high = "seagreen3")
 }
 
 #===========================================================================#

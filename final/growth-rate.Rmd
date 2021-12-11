@@ -18,6 +18,7 @@ library(GGally)
 library(cowplot)
 library(gglm)
 library(moderndive)
+library(RColorBrewer)
 #==============================#
 #        Global Settings       #
 #==============================#
@@ -68,7 +69,10 @@ head(df_param)
 ## Plots: Loss Technique
 
 ```{r}
-df_param %>% triangle_plot()
+#df_param %>% triangle_plot()
+```
+
+```{r}
 df_param %>% g_plot()
 ```
 
@@ -79,7 +83,3 @@ tbl_window <- purrr::map_dfr(1:20, function(w){data.frame(w = w, g_w = window_g(
 plot_w <- plot_window(tbl_window)
 plot_w
 ```
-
-
-
-

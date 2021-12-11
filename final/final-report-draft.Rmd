@@ -222,7 +222,7 @@ get_mod_eval_tot_2011(mod.tot.1.final)
 
 (Table 3, 4: eval tables for total and registered + casual)
 
-The percentage error of 2011 predicted total counts computed by the sum of the registered and casual models is less than that computed by the single total model (see Table 3,4), which demonstrates the power of separate modeling for registered and casual users. Therefore, we will continue with the scheme of separate modeling in the later development. 
+The percentage error of 2011 predicted total counts computed by the sum of the registered and casual models is less than that computed by the single total model (see Table 3,4), which demonstrates the power of separate modeling for registered and casual users. Therefore, we will continue with the scheme of separate modeling in the later part. 
 
 (Figure ?,?: Fitted vs Actual for 2011 cas, reg)
 
@@ -239,7 +239,7 @@ if(update)
 knitr::include_graphics("graphics/reg-2011-mod-1-final.pdf")
 ```
 ```{r, fig.height = 6, fig.width = 7.25}
-update <- T
+update <- F
 if(update)
 {
   myplot <- predict2011cas_plot(mod.cas.1.final)
@@ -251,7 +251,9 @@ if(update)
 knitr::include_graphics("graphics/cas-2011-mod-1-final.pdf")
 ```
 
-Starting from these beginning models, we perform model building and selection in an iterative manner, for the registered and casual counts separately: 
+**Procedures**
+
+Starting from the beginning models, we perform model building and selection in an iterative manner, for the registered and casual counts separately: 
 
 - Starting from a (relatively) simpler version of the model, the 2011 fitted response using this model is plotted along with the actual response against time (see, for example, Figure ?,?); the numeric metrics (RMSE, normalized RMSE, percentage error and LOOCV RMSE) are obtained as well (see, for example, Table ?,?). 
 
@@ -269,10 +271,51 @@ Note that in this process, the model statistics (e.g., p-values) are also checke
 
 2. As the model becomes more and more complex in this process, the colinearity issues worsen, which might weaken the significance of inter-correlated predictors (i.e., it might turn out that none of those predictors are indicated as significant in the summary table), while this is not to say that none of those predictors are necessary for the model to have more accurate predictions. 
 
+
 **Final Models**
 
-Proceeding as described in the former section, the
+At the end of the iterative modeling process, we arrive at the following final models: 
 
+1. For **registered count**: 
+$$\text{reg} \sim \text{holiday + season:weathersit + }$$
+$$\text{season:workingday:atemp}^2$$ 
+
+2. For **casual count**: 
+$$\text{cas} \sim \text{holiday + season:weathersit + }$$ 
+$$\text{season:workingday:atemp + season:workingday:atemp}^2$$
+
+```{r echo=FALSE}
+mod.cas.2.final <- lm.cas(c("holiday", "season:weathersit", "season:workingday:atemp"))
+mod.reg.2.final <- lm.reg(c("holiday", "season:weathersit", "season:workingday:atemp", "season:workingday:I(atemp^2)"))
+
+get_mod_eval_2011(mod.cas.2.final, mod.reg.2.final)
+```
+
+```{r, fig.height = 6, fig.width = 7.25}
+update <- 
+if(update)
+{
+  myplot <- predict2011reg_plot(mod.reg.2.final)
+  ggsave(filename = "graphics/reg-2011-mod-2-final.pdf", plot = myplot)
+}
+```
+
+```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+knitr::include_graphics("graphics/reg-2011-mod-2-final.pdf")
+```
+
+```{r, fig.height = 6, fig.width = 7.25}
+update <- T
+if(update)
+{
+  myplot <- predict2011cas_plot(mod.cas.2.final)
+  ggsave(filename = "graphics/cas-2011-mod-2-final.pdf", plot = myplot)
+}
+```
+
+```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+knitr::include_graphics("graphics/cas-2011-mod-2-final.pdf")
+```
 
 ## Diagonostic Analysis 
 

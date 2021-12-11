@@ -44,14 +44,8 @@ data2012 <- data2012 %>% add_weekly_averages
 #       Source Scripts       #
 #============================#
 # Import any models (and fitted values, if applicable)
+source(file = "model-build.R")
 source(file = "model.R")
-all_models <- F
-if(all_models){  
-  source(file = "model-base.R")
-  source(file = "model-wk.R")
-  source(file = "model-tot.R")
-}
-source(file = "models-final.R")
 # Import diagnostics
 source(file = "diagnostics.R")
 # Import any plots or plot wrapper functions

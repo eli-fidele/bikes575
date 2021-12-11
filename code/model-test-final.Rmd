@@ -1,0 +1,39 @@
+---
+title: "models"
+author: "Yulin Li"
+date: "12/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+mod.cas.1.final <- lm.cas(c("workingday", "weathersit", "atemp"))
+mod.reg.1.final <- lm.reg(c("workingday", "weathersit", "atemp", "I(atemp^2)"))
+mod.tot.1.final <- lm.tot(c("workingday", "weathersit", "atemp", "I(atemp^2)"))
+
+mod.cas.2.final <- lm.cas(c("holiday", "season:weathersit", "season:workingday:atemp"))
+mod.reg.2.final <- lm.reg(c("holiday", "season:weathersit", "season:workingday:atemp", "season:workingday:I(atemp^2)"))
+
+mod.cas.3.final <- lm.cas(c("holiday",  "workingday:I(atemp^2)"))
+mod.reg.3.final <- lm.reg(c("holiday", "season:weathersit", "season:workingday:atemp", "season:workingday:I(atemp^2)"))
+
+get_mod_eval_2011(mod.cas.1.final, mod.reg.1.final)
+get_mod_eval_2011(mod.cas.2.final, mod.reg.2.final)
+get_mod_eval_2011(mod.cas.3.final, mod.reg.3.final)
+
+# summary(mod.cas.2.final)
+# summary(mod.cas.3.final)
+```
+
+
+```{r}
+summary(mod.cas.2.final)
+# summary(mod.reg.2.final)
+
+summary(mod.cas.3.final)
+# summary(mod.reg.3.final)
+```
+

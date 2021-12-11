@@ -68,8 +68,6 @@ source(file = "plot.R")
 
 Bike sharing has become a world-wide phenomenon. Optimization of inventories and dynamic reallocation of bike-sharing resources are of growing interests from both a business and an environmental point of view. Both of these tasks require accurate predictions of bike rental behaviors at least on the daily level. 
 
-(further motivates & applications?)
-
 In this project, we strive to answer the following question: 
 
 - If we have the past history of bike rental counts as well as records of environmental and seasonal conditions, how and how well could we predict the bike rental counts in the future? 
@@ -91,11 +89,19 @@ The response variable to be predicted is the **daily** bike rental count. In the
 Two main types of predictors are included in the dataset, the environmental ones and the seasonal ones: 
 
 1. **environmental** variables 
+
+```{r echo=FALSE}
+bike_day[1,1+c(1,8,9,10,11,12)]
+```
+
   
   (Table 1: A sample of the data - variable names, meanings, units, sample values)
 
 2. **seasonal** variables
 
+```{r echo=FALSE}
+head(bike_day[,1+c(1,2,3,4,5,6,7)], 2)
+```
   (Table 2: A sample of the data - variable names, meanings, units, sample values)
 
 # Modeling & Analysis 
@@ -159,7 +165,25 @@ if(update)
 knitr::include_graphics("graphics/cas-2011-simple.pdf")
 ```
 
-2. **Patterns with temperatures** (see Figure 3): The casual count seems more linear in both the feeling and measured temperatures (`atemp` and `temp`), while the registered count seems to be (at least) quadratic. 
+2. **Patterns with temperatures** (see Figure 3): On working days, the casual count seems more linear in temperature (`atemp` and `temp`), while the registered count seems to be (at least) quadratic. 
+
+```{r}
+# waiting for Ali to fix the plots
+# maybe put them in 2 subplots?
+
+fig3 <- ggplot(data2011) + 
+  geom_point(mapping = aes(x = temp, y = registered)) + 
+  geom_point(data2011 %>% filter(!workingday), mapping = aes(x = temp, y = registered, col = 'on non-working days')) + 
+  geom_point(data2011 %>% filter(holiday), mapping = aes(x = temp, y = registered, col = 'on holidays'))
+
+fig4 <- ggplot(data2011) + 
+  geom_point(mapping = aes(x = temp, y = casual)) + 
+  geom_point(data2011 %>% filter(!workingday), mapping = aes(x = temp, y = casual, col = 'on non-working days')) + 
+  geom_point(data2011 %>% filter(holiday), mapping = aes(x = temp, y = casual, col = 'on holidays'))
+
+plot_grid(fig3, fig4)
+```
+
 
 (Figure 3: casual vs temp & atemp, reg vs temp & atemp)
 
@@ -187,6 +211,12 @@ In the model building and selection process, we start from the simplest models, 
 
 1. For **total count**: 
 $$\text{cnt} \sim \text{wkngday + weathersit + atemp + atemp}^2$$
+```{r echo=FALSE}
+get_mod_eval_tot_2011(mod.tot.1.final)
+```
+(Table 3: eval table for total model)
+
+
 2. For **registered count**: 
 $$\text{reg} \sim \text{wkngday + weathersit + atemp + atemp}^2$$ 
 3. For **casual count**: 
@@ -195,8 +225,8 @@ $$\text{cas} \sim \text{wkngday + weathersit + atemp}$$
 
 ```{r echo=FALSE}
 get_mod_eval_2011(mod.cas.1.final, mod.reg.1.final)
-get_mod_eval_tot_2011(mod.tot.1.final)
 ```
+(Table 4: eval table for registered + casual model)
 
 \begin{table}[h]
 \centering
@@ -214,11 +244,10 @@ get_mod_eval_tot_2011(mod.tot.1.final)
 \caption{Diagnostics for Model 1}
 \end{table}
 
-(Table 3, 4: eval tables for total and registered + casual)
 
 The percentage error of 2011 predicted total counts computed by the sum of the registered and casual models is less than that computed by the single total model (see Table 3,4), which demonstrates the power of separate modeling for registered and casual users. Therefore, we will continue with the scheme of separate modeling in the later part. 
 
-(Figure ?,?: Fitted vs Actual for 2011 cas, reg)
+
 
 ```{r, fig.height = 6, fig.width = 7.25}
 update <- F
@@ -244,6 +273,8 @@ if(update)
 ```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
 knitr::include_graphics("graphics/cas-2011-mod-1-final.pdf")
 ```
+
+(Figure ?,?: Fitted vs Actual for 2011 cas, reg)
 
 ### Procedures
 
@@ -279,6 +310,9 @@ $$\text{cas} \sim \text{holiday + season:weathersit + season:workingday:atemp + 
 ```{r echo=FALSE}
 get_mod_eval_2011(mod.cas.2.final, mod.reg.2.final)
 ```
+(Table 5: eval table for the final models)
+
+(For a complete list of attempted models, see Appendix.)
 
 ```{r, fig.height = 6, fig.width = 7.25}
 update <- F
@@ -307,23 +341,25 @@ knitr::include_graphics("graphics/cas-2011-mod-2-final.pdf")
 ```
 
 ```{r echo=FALSE}
-# data.frame(summary(mod.reg.2.final)$coef[,"Estimate"])
-# data.frame(summary(mod.cas.2.final)$coef[,"Estimate"])
+# summary(mod.reg.2.final)$coef[,"Estimate"]
+# summary(mod.cas.2.final)$coef[,"Estimate"]
 ```
 
+The final models are built with considerations of real-life experience and commonsense. For example, the interaction terms between feeling temperature, working day and seasons indicate people's different reaction to temperature change under different weathers on working days and on weekends. 
 
-The final models are built with considerations of real-life experience and commonsense, the interaction terms between feeling temperature, working day, and seasons indicate users' different reaction to temperature and weather change on different weekdays. 
+From this point on, adding any other variable to the model will result in a rise in the LOOCV RMSE, which indicates an overfitting issue that weakens the predictive power of the model. Notably, using the `weekday` variable in place of the `workingday` variable also worsens the performance. 
 
-Notably, using the weekday variable in place of the working day variable will would result in a rise in the LOOCV RMSE, which indicates an overfitting issue, and so does adding any other variable to the model at this point. 
+The final models achieve a ~10% improvement in the prediction percentage error in 2011 daily total counts as well as significant improvements in all the other metrics. The LOOCV RMSE is only ~15% higher than the training RMSE, indicating that the overfitting issue is still at a moderate level. Also, the systematic biases in the beginning models, as mentioned in the former section, have been alleviated (see Figure ?). 
 
-## Diagonostic Analysis 
+A diagnostic analysis indicates that the constant-variance assumption and normality assumption of the registered model are mostly sound, while those of the casual model are more in doubt. Accordingly, the prediction errors of the casual model is also at a higher level than the registered model (see normalized RMSE and percentage error in Table ?). This situation can be understood intuitively, as the behavior of registered users is generally more regular and can be better captured by the simple MLS model, thus more predictable. 
 
-interpretation for the final model as well as residual diagnostics
+```{r}
+# subplots*3: 
+```
 
-(Figure ?: 2011 fitted vs residual plot and normal qq-plot for registered counts)
+(Figure ?: residual histogram, residual vs fitted, normal qq-plot for 2011 reg)
 
-(Figure ?: 2011 fitted vs residual plot and normal qq-plot for casual counts)
-
+(Figure ?: residual histogram, residual vs fitted, normal qq-plot for 2012 reg)
 
 ## Validation and Problemshooting
 
@@ -357,6 +393,9 @@ knitr::include_graphics("graphics/cas-2012-mod-2-final.pdf")
 evaluate_model(mod.cas.2.final, mod.reg.2.final)
 evaluate_model(mod.cas.2.final, mod.reg.2.final, scale_2012 = T)
 ```
+
+
+However, the 2012 rental rounts are being consistent  
 
 
 ## Refined Model 
@@ -449,6 +488,10 @@ Time series
 ### Final Model
 
 ## Diagonostic Analysis 
+
+(Figure ?: 2011 fitted vs residual plot and normal qq-plot for registered counts)
+
+(Figure ?: 2011 fitted vs residual plot and normal qq-plot for casual counts)
 
 ## Validation and Problemshooting
 

@@ -213,7 +213,7 @@ knitr::include_graphics("graphics/reg-2011-simple.pdf")
 
 interpretation for the final model as well as residual diagnostics
 
-## Validation and Problemshooting
+## Prediction
 
 
 ## Prediction of the Yearly Growth Ratio

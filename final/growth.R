@@ -121,7 +121,7 @@ g_plot <- function(df_param){
 
 growth_ratio <- function(i, j){ data2011$cnt[i]/data2011$cnt[j] }
 
-get_rel_ratio <- function(row){ growth_ratio(i = env_diffs_sset[row, 1], j = env_diffs_sset[row, 2]) }
+#get_rel_ratio <- function(row){ growth_ratio(i = env_diffs_sset[row, 1], j = env_diffs_sset[row, 2]) }
 
 
 window_g <- function(w, no_outlier = T){
@@ -150,7 +150,7 @@ plot_window <- function(tbl_window){
     geom_point(color = col0) +
     geom_line(color = col0) +
     geom_vline(xintercept = 6, color = "red") +
-    labs(title = "g estimates by window size w")
+    labs(title = "Growth Factor Estimates by Window Size")
 }
 
 #---------------------------------------------------------------------------#

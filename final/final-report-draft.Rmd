@@ -1,8 +1,16 @@
 ---
-title: 'Bike-Sharing Data Analysis: Prediction of Daily Bike Rental Counts Based on Multiple Linear Regression'
-subtitle: "Final Project Report · MA 575 Fall 2021 · C3 · Team #2"
+title: | 
+  | Bike-Sharing Data Analysis: 
+  | Prediction of Daily Bike Rental Counts 
+  | Based on Multiple Linear Regression
+subtitle: |
+  | \hfill\break
+  | Final Project Report · MA 575 Fall 2021 · C3 · Team #2
 author: "Ali Taqi, Hsin-Chang Lin, Huiru Yang, Ryan Mahoney, Yulin Li"
 date: "12/10/2021"
+abstract: |
+ | In this project, the following question is to be answered: If we have the past history of bike rental counts as well as records of environmental and seasonal conditions, how and how well could we predict the bike rental counts in the future? In this project, such questions are approached by predictive modeling of daily bike rental counts from a 2011-2012 Bike Sharing dataset [1]. The daily bike rental counts are predicted with models based on Multiple Linear Regression (MLS) using the environmental and seasonal variables as predictors. The initial goal of this project is to train the model using only the 2011 data, and then validate the prediction power of the model on the 2012 data. Given the limited time span of available training data, issues are found in the validation process using the 2012 data; the impact of user base on the future predictions is brought to our attention. The initial models are then revisited and corrected to account for the effect of user base. The refined models are expected to have better prediction powers than the initial MLS models, but a full validation would require further availability of bike rental data. 
+
 output: 
   pdf_document: 
     number_sections: true
@@ -44,10 +52,11 @@ data2012 <- data2012 %>% add_weekly_averages
 #       Source Scripts       #
 #============================#
 # Import any models (and fitted values, if applicable)
-source(file = "model-build.R")
 source(file = "model.R")
+source(file = "model-base.R")
 source(file = "model-wk.R")
 source(file = "model-tot.R")
+# Import diagnostics functions
 source(file = "diagnostics.R")
 # Import any plots or plot wrapper functions
 source(file = "plot.R")
@@ -55,7 +64,7 @@ source(file = "plot.R")
 
 
 
-In this project, the following question is to be answered: If we have the past history of bike rental counts as well as records of environmental and seasonal conditions, how and how well could we predict the bike rental counts in the future? In this project, such questions are approached by predictive modeling of daily bike rental counts from a 2011-2012 Bike Sharing dataset [1]. The daily bike rental counts are predicted with models based on Multiple Linear Regression (MLS) using the environmental and seasonal variables as predictors. The initial goal of this project is to train the model using only the 2011 data, and then validate the prediction power of the model on the 2012 data. Given the limited time span of available training data, issues are found in the validation process using the 2012 data; the impact of user base on the future predictions is brought to our attention. The initial models are then revisited and corrected to account for the effect of user base. The refined models are expected to have better prediction powers than the initial MLS models, but a full validation would require further availability of bike rental data. 
+
 
 # Introduction 
 
@@ -126,7 +135,35 @@ Notably, the behaviors of rental counts from different user types are considerab
 
 1. **Patterns with weekdays** (see Figure 1,2): Over the time span of a week, the casual count usually reaches its minimum in the middle of a week (grey dots mostly) and its maximum on weekends (green dots mostly), while the registered count does the opposite. 
 
+```{r, fig.height = 6, fig.width = 7.25}
+update <- F
+if(update)
+{
+  myplot <- data2011 %>% plot_user_counts(user = "registered", compare = T)
+  ggsave(filename = "graphics/reg-2011-simple.pdf", plot = myplot)
+}
+```
+
+```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+knitr::include_graphics("graphics/reg-2011-simple.pdf")
+```
+
+```{r, fig.height = 6, fig.width = 7.25}
+update <- F
+if(update)
+{
+  myplot <- data2011 %>% plot_user_counts(user = "casual", compare = T)
+  ggsave(filename = "graphics/cas-2011-simple.pdf", plot = myplot)
+}
+```
+
+```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+knitr::include_graphics("graphics/cas-2011-simple.pdf")
+```
+
 2. **Patterns with temperatures** (see Figure 3): The casual count seems more linear in both the feeling and measured temperatures (`atemp` and `temp`), while the registered count seems to be (at least) quadratic. 
+
+(Figure 3: casual vs temp & atemp, reg vs temp & atemp)
 
 We therefore expect that the registered counts and casual counts will follow different distributions and should thus be predicted by separate models. Furthermore, for the casual count, avoiding unnecessary higher other terms has the benefit of more stable computations and model structures. The prediction of total counts will then be obtained by adding the predicted registered counts and predicted casual counts together. 
 
@@ -150,21 +187,18 @@ In the model building and selection process, we start from the simplest models, 
 
 **Beginning Models**
 
+**Beginning Models**
+
 1. For **total count**: 
-
-$$\text{cnt \~ workingday + weathersit + atemp + atemp\^2}$$
-
+$$\text{cnt} \sim \text{wkngday + weathersit + atemp + atemp}^2$$
 2. For **registered count**: 
-
-$$ \text{registered ~ workingday + weathersit + atemp + atemp\^2}$$ 
-
+$$\text{reg} \sim \text{wkngday + weathersit + atemp + atemp}^2$$ 
 3. For **casual count**: 
+$$\text{cas} \sim \text{wkngday + weathersit + atemp}$$
 
-$$ \text{casual ~ workingday + weathersit + atemp}$$
+(Table 3, 4: eval tables for total and registered + casual)
 
-(Table 3, 4, 5: eval tables for total, registered and casual)
-
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE}
 mod.cas.1.final <- lm.cas(c("workingday", "weathersit", "atemp"))
 mod.reg.1.final <- lm.reg(c("workingday", "weathersit", "atemp", "I(atemp^2)"))
 mod.tot.1.final <- lm.tot(c("workingday", "weathersit", "atemp", "I(atemp^2)"))
@@ -173,8 +207,35 @@ get_mod_eval_2011(mod.cas.1.final, mod.reg.1.final)
 get_mod_eval_tot_2011(mod.tot.1.final)
 ```
 
-```{r}
+\begin{table}[h]
+\centering
+ \begin{tabular}{||c || c || c || c || c||} 
+ \hline
+ Model & rmse & n-rmse & \% Error & cv-rmse \\ [0.4ex] 
+ \hline\hline
+ \text{2011 cas} & 309.97 & 0.56 & 72.87 & 314.86\\ 
+ \hline
+ \text{2011 reg} & 584.55 & 0.52 & 25.37 & 594.36\\ 
+ \hline
+ \text{2011 tot} & 722.15 & 0.52 & 25.44 & 734.18\\
+ \hline
+\end{tabular}
+\caption{Diagnostics for Model 1}
+\end{table}
 
+(Figure ?,?,?: Fitted vs Actual for 2011 total, cas, reg)
+
+```{r, fig.height = 6, fig.width = 7.25}
+update <- F
+if(update)
+{
+  myplot <- predict2011reg_plot(mod.reg.1.final)
+  ggsave(filename = "graphics/reg-2011-mod-1-final.pdf", plot = myplot)
+}
+```
+
+```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+knitr::include_graphics("graphics/reg-2011-mod-1-final.pdf")
 ```
 
 

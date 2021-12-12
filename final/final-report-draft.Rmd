@@ -501,8 +501,16 @@ That being said, there is one curious piece of information corroborated by the e
 
 # Discussion 
 
-(Figure ?: 2011-2012 residual plot by time for registered counts)
-(Figure ?: 2011-2012 residual plot by time for casual counts)
+```{r, fig.height = 5, fig.cap = "Various g and prediction adjustment"}
+fitted_vals <- predict(mod.cas.2.final, data2012) + predict(mod.reg.2.final, data2012)
+LB <- 1.4; UB <- 1.613; alpha0 <- 0.4
+plot_gfac2 <- plot_user_counts(data2012, user = "cnt") + 
+  geom_line(data2012, mapping = aes(dteday, fitted_vals), color = "steelblue3", size = 0.5, alpha = 0.6) +
+  geom_line(data2012, mapping = aes(dteday, fitted_vals*UB), color = "limegreen", size = 0.5, alpha = alpha0) +
+  geom_line(data2012, mapping = aes(dteday, fitted_vals*LB), color = "red", size = 0.5, alpha = alpha0) +
+  labs(title = "Daily Count Predictions: Adjusted for Various g Esimates")
+plot_gfac2
+```
 
 
 

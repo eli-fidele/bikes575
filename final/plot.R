@@ -165,10 +165,10 @@ predict2012cas_plot <- function(model, scale_2012 = F){
 #      Miscellaneous      #
 #=========================#
 
-.plot_temp_cnt <- function(data){
+.plot_temp_cnt <- function(data = data2011){
   data %>% 
     ggplot() +
-    geom_point(aes(x = instant, color = atemp, y = cnt)) +
+    geom_point(aes(x = dteday, color = atemp, y = cnt)) +
     labs(title = "Bike User Count in 2011 by Temperature over Time") +
     scale_color_gradient(low="deepskyblue1", high = "tomato2")
 }

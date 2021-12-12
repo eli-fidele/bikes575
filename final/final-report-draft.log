@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.9.20)  11 DEC 2021 23:46
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.9.20)  12 DEC 2021 00:33
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -970,7 +970,7 @@ File: final-report-draft_files/figure-latex/unnamed-chunk-17-1.pdf Graphic file
  (type pdf)
 <use final-report-draft_files/figure-latex/unnamed-chunk-17-1.pdf>
 Package pdftex.def Info: final-report-draft_files/figure-latex/unnamed-chunk-17
--1.pdf  used on input line 719.
+-1.pdf  used on input line 720.
 (pdftex.def)             Requested size: 229.88171pt x 64.32768pt.
 <final-report-draft_files/figure-latex/unnamed-chunk-18-1.pdf, id=166, 711.6587
 5pt x 197.73875pt>
@@ -978,7 +978,7 @@ File: final-report-draft_files/figure-latex/unnamed-chunk-18-1.pdf Graphic file
  (type pdf)
 <use final-report-draft_files/figure-latex/unnamed-chunk-18-1.pdf>
 Package pdftex.def Info: final-report-draft_files/figure-latex/unnamed-chunk-18
--1.pdf  used on input line 728.
+-1.pdf  used on input line 729.
 (pdftex.def)             Requested size: 229.87468pt x 63.87209pt.
 [5 <./graphics/reg-2011-mod-2-final.pdf> <./graphics/cas-2011-mod-2-final.pdf> 
 <./final-report-draft_files/figure-latex/unnamed-chunk-17-1.pdf>]
@@ -986,30 +986,30 @@ Package pdftex.def Info: final-report-draft_files/figure-latex/unnamed-chunk-18
 File: graphics/reg-2012-mod-2-final.pdf Graphic file (type pdf)
 <use graphics/reg-2012-mod-2-final.pdf>
 Package pdftex.def Info: graphics/reg-2012-mod-2-final.pdf  used on input line 
-754.
+750.
 (pdftex.def)             Requested size: 229.87692pt x 142.51486pt.
 <graphics/cas-2012-mod-2-final.pdf, id=224, 522.95375pt x 324.21124pt>
 File: graphics/cas-2012-mod-2-final.pdf Graphic file (type pdf)
 <use graphics/cas-2012-mod-2-final.pdf>
 Package pdftex.def Info: graphics/cas-2012-mod-2-final.pdf  used on input line 
-763.
+759.
 (pdftex.def)             Requested size: 229.87692pt x 142.51486pt.
 [6 <./final-report-draft_files/figure-latex/unnamed-chunk-18-1.pdf> <./graphics
 /reg-2012-mod-2-final.pdf> <./graphics/cas-2012-mod-2-final.pdf>]
-<graphics/reg-2012-mod-2-refined-final.pdf, id=281, 522.95375pt x 324.21124pt>
+<graphics/reg-2012-mod-2-refined-final.pdf, id=284, 522.95375pt x 324.21124pt>
 File: graphics/reg-2012-mod-2-refined-final.pdf Graphic file (type pdf)
 <use graphics/reg-2012-mod-2-refined-final.pdf>
 Package pdftex.def Info: graphics/reg-2012-mod-2-refined-final.pdf  used on inp
-ut line 812.
+ut line 823.
 (pdftex.def)             Requested size: 229.87692pt x 142.51486pt.
-<graphics/cas-2012-mod-2-refined-final.pdf, id=282, 522.95375pt x 324.21124pt>
+<graphics/cas-2012-mod-2-refined-final.pdf, id=285, 522.95375pt x 324.21124pt>
 File: graphics/cas-2012-mod-2-refined-final.pdf Graphic file (type pdf)
 <use graphics/cas-2012-mod-2-refined-final.pdf>
 Package pdftex.def Info: graphics/cas-2012-mod-2-refined-final.pdf  used on inp
-ut line 821.
+ut line 832.
 (pdftex.def)             Requested size: 229.87692pt x 142.51486pt.
 
-Underfull \hbox (badness 1983) in paragraph at lines 850--850
+Underfull \hbox (badness 1983) in paragraph at lines 851--851
 []\T1/lmr/bx/n/12 Method I: En-vi-ron-men-tal Loss
  []
 
@@ -1021,64 +1021,60 @@ File: final-report-draft_files/figure-latex/unnamed-chunk-29-1.pdf Graphic file
  (type pdf)
 <use final-report-draft_files/figure-latex/unnamed-chunk-29-1.pdf>
 Package pdftex.def Info: final-report-draft_files/figure-latex/unnamed-chunk-29
--1.pdf  used on input line 955.
+-1.pdf  used on input line 956.
 (pdftex.def)             Requested size: 229.87515pt x 151.43433pt.
 [8 <./final-report-draft_files/figure-latex/unnamed-chunk-29-1.pdf>]
-Underfull \hbox (badness 2401) in paragraph at lines 1027--1047
+Underfull \hbox (badness 2401) in paragraph at lines 1028--1048
 \T1/lmr/bx/n/10 Estimator Anal-y-sis in Bound Para-maters
  []
 
-[9]
-<final-report-draft_files/figure-latex/unnamed-chunk-31-1.pdf, id=342, 426.5937
+<final-report-draft_files/figure-latex/unnamed-chunk-31-1.pdf, id=337, 426.5937
 5pt x 272.01625pt>
 File: final-report-draft_files/figure-latex/unnamed-chunk-31-1.pdf Graphic file
  (type pdf)
 <use final-report-draft_files/figure-latex/unnamed-chunk-31-1.pdf>
 Package pdftex.def Info: final-report-draft_files/figure-latex/unnamed-chunk-31
--1.pdf  used on input line 1058.
+-1.pdf  used on input line 1059.
 (pdftex.def)             Requested size: 229.882pt x 146.58359pt.
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-<final-report-draft_files/figure-latex/unnamed-chunk-32-1.pdf, id=343, 421.575p
+[9 <./final-report-draft_files/figure-latex/unnamed-chunk-31-1.pdf>]
+<final-report-draft_files/figure-latex/unnamed-chunk-32-1.pdf, id=757, 421.575p
 t x 277.035pt>
 File: final-report-draft_files/figure-latex/unnamed-chunk-32-1.pdf Graphic file
  (type pdf)
 <use final-report-draft_files/figure-latex/unnamed-chunk-32-1.pdf>
 Package pdftex.def Info: final-report-draft_files/figure-latex/unnamed-chunk-32
--1.pdf  used on input line 1119.
+-1.pdf  used on input line 1120.
 (pdftex.def)             Requested size: 229.87926pt x 151.0635pt.
-
-Underfull \vbox (badness 1776) has occurred while \output is active []
-
-[10 <./final-report-draft_files/figure-latex/unnamed-chunk-31-1.pdf> <./final-r
-eport-draft_files/figure-latex/unnamed-chunk-32-1.pdf>]
+[10 <./final-report-draft_files/figure-latex/unnamed-chunk-32-1.pdf>]
 <final-report-draft_files/figure-latex/unnamed-chunk-33-1.pdf, id=771, 431.6125
 pt x 354.32375pt>
 File: final-report-draft_files/figure-latex/unnamed-chunk-33-1.pdf Graphic file
  (type pdf)
 <use final-report-draft_files/figure-latex/unnamed-chunk-33-1.pdf>
 Package pdftex.def Info: final-report-draft_files/figure-latex/unnamed-chunk-33
--1.pdf  used on input line 1156.
+-1.pdf  used on input line 1157.
 (pdftex.def)             Requested size: 229.87312pt x 188.7098pt.
+
+Underfull \vbox (badness 1052) has occurred while \output is active []
+
 [11 <./final-report-draft_files/figure-latex/unnamed-chunk-33-1.pdf>]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1302.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1303.
 [12
 
 ]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 1302.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1303.
 (./final-report-draft.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1302.
-Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 1302.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1303.
+Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 1303.
  ) 
 Here is how much of TeX's memory you used:
  24483 strings out of 492616
  408341 string characters out of 6129481
- 499940 words of memory out of 5000000
+ 500940 words of memory out of 5000000
  27906 multiletter control sequences out of 15000+600000
  601754 words of font info for 139 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 47i,17n,65p,817b,452s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 47i,17n,65p,817b,448s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2019/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/lo
 cal/texlive/2019/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/usr/local/texlive/20
 19/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/usr/local/texlive/2019/texmf-d
@@ -1102,7 +1098,7 @@ local/texlive/2019/texmf-dist/fonts/type1/public/lm/lmtt10.pfb></usr/local/texl
 ive/2019/texmf-dist/fonts/type1/public/lm/lmtt8.pfb></usr/local/texlive/2019/te
 xmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/201
 9/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm7.pfb>
-Output written on final-report-draft.pdf (12 pages, 1103557 bytes).
+Output written on final-report-draft.pdf (12 pages, 1103628 bytes).
 PDF statistics:
  1050 PDF objects out of 1200 (max. 8388607)
  964 compressed objects within 10 object streams

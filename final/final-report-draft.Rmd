@@ -199,14 +199,14 @@ get_mod_eval_2011(mod.cas.1.final, mod.reg.1.final)
 
 \tabletwo
 
-The percentage error of 2011 predicted total counts computed by the sum of the registered and casual models is less than that computed by the single total model (see Table 3,4), which demonstrates the power of separate modeling for registered and casual users. Therefore, we will continue with the scheme of separate modeling in the later part. 
+The percentage error of 2011 predicted total counts computed by the sum of the registered and casual models is less than that computed by the single total model (see Table 1, 2), which demonstrates the power of separate modeling for registered and casual users. Therefore, we will continue with the scheme of separate modeling in the later part. 
 
 
 ### Procedures
 
 Starting from the beginning models, we perform model building and selection in an iterative manner, for the registered and casual counts separately: 
 
-- Starting from a (relatively) simpler version of the model, the 2011 fitted response using this model is plotted along with the actual response against time (see, for example, Figure ?,?); the numeric metrics (RMSE, normalized RMSE, percentage error and LOOCV RMSE) are obtained as well (see, for example, Table ?,?). 
+- Starting from a (relatively) simpler version of the model, the 2011 fitted response using this model is plotted along with the actual response against time (see, for example, Figure 4, 5); the numeric metrics (RMSE, normalized RMSE, percentage error and LOOCV RMSE) are obtained as well (see, for example, Table 2). 
 
 ```{r, fig.height = 4.5, fig.width = 7.25}
 update <- F
@@ -235,7 +235,7 @@ knitr::include_graphics("graphics/cas-2011-mod-1-final.pdf")
 
 - From the 2011 fitted versus actual plot, patterns in the biases can usually be visually recognized; combined with commonsense, this provides us with ideas of new variables potentially needed to account for the unexplained biases. 
 
-For example, for the beginning models of registered and casual counts, both response variables are being consistently overestimated in the 2011 spring and underestimated in the later part of the year (see Figure ?,?), which indicates that the users' response to weather and temperature might differ across seasons. This makes sense because each label of the weather type includes several different kinds of weathers (e.g., slightly snowy and slightly rainy days are both labeled as `3`), which could cast different level of difficulties on biking activities, and it is still insufficient to fully distinguish between those weathers given only temperature information. Additionally, the level of biases also differ considerably between workdays (grey dots) and weekends (mostly green dots), which indicates that the weekday variables might also be needed. 
+For example, for the beginning models of registered and casual counts, both response variables are being consistently overestimated in the 2011 spring and underestimated in the later part of the year (see Figure 4, 5), which indicates that the users' response to weather and temperature might differ across seasons. This makes sense because each label of the weather type includes several different kinds of weathers (e.g., slightly snowy and slightly rainy days are both labeled as `3`), which could cast different level of difficulties on biking activities, and it is still insufficient to fully distinguish between those weathers given only temperature information. Additionally, the level of biases also differ considerably between workdays (grey dots) and weekends (mostly green dots), which indicates that the weekday variables might also be needed. 
 
 - The new variables, one at a time, are then added to the simple model to create a more complex model. Both additive terms and interactive terms will be attempted. Then the version with the most significant improvement, according to the fitted versus actual plot and the numeric metrics, will be kept for the next round. 
 
@@ -304,9 +304,9 @@ The final models are built with considerations of real-life experience and commo
 
 From this point on, adding any other variable to the model will result in a rise in the LOOCV RMSE, which indicates an overfitting issue that weakens the predictive power of the model. Notably, using the `weekday` variable in place of the `workingday` variable also worsens the performance. 
 
-The final models achieve a ~10% improvement in the prediction percentage error in 2011 daily total counts as well as significant improvements in all the other metrics. The LOOCV RMSE is only ~15% higher than the training RMSE, indicating that the overfitting issue is still at a moderate level. Also, the systematic biases in the beginning models, as mentioned in the former section, have been alleviated (see Figure ?). 
+The final models achieve a ~10% improvement in the prediction percentage error in 2011 daily total counts as well as significant improvements in all the other metrics. The LOOCV RMSE is only ~15% higher than the training RMSE, indicating that the overfitting issue is still at a moderate level. Also, the systematic biases in the beginning models, as mentioned in the former section, have been alleviated (see Figure 6, 7). 
 
-A diagnostic analysis indicates that the constant-variance assumption and normality assumption of the registered model are mostly sound, while those of the casual model are more in doubt. Accordingly, the prediction errors of the casual model is also at a higher level than the registered model (see normalized RMSE and percentage error in Table ?). This situation can be understood intuitively, as the behavior of registered users is generally more regular and can be better captured by the simple MLS model, thus more predictable. Note that the least-square approach for the casual model is still valid, because the residuals are still uni-modal at the very least. 
+A diagnostic analysis (see Figure 8, 9) indicates that the constant-variance assumption and normality assumption of the registered model are mostly sound, while those of the casual model are more in doubt. Accordingly, the prediction errors of the casual model is also at a higher level than the registered model (see normalized RMSE and percentage error in Table 3). This situation can be understood intuitively, as the behavior of registered users is generally more regular and can be better captured by the simple MLS model, thus more predictable. Note that the least-square approach for the casual model is still valid, because the residuals are still uni-modal at the very least. 
 
 ```{r, fig.width = 10, fig.height = 3, fig.cap="Residual Diagnostic Plots for the Final Registered Model"}
 mod.reg.2.final %>% residual_plots("")
@@ -332,10 +332,6 @@ evaluate_model(mod.cas.2.final, mod.reg.2.final)
 ```{r, echo=FALSE, include=FALSE}
 evaluate_model(mod.cas.2.final, mod.reg.2.final, scale_2012 = T)
 ```
-
-\tablefive
-
-A closer look at the 2012 predictions reveals the fact that the daily rental counts are being consistently underestimated. 
 
 ```{r, fig.height = 4.5, fig.width = 7.25}
 update <- F
@@ -363,6 +359,8 @@ if(update)
 knitr::include_graphics("graphics/cas-2012-mod-2-final.pdf")
 ```
 
+A closer look at the 2012 predictions reveals the fact that the daily rental counts are being consistently underestimated (see Figure 10, 11). 
+
 
 ### Adjusting Predictions for Growth
 
@@ -376,7 +374,11 @@ Note that the effect of user base on the rental counts should be independent of 
 
 As such, an estimation of the growth ratio, which we call $\g$, is very important. By construction, its true value is well estimated by the ratio $\frac{\E_{2012}(C)}{\E_{2011}(C)} \approx (0.608)^{-1} = 1.64$, which is the average counts in 2012 divided those in 2011. Note that this means our user base grew by around $64\%$ between 2011-2012, which is a non-trivial amount. If unaccounted for, that magnitude of growth would (and does in fact) lead to chronic model underfitting. 
 
-To verify the above hypothesis, we adjust the initial 2012 predictions by multiplying with $\g$. As a result, the adjusted predictions for both registered and casual counts now almost perfectly match the actual values (see Figure ). This provides a strong evidence for our accounts for the role of user base. 
+To verify the above hypothesis, we adjust the initial 2012 predictions by multiplying with $\g$. As a result, the adjusted predictions for both registered and casual counts now almost perfectly match the actual values (see Figure 12, 13). This provides a strong evidence for our accounts for the role of user base. 
+
+\tablefive
+
+To generalize for future predictions in practice, note that this modeling paradigm is based on the assumption that the growth trend within a year will remain the same in the future years as that in the year of 2011. However, this is NOT saying that the user base is supposed to remain unchanged throughout the entire year; the fact that the same scaling factor works at all points in the entire year is due to the fact that the MLS model in the later part of the year, e.g., in fall and winter, are already trained to compensate for rental count growth due to user growth using the environmental and seasonal variables. 
 
 ```{r, fig.height = 4.5, fig.width = 7.25}
 update <- F
@@ -403,9 +405,6 @@ if(update)
 ```{r, out.width = "100%", fig.cap = "2012 Predicted Casual Count v.s. Actual (Final Model) (Adjusted Prediction)"}
 knitr::include_graphics("graphics/cas-2012-mod-2-refined-final.pdf")
 ```
-
-To generalize for future predictions in practice, note that this modeling paradigm is based on the assumption that the growth trend within a year will remain the same in the future years as that in the year of 2011. However, this is NOT saying that the user base is supposed to remain unchanged throughout the entire year; the fact that the same scaling factor works at all points in the entire year is due to the fact that the MLS model in the later part of the year, e.g., in fall and winter, are already trained to compensate for rental count growth due to user growth using the environmental and seasonal variables. 
-
 
 # The Growth Ratio
 

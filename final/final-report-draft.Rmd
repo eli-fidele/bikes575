@@ -85,11 +85,11 @@ The response variable to be predicted is the **daily** bike rental count. In the
 2. the count of bike rentals by **registered** users
 3. the **total** count, which is the sum of casual count and registered count. 
 
-Two main types of predictors are included in the dataset, the environmental ones and the seasonal ones: 
+Two main types of predictors are included in the dataset, the environmental ones and the seasonal ones^[For a full explanation, see Appendix.]: 
 
-1. \textbf{Environmental Variables:} `weathersit`, `temp`, `atemp`, `hum`, `windspeed`  
+1. **Environmental Variables^[Variable meanings (in order): weather type, measured temperature, feeling temperature, humidity, wind speed]:** `weathersit`, `temp`, `atemp`, `hum`, `windspeed`
 
-2. \textbf{Seasonal Variables:} `yr`, `mnth`, `season`, `holiday`, `weekday`, `workingday`
+2. **Seasonal Variables^[Variable meanings (in order): year, month, season, holiday, weekday]:** `yr`, `mnth`, `season`, `holiday`, `weekday`, `workingday`
 
 # Modeling & Analysis 
 
@@ -110,7 +110,7 @@ The below variables are interpreted as categorical variables and are transformed
 - `yr` (year, from 0 to 1)
 - `mnth` (month, from 1 to 12)
 - `weekday` (weekday, from 0 to 6)
-- `weathersit` (weather type, from 1 to 4)
+- `weathersit` (weather type, from 1 to 4)^[Note: larger index indicates worse weather]
 
 ### Value Conversion
 
@@ -124,9 +124,9 @@ In this project, these normalized records are scaled back to their original valu
 
 Notably, the behaviors of rental counts from different user types are considerably different. 
 
-1. **Patterns with weekdays** (see Figure 1,2): Over the time span of a week, the casual count usually reaches its minimum in the middle of a week (grey dots mostly) and its maximum on weekends (green dots mostly), while the registered count does the opposite. 
+1. **Patterns with weekdays** (see Figure 1^[Transparent plots of the casual counts in the background for easier comparison.], 2^[Transparent plots of the registered counts in the background for easier comparison.]): Over the time span of a week, the casual count usually reaches its minimum in the middle of a week (grey dots mostly) and its maximum on weekends (green dots mostly), while the registered count does the opposite. 
 
-```{r, fig.height = 6, fig.width = 7.25}
+```{r, fig.height = 4.5, fig.width = 7.25}
 update <- F
 if(update)
 {
@@ -135,11 +135,11 @@ if(update)
 }
 ```
 
-```{r, out.width = "100%", fig.cap = "Hi, Im a caption"}
+```{r, out.width = "100%", fig.cap = "2011 Registered User Counts"}
 knitr::include_graphics("graphics/reg-2011-simple.pdf")
 ```
 
-```{r, fig.height = 6, fig.width = 7.25}
+```{r, fig.height = 4.5, fig.width = 7.25}
 update <- F
 if(update)
 {
@@ -149,30 +149,13 @@ if(update)
 }
 ```
 
-```{r, out.width = "100%", fig.cap = "Hi, Im a caption"}
+```{r, out.width = "100%", fig.cap = "2011 Casual User Counts"}
 knitr::include_graphics("graphics/cas-2011-simple.pdf")
 ```
 
-2. **Patterns with temperatures** (see Figure 3): On working days, the casual count seems more linear in temperature (`atemp` and `temp`), while the registered count seems to be (at least) quadratic. 
+2. **Patterns with temperatures** (see Figure 3): On **working** days, the casual count seems more linear in temperature (`atemp` and `temp`), while the registered count seems to be (at least) quadratic most of the time. 
 
-```{r, fig.width= 5, fig.cap = "casual vs temp and atemp, reg vs temp and atemp"}
-# waiting for Ali to fix the plots
-# maybe put them in 2 subplots?
-
-fig3 <- ggplot(data2011) + 
-  geom_point(mapping = aes(x = temp, y = registered)) + 
-  stat_smooth(mapping = aes(x = temp, y = registered), color = "grey20") +
-  geom_point(data2011 %>% filter(!workingday), mapping = aes(x = temp, y = registered, col = 'on non-working days')) + 
-  geom_point(data2011 %>% filter(holiday), mapping = aes(x = temp, y = registered, col = 'on holidays'))+
-  theme(legend.position = "bottom") + guides(colour = guide_legend(nrow = 2))
-
-fig4 <- ggplot(data2011) + 
-  geom_point(mapping = aes(x = temp, y = casual)) + 
-  stat_smooth(data2011 %>% filter(workingday), mapping = aes(x = temp, y = casual), color = "grey20") + 
-  geom_point(data2011 %>% filter(!workingday), mapping = aes(x = temp, y = casual, col = 'on non-working days')) + 
-  geom_point(data2011 %>% filter(holiday), mapping = aes(x = temp, y = casual, col = 'on holidays')) +
-  theme(legend.position = "none")
-
+```{r, fig.width= 8, height = 4, fig.cap = "Registered Counts v.s. Temperature (Left Subplot); Casual Counts v.s. Temperature (Right Subplot)"}
 fig3 + fig4
 ```
 
@@ -192,7 +175,7 @@ It is important that the investigation is done for all predictors for the sake o
 
 At last, the above process leaves us with a small subset of the very core predictors for our beginning model: `weathersit`, `atemp` and `weekday`.
 
-## Initial Modeling
+## Initial Modeling^[Models evaluated on: 1. RMSE (`rmse` in table); 2. normalized RMSE (RMSE divided by residual standard deviation) (`n-rmse` in table); 3. percentage error (`% Error` in table); 4. LOOCV RMSE (`cv-rmse` in table)]
 
 In the model building and selection process, we start from the simplest models, which have the minimal number of predictors all in the additive form, as the beginning models.  
 
@@ -218,7 +201,14 @@ get_mod_eval_2011(mod.cas.1.final, mod.reg.1.final)
 
 The percentage error of 2011 predicted total counts computed by the sum of the registered and casual models is less than that computed by the single total model (see Table 3,4), which demonstrates the power of separate modeling for registered and casual users. Therefore, we will continue with the scheme of separate modeling in the later part. 
 
-```{r, fig.height = 6, fig.width = 7.25}
+
+### Procedures
+
+Starting from the beginning models, we perform model building and selection in an iterative manner, for the registered and casual counts separately: 
+
+- Starting from a (relatively) simpler version of the model, the 2011 fitted response using this model is plotted along with the actual response against time (see, for example, Figure ?,?); the numeric metrics (RMSE, normalized RMSE, percentage error and LOOCV RMSE) are obtained as well (see, for example, Table ?,?). 
+
+```{r, fig.height = 4.5, fig.width = 7.25}
 update <- F
 if(update)
 {
@@ -227,10 +217,10 @@ if(update)
 }
 ```
 
-```{r, out.width = "90%", fig.cap = "Hi, Im a caption"}
+```{r, out.width = "100%", fig.cap = "2011 Fitted Registered Count v.s. Actual (Beginning Model)"}
 knitr::include_graphics("graphics/reg-2011-mod-1-final.pdf")
 ```
-```{r, fig.height = 6, fig.width = 7.25}
+```{r, fig.height = 4.5, fig.width = 7.25}
 update <- F
 if(update)
 {
@@ -239,17 +229,9 @@ if(update)
 }
 ```
 
-```{r, out.width = "90%", fig.cap = "Hi, Im a caption"}
+```{r, out.width = "100%", fig.cap = "2011 Fitted Casual Count v.s. Actual (Beginning Model)"}
 knitr::include_graphics("graphics/cas-2011-mod-1-final.pdf")
 ```
-
-(Figure ?,?: Fitted vs Actual for 2011 cas, reg)
-
-### Procedures
-
-Starting from the beginning models, we perform model building and selection in an iterative manner, for the registered and casual counts separately: 
-
-- Starting from a (relatively) simpler version of the model, the 2011 fitted response using this model is plotted along with the actual response against time (see, for example, Figure ?,?); the numeric metrics (RMSE, normalized RMSE, percentage error and LOOCV RMSE) are obtained as well (see, for example, Table ?,?). 
 
 - From the 2011 fitted versus actual plot, patterns in the biases can usually be visually recognized; combined with commonsense, this provides us with ideas of new variables potentially needed to account for the unexplained biases. 
 
@@ -268,7 +250,7 @@ Note that in this process, the model statistics (e.g., p-values) are also checke
 
 ### Final Models
 
-At the end of the iterative modeling process, we arrive at the following final models: 
+At the end of the iterative modeling process, we arrive at the following final models^[For a more complete list of attempted models, see Appendix.]: 
 
 \text{1.} For **registered count**: \newline
 \chomp
@@ -292,9 +274,7 @@ get_mod_eval_2011(mod.cas.2.final, mod.reg.2.final)
 ```
 \tablethree
 
-(For a complete list of attempted models, see Appendix.) \textbf{ dont forget to deal with me hehe }
-
-```{r, fig.height = 6, fig.width = 7.25}
+```{r, fig.height = 4.5, fig.width = 7.25}
 update <- F
 if(update)
 {
@@ -303,11 +283,11 @@ if(update)
 }
 ```
 
-```{r, out.width = "90%", fig.cap = "Hi, Im a caption"}
+```{r, out.width = "100%", fig.cap = "2011 Fitted Registered Count v.s. Actual (Final Model)"}
 knitr::include_graphics("graphics/reg-2011-mod-2-final.pdf")
 ```
 
-```{r, fig.height = 6, fig.width = 7.25}
+```{r, fig.height = 4.5, fig.width = 7.25}
 update <- F
 if(update)
 {
@@ -316,16 +296,8 @@ if(update)
 }
 ```
 
-```{r, out.width = "100%", fig.cap = "Hi, Im a caption"}
+```{r, out.width = "100%", fig.cap = "2011 Fitted Casual Count v.s. Actual (Final Model)"}
 knitr::include_graphics("graphics/cas-2011-mod-2-final.pdf")
-```
-
-```{r, fig.width = 10, fig.height = 4}
-mod.cas.2.final %>% residual_plots(" (Model 2)")
-```
-
-```{r, fig.width = 10, fig.height = 4}
-mod.reg.2.final %>% residual_plots(" (Model 2)")
 ```
 
 The final models are built with considerations of real-life experience and commonsense. For example, the interaction terms between feeling temperature, working day and seasons indicate people's different reaction to temperature change under different weathers on working days and on weekends. 
@@ -334,45 +306,22 @@ From this point on, adding any other variable to the model will result in a rise
 
 The final models achieve a ~10% improvement in the prediction percentage error in 2011 daily total counts as well as significant improvements in all the other metrics. The LOOCV RMSE is only ~15% higher than the training RMSE, indicating that the overfitting issue is still at a moderate level. Also, the systematic biases in the beginning models, as mentioned in the former section, have been alleviated (see Figure ?). 
 
-A diagnostic analysis indicates that the constant-variance assumption and normality assumption of the registered model are mostly sound, while those of the casual model are more in doubt. Accordingly, the prediction errors of the casual model is also at a higher level than the registered model (see normalized RMSE and percentage error in Table ?). This situation can be understood intuitively, as the behavior of registered users is generally more regular and can be better captured by the simple MLS model, thus more predictable. 
+A diagnostic analysis indicates that the constant-variance assumption and normality assumption of the registered model are mostly sound, while those of the casual model are more in doubt. Accordingly, the prediction errors of the casual model is also at a higher level than the registered model (see normalized RMSE and percentage error in Table ?). This situation can be understood intuitively, as the behavior of registered users is generally more regular and can be better captured by the simple MLS model, thus more predictable. Note that the least-square approach for the casual model is still valid, because the residuals are still uni-modal at the very least. 
 
-```{r}
-# subplots*3: 
+```{r, fig.width = 10, fig.height = 3, fig.cap="Residual Diagnostic Plots for the Final Registered Model"}
+mod.reg.2.final %>% residual_plots("")
 ```
 
-(Figure ?: residual histogram, residual vs fitted, normal qq-plot for 2011 reg)
+```{r, fig.width = 10, fig.height = 3, fig.cap="Residual Diagnostic Plots for the Final Casual Model"}
+mod.cas.2.final %>% residual_plots("")
+```
 
-(Figure ?: residual histogram, residual vs fitted, normal qq-plot for 2012 reg)
 
 ## Prediction
 
 ### Initial Predictions
 
-```{r, fig.height = 6, fig.width = 7.25}
-update <- F
-if(update)
-{
-  myplot <- predict2012reg_plot(mod.reg.2.final)
-  ggsave(filename = "graphics/reg-2012-mod-2-final.pdf", plot = myplot)
-}
-```
-
-```{r, out.width = "90%", fig.cap = "Hi, Im a caption"}
-knitr::include_graphics("graphics/reg-2012-mod-2-final.pdf")
-```
-
-```{r, fig.height = 6, fig.width = 7.25}
-update <- F
-if(update)
-{
-  myplot <- predict2012cas_plot(mod.cas.2.final)
-  ggsave(filename = "graphics/cas-2012-mod-2-final.pdf", plot = myplot)
-}
-```
-
-```{r, out.width = "90%", fig.cap = "Hi, Im a caption"}
-knitr::include_graphics("graphics/cas-2012-mod-2-final.pdf")
-```
+Despite the predictive power demonstrated by cross-validation metrics in the 2011 training set, the final models provide much worse predictions in 2012. 
 
 ```{r, echo=FALSE, include=FALSE}
 evaluate_model(mod.cas.2.final, mod.reg.2.final)
@@ -386,9 +335,50 @@ evaluate_model(mod.cas.2.final, mod.reg.2.final, scale_2012 = T)
 
 \tablefive
 
+A closer look at the 2012 predictions reveals the fact that the daily rental counts are being consistently underestimated. 
+
+```{r, fig.height = 4.5, fig.width = 7.25}
+update <- F
+if(update)
+{
+  myplot <- predict2012reg_plot(mod.reg.2.final)
+  ggsave(filename = "graphics/reg-2012-mod-2-final.pdf", plot = myplot)
+}
+```
+
+```{r, out.width = "100%", fig.cap = "2012 Predicted Registered Count v.s. Actual (Final Model) (Initial Prediction)"}
+knitr::include_graphics("graphics/reg-2012-mod-2-final.pdf")
+```
+
+```{r, fig.height = 4.5, fig.width = 7.25}
+update <- F
+if(update)
+{
+  myplot <- predict2012cas_plot(mod.cas.2.final)
+  ggsave(filename = "graphics/cas-2012-mod-2-final.pdf", plot = myplot)
+}
+```
+
+```{r, out.width = "100%", fig.cap = "2012 Predicted Casual Count v.s. Actual (Final Model) (Initial Prediction)"}
+knitr::include_graphics("graphics/cas-2012-mod-2-final.pdf")
+```
+
+
 ### Adjusting Predictions for Growth
 
-```{r, fig.height = 6, fig.width = 7.25}
+A comparison of the 2011 and 2012 rental counts reveals the reason for the systematic prediction error: the 2012 rental counts are generally higher than that in 2011. Furthermore, the 2012 predictions by the models trained in 2011 seem to be generally off by a constant factor. 
+
+This observation leads to one possible explanation for the prediction error: 
+
+Intuitively, the bike-rental behavior of an individual user may be modeled by a random variable, say, $X$. Then, the total bike rental count from all active users could then be modeled as a sum of independent identically distributed random variables $\sum_{i=1}^{n}{X_i}$, where $X_i \sim X$ and $n$ is the total number of active bike users. As a consequence, the expected value of total counts will be proportional to the user count, $n$, and so does the variance. 
+
+Note that the effect of user base on the rental counts should be independent of all the other predictors. If the above hypothesis were true, then the correct models for 2012 bike rental counts should be the 2011 models scaled by the growth ratio of user counts.  
+
+As such, an estimation of the growth ratio, which we call $\g$, is very important. By construction, its true value is well estimated by the ratio $\frac{\E_{2012}(C)}{\E_{2011}(C)} \approx (0.608)^{-1} = 1.64$, which is the average counts in 2012 divided those in 2011. Note that this means our user base grew by around $64\%$ between 2011-2012, which is a non-trivial amount. If unaccounted for, that magnitude of growth would (and does in fact) lead to chronic model underfitting. 
+
+To verify the above hypothesis, we adjust the initial 2012 predictions by multiplying with $\g$. As a result, the adjusted predictions for both registered and casual counts now almost perfectly match the actual values (see Figure ). This provides a strong evidence for our accounts for the role of user base. 
+
+```{r, fig.height = 4.5, fig.width = 7.25}
 update <- F
 if(update)
 {
@@ -397,11 +387,11 @@ if(update)
 }
 ```
 
-```{r, out.width = "90%", fig.cap = "Hi, Im a caption"}
+```{r, out.width = "100%", fig.cap = "2012 Predicted Registered Count v.s. Actual (Final Model) (Adjusted Prediction)"}
 knitr::include_graphics("graphics/reg-2012-mod-2-refined-final.pdf")
 ```
 
-```{r, fig.height = 6, fig.width = 7.25}
+```{r, fig.height = 4.5, fig.width = 7.25}
 update <- F
 if(update)
 {
@@ -410,15 +400,16 @@ if(update)
 }
 ```
 
-```{r, out.width = "90%", fig.cap = "Hi, Im a caption"}
+```{r, out.width = "100%", fig.cap = "2012 Predicted Casual Count v.s. Actual (Final Model) (Adjusted Prediction)"}
 knitr::include_graphics("graphics/cas-2012-mod-2-refined-final.pdf")
 ```
 
-However, the 2012 rental rounts are being consistent  \textbf{don't forget about me =(}
+To generalize for future predictions in practice, note that this modeling paradigm is based on the assumption that the growth trend within a year will remain the same in the future years as that in the year of 2011. However, this is NOT saying that the user base is supposed to remain unchanged throughout the entire year; the fact that the same scaling factor works at all points in the entire year is due to the fact that the MLS model in the later part of the year, e.g., in fall and winter, are already trained to compensate for rental count growth due to user growth using the environmental and seasonal variables. 
+
 
 # The Growth Ratio
 
-Our modeling paradigm is based on the assumption that the growth trend will remain the same in the future years as that in the year of 2011. Note that this is NOT saying that the user base is supposed to remain unchanged throughout the entire year; the fact that the same scaling factor works at all points in the entire year is due to the fact that the MLS model in the later part of the year, e.g., in fall and winter, are already trained to compensate for rental count growth due to user growth using the environmental and seasonal variables. As such, an estimation of the growth ratio, which we call $\g$ is very important and worthwhile. By construction, its true value is well estimated by the ratio $\frac{\E_{2012}(C)}{\E_{2011}(C)} \approx (0.608)^{-1} = 1.64$, which is the average counts in 2012 divided those in 2011. Note that this means our user base grew by around $64\%$ between 2011-2012, which is a non-trivial amount. If unaccounted for, that magnitude of growth would (and does in fact) lead to chronic model underfitting. However, since we are not \textbf{allowed} to peek at the 2012 data, we must resort to other creative techniques in estimating $\g$. In this report, we propose two techniques for estimating $\g$: the environmental loss function technique (more involved) and the window technique (more simple).
+Adjusting the predictions with the growth ratio leads to significantly improved performance. However, since we are not \textbf{allowed} to peek at the 2012 data, we must resort to other creative techniques in estimating $\g$. In this report, we propose two techniques for estimating $\g$: the environmental loss function technique (more involved) and the window technique (more simple).
 
 ## Method I: Environmental Loss Function
 
@@ -525,6 +516,30 @@ Time series
 [1] Fanaee-T, Hadi, and Gama, Joao, "Event labeling combining ensemble detectors and background knowledge", Progress in Artificial Intelligence (2013): pp. 1-15, Springer Berlin Heidelberg, doi:10.1007/s13748-013-0040-3.
 
 # Appendix
+
+## Data
+
+- `instant`: record index
+- `dteday`: date
+- `season`: season (1:spring, 2:summer, 3:fall, 4:winter)
+- `yr`: year (0:2011, 1:2012)
+- `mnth`: month ( 1 to 12)
+- `hr`: hour (0 to 23)
+- `holiday`: weather day is holiday or not (extracted from http://dchr.dc.gov/page/holiday-schedule)
+- `weekday`: day of the week
+- `workingday`: if day is neither weekend nor holiday is 1, otherwise is 0.
++ `weather-sit`: 
+	- 1: Clear, Few clouds, Partly cloudy, Partly cloudy
+	- 2: Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist
+	- 3: Light Snow, Light Rain + Thunderstorm + Scattered clouds, Light Rain + Scattered clouds
+	- 4: Heavy Rain + Ice Pallets + Thunderstorm + Mist, Snow + Fog
+- `temp`: Normalized temperature in Celsius. The values are divided to 41 (max)
+- `atemp`: Normalized feeling temperature in Celsius. The values are divided to 50 (max)
+- `hum`: Normalized humidity. The values are divided to 100 (max)
+- `windspeed`: Normalized wind speed. The values are divided to 67 (max)
+- `casual`: count of casual users
+- `registered`: count of registered users
+- `cnt`: count of total rental bikes including both casual and registered
 
 ## Preprocessing
 

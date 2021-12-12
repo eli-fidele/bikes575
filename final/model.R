@@ -8,6 +8,33 @@ mod.reg.2.final <- lm.reg(c("holiday", "season:weathersit", "season:workingday:a
 
 
 
+cols <- c('non-working days' = "darkgreen", 
+          'holidays' = "red", 
+          'all others' = "darkgrey")
+
+fig3 <- ggplot(data2011) + 
+  geom_point(mapping = aes(x = temp, y = registered, col = 'all others')) +
+  geom_point(data2011 %>% filter(!workingday), mapping = aes(x = temp, y = registered, col = 'non-working days')) + 
+  geom_point(data2011 %>% filter(holiday), mapping = aes(x = temp, y = registered, col = 'holidays')) + 
+  stat_smooth(mapping = aes(x = temp, y = registered), color = "grey20") +
+  theme(legend.position = "bottom") + guides(colour = guide_legend(nrow = 2)) + 
+  # Color settings
+  scale_color_manual(values = cols, 
+                     labels = names(cols), 
+                     name = 'Daily Count')
+
+fig4 <- ggplot(data2011) + 
+  geom_point(mapping = aes(x = temp, y = casual, col = 'all others')) + 
+  geom_point(data2011 %>% filter(!workingday), mapping = aes(x = temp, y = casual, col = 'non-working days')) + 
+  geom_point(data2011 %>% filter(holiday), mapping = aes(x = temp, y = casual, col = 'holidays')) + 
+  stat_smooth(data2011 %>% filter(workingday), mapping = aes(x = temp, y = casual), color = "grey20") +
+  theme(legend.position = "none") + 
+  # Color settings
+  scale_color_manual(values = cols, 
+                     labels = names(cols), 
+                     name = 'Daily Count')
+
+
 
 residual_QQ <- function(model, title_str = ""){
   # Plot parameters 

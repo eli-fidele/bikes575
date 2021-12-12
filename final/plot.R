@@ -3,11 +3,11 @@
 #      Global Parameters      #
 #=============================#
 
-cols <- c('all day types' = "darkgrey", 
-          'on non-working days' = "darkgreen", 
-          'on holidays' = "red", 
-          'trends' = 'black', 
-          'fitted' = 'purple')
+cols <- c('non-working days' = "darkgreen", 
+          'holidays' = "red", 
+          'all others' = "darkgrey", 
+          'fitted' = 'purple',
+          'actual' = 'black')
 
 #========================================#
 #      Count Users Plots: Functions      #
@@ -41,13 +41,13 @@ plot_user_counts <- function(data, user, compare = FALSE){
           legend.text=element_text(size = fsize1),
           legend.position = "bottom")+
     # Geoms
-    geom_line(mapping = aes(x = dteday, .data[[user]], color = 'trends'), 
+    geom_line(mapping = aes(x = dteday, .data[[user]], color = 'actual'), 
               size = size1, alpha = 0.8) + 
     geom_point(data %>% filter(!workingday), 
-               mapping = aes(x = dteday, y = .data[[user]], color = 'on non-working days'), 
+               mapping = aes(x = dteday, y = .data[[user]], color = 'non-working days'), 
                size = size0, pch = pch0, alpha = 1) + 
     geom_point(data %>% filter(holiday), 
-               mapping = aes(x = dteday, y = .data[[user]], color = 'on holidays'),
+               mapping = aes(x = dteday, y = .data[[user]], color = 'holidays'),
                size = size0, pch = pch0, alpha = 1) + 
     # Color settings
     scale_color_manual(values = cols, 
@@ -61,13 +61,13 @@ plot_user_counts <- function(data, user, compare = FALSE){
   # Otherwise, append the other user data before returning (at a lower alpha)
   main_plot +
     geom_line(data = data, 
-              mapping = aes(x = dteday, y = .data[[.switch_user(user)]], color = 'trends'), 
+              mapping = aes(x = dteday, y = .data[[.switch_user(user)]], color = 'actual'), 
               size = size1, alpha = 0.2) + 
     geom_point(data %>% filter(!workingday), 
-               mapping = aes(x = dteday, y = .data[[.switch_user(user)]], color = 'on non-working days'), 
+               mapping = aes(x = dteday, y = .data[[.switch_user(user)]], color = 'non-working days'), 
                size = size0, pch = pch0, alpha = 0.2) + 
     geom_point(data %>% filter(holiday), 
-               mapping = aes(x = dteday, y = .data[[.switch_user(user)]], color = 'on holidays'), 
+               mapping = aes(x = dteday, y = .data[[.switch_user(user)]], color = 'holidays'), 
                size = size0, pch = pch0, alpha = 0.2)
 }
 

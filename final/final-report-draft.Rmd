@@ -15,7 +15,7 @@ output:
   pdf_document: 
     number_sections: true
     includes:
-      in_header: ["tex/preamble.tex", "tex/math.tex"]
+      in_header: ["tex/preamble.tex", "tex/math.tex", "tex/tables.tex"]
 classoption: twocolumn
 ---
 
@@ -29,8 +29,7 @@ library(GGally)
 library(cowplot)
 library(gglm)
 library(moderndive)
-library(lemon)
-knit_print.data.frame <- lemon_print
+library(patchwork)
 #==============================#
 #        Global Settings       #
 #==============================#
@@ -64,10 +63,6 @@ source(file = "plot.R")
 source(file = "growth.R")
 ```
 
-
-
-
-
 # Introduction 
 
 Bike sharing has become a world-wide phenomenon. Optimization of inventories and dynamic reallocation of bike-sharing resources are of growing interests from both a business and an environmental point of view. Both of these tasks require accurate predictions of bike rental behaviors at least on the daily level. 
@@ -78,7 +73,7 @@ In this project, we strive to answer the following question:
 
 - In particular, how and how well could we predict for the next whole year, and what about for the next few days? 
 
-Such questions are approached by predictive modeling of daily bike rental counts from a 2011-2012 Bike Sharing dataset [1]. The modeling approach is based on Multiple Linear Regression (MLS), and the daily bike rental counts are predicted using the environmental variables (e.g., weather conditions) and seasonal variables (e.g., holiday schedules) as predictors. 
+Such questions are approached by predictive modeling of daily bike rental counts from a 2011-2012 Bike Sharing dataset [1]. The modeling approach is based on Multiple Linear Regression (MLS), and the daily bike rental counts are predicted using the environmental variables (e.g., weather conditions) and seasonal variables (e.g., holiday schedules) as predictors.
 
 # Background 
 
@@ -92,21 +87,9 @@ The response variable to be predicted is the **daily** bike rental count. In the
 
 Two main types of predictors are included in the dataset, the environmental ones and the seasonal ones: 
 
-1. **environmental** variables 
+1. \textbf{Environmental Variables:} `weathersit`, `temp`, `atemp`, `hum`, `windspeed`  
 
-```{r echo=FALSE}
-bike_day[1,1+c(1,8,9,10,11,12)]
-```
-
-  
-  (Table 1: A sample of the data - variable names, meanings, units, sample values)
-
-2. **seasonal** variables
-
-```{r echo=FALSE}
-head(bike_day[,1+c(1,2,3,4,5,6,7)], 2)
-```
-  (Table 2: A sample of the data - variable names, meanings, units, sample values)
+2. \textbf{Seasonal Variables:} `yr`, `mnth`, `season`, `holiday`, `weekday`, `workingday`
 
 # Modeling & Analysis 
 
@@ -152,7 +135,7 @@ if(update)
 }
 ```
 
-```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+```{r, out.width = "100%", fig.cap = "Hi, Im a caption"}
 knitr::include_graphics("graphics/reg-2011-simple.pdf")
 ```
 
@@ -161,35 +144,37 @@ update <- F
 if(update)
 {
   myplot <- data2011 %>% plot_user_counts(user = "casual", compare = T)
+  myplot
   ggsave(filename = "graphics/cas-2011-simple.pdf", plot = myplot)
 }
 ```
 
-```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+```{r, out.width = "100%", fig.cap = "Hi, Im a caption"}
 knitr::include_graphics("graphics/cas-2011-simple.pdf")
 ```
 
 2. **Patterns with temperatures** (see Figure 3): On working days, the casual count seems more linear in temperature (`atemp` and `temp`), while the registered count seems to be (at least) quadratic. 
 
-```{r}
+```{r, fig.width= 5, fig.cap = "casual vs temp and atemp, reg vs temp and atemp"}
 # waiting for Ali to fix the plots
 # maybe put them in 2 subplots?
 
 fig3 <- ggplot(data2011) + 
   geom_point(mapping = aes(x = temp, y = registered)) + 
+  stat_smooth(mapping = aes(x = temp, y = registered), color = "grey20") +
   geom_point(data2011 %>% filter(!workingday), mapping = aes(x = temp, y = registered, col = 'on non-working days')) + 
-  geom_point(data2011 %>% filter(holiday), mapping = aes(x = temp, y = registered, col = 'on holidays'))
+  geom_point(data2011 %>% filter(holiday), mapping = aes(x = temp, y = registered, col = 'on holidays'))+
+  theme(legend.position = "bottom") + guides(colour = guide_legend(nrow = 2))
 
 fig4 <- ggplot(data2011) + 
   geom_point(mapping = aes(x = temp, y = casual)) + 
+  stat_smooth(data2011 %>% filter(workingday), mapping = aes(x = temp, y = casual), color = "grey20") + 
   geom_point(data2011 %>% filter(!workingday), mapping = aes(x = temp, y = casual, col = 'on non-working days')) + 
-  geom_point(data2011 %>% filter(holiday), mapping = aes(x = temp, y = casual, col = 'on holidays'))
+  geom_point(data2011 %>% filter(holiday), mapping = aes(x = temp, y = casual, col = 'on holidays')) +
+  theme(legend.position = "none")
 
-plot_grid(fig3, fig4)
+fig3 + fig4
 ```
-
-
-(Figure 3: casual vs temp & atemp, reg vs temp & atemp)
 
 We therefore expect that the registered counts and casual counts will follow different distributions and should thus be predicted by separate models. Furthermore, for the casual count, avoiding unnecessary higher other terms has the benefit of more stable computations and model structures. The prediction of total counts will then be obtained by adding the predicted registered counts and predicted casual counts together.  
 
@@ -215,43 +200,23 @@ In the model building and selection process, we start from the simplest models, 
 
 1. For **total count**: 
 $$\text{cnt} \sim \text{wkngday + weathersit + atemp + atemp}^2$$
-```{r echo=FALSE}
+```{r echo=FALSE, include = F}
 get_mod_eval_tot_2011(mod.tot.1.final)
 ```
-(Table 3: eval table for total model)
-
-
+\tableone
 2. For **registered count**: 
 $$\text{reg} \sim \text{wkngday + weathersit + atemp + atemp}^2$$ 
 3. For **casual count**: 
 $$\text{cas} \sim \text{wkngday + weathersit + atemp}$$
 
 
-```{r echo=FALSE}
+```{r echo=FALSE, include = F}
 get_mod_eval_2011(mod.cas.1.final, mod.reg.1.final)
 ```
-(Table 4: eval table for registered + casual model)
 
-\begin{table}[h]
-\centering
- \begin{tabular}{||c || c || c || c || c||} 
- \hline
- Model & rmse & n-rmse & \% Error & cv-rmse \\ [0.4ex] 
- \hline\hline
- \text{2011 cas} & 309.97 & 0.56 & 72.87 & 314.86\\ 
- \hline
- \text{2011 reg} & 584.55 & 0.52 & 25.37 & 594.36\\ 
- \hline
- \text{2011 tot} & 722.15 & 0.52 & 25.44 & 734.18\\
- \hline
-\end{tabular}
-\caption{Diagnostics for Model 1}
-\end{table}
-
+\tabletwo
 
 The percentage error of 2011 predicted total counts computed by the sum of the registered and casual models is less than that computed by the single total model (see Table 3,4), which demonstrates the power of separate modeling for registered and casual users. Therefore, we will continue with the scheme of separate modeling in the later part. 
-
-
 
 ```{r, fig.height = 6, fig.width = 7.25}
 update <- F
@@ -262,7 +227,7 @@ if(update)
 }
 ```
 
-```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+```{r, out.width = "90%", fig.cap = "Hi, Im a caption"}
 knitr::include_graphics("graphics/reg-2011-mod-1-final.pdf")
 ```
 ```{r, fig.height = 6, fig.width = 7.25}
@@ -274,7 +239,7 @@ if(update)
 }
 ```
 
-```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+```{r, out.width = "90%", fig.cap = "Hi, Im a caption"}
 knitr::include_graphics("graphics/cas-2011-mod-1-final.pdf")
 ```
 
@@ -322,14 +287,12 @@ At the end of the iterative modeling process, we arrive at the following final m
     &\text{season:workingday:atemp}
 \end{split}
 \end{equation*}
-
-
-```{r echo=FALSE}
+```{r echo=FALSE, include = F}
 get_mod_eval_2011(mod.cas.2.final, mod.reg.2.final)
 ```
-(Table 5: eval table for the final models)
+\tablethree
 
-(For a complete list of attempted models, see Appendix.)
+(For a complete list of attempted models, see Appendix.) \textbf{ dont forget to deal with me hehe }
 
 ```{r, fig.height = 6, fig.width = 7.25}
 update <- F
@@ -340,7 +303,7 @@ if(update)
 }
 ```
 
-```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+```{r, out.width = "90%", fig.cap = "Hi, Im a caption"}
 knitr::include_graphics("graphics/reg-2011-mod-2-final.pdf")
 ```
 
@@ -353,13 +316,16 @@ if(update)
 }
 ```
 
-```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+```{r, out.width = "100%", fig.cap = "Hi, Im a caption"}
 knitr::include_graphics("graphics/cas-2011-mod-2-final.pdf")
 ```
 
-```{r echo=FALSE}
-# summary(mod.reg.2.final)$coef[,"Estimate"]
-# summary(mod.cas.2.final)$coef[,"Estimate"]
+```{r, fig.width = 10, fig.height = 4}
+mod.cas.2.final %>% residual_plots(" (Model 2)")
+```
+
+```{r, fig.width = 10, fig.height = 4}
+mod.reg.2.final %>% residual_plots(" (Model 2)")
 ```
 
 The final models are built with considerations of real-life experience and commonsense. For example, the interaction terms between feeling temperature, working day and seasons indicate people's different reaction to temperature change under different weathers on working days and on weekends. 
@@ -391,7 +357,7 @@ if(update)
 }
 ```
 
-```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+```{r, out.width = "90%", fig.cap = "Hi, Im a caption"}
 knitr::include_graphics("graphics/reg-2012-mod-2-final.pdf")
 ```
 
@@ -404,14 +370,21 @@ if(update)
 }
 ```
 
-```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+```{r, out.width = "90%", fig.cap = "Hi, Im a caption"}
 knitr::include_graphics("graphics/cas-2012-mod-2-final.pdf")
 ```
 
-```{r echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 evaluate_model(mod.cas.2.final, mod.reg.2.final)
+```
+
+\tablefour
+
+```{r, echo=FALSE, include=FALSE}
 evaluate_model(mod.cas.2.final, mod.reg.2.final, scale_2012 = T)
 ```
+
+\tablefive
 
 ### Adjusting Predictions for Growth
 
@@ -424,7 +397,7 @@ if(update)
 }
 ```
 
-```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+```{r, out.width = "90%", fig.cap = "Hi, Im a caption"}
 knitr::include_graphics("graphics/reg-2012-mod-2-refined-final.pdf")
 ```
 
@@ -437,17 +410,17 @@ if(update)
 }
 ```
 
-```{r, out.width = "90%", fig.caption = "Hi, Im a caption"}
+```{r, out.width = "90%", fig.cap = "Hi, Im a caption"}
 knitr::include_graphics("graphics/cas-2012-mod-2-refined-final.pdf")
 ```
 
-However, the 2012 rental rounts are being consistent  
+However, the 2012 rental rounts are being consistent  \textbf{don't forget about me =(}
 
 # The Growth Ratio
 
 Our modeling paradigm is based on the assumption that the growth trend will remain the same in the future years as that in the year of 2011. Note that this is NOT saying that the user base is supposed to remain unchanged throughout the entire year; the fact that the same scaling factor works at all points in the entire year is due to the fact that the MLS model in the later part of the year, e.g., in fall and winter, are already trained to compensate for rental count growth due to user growth using the environmental and seasonal variables. As such, an estimation of the growth ratio, which we call $\g$ is very important and worthwhile. By construction, its true value is well estimated by the ratio $\frac{\E_{2012}(C)}{\E_{2011}(C)} \approx (0.608)^{-1} = 1.64$, which is the average counts in 2012 divided those in 2011. Note that this means our user base grew by around $64\%$ between 2011-2012, which is a non-trivial amount. If unaccounted for, that magnitude of growth would (and does in fact) lead to chronic model underfitting. However, since we are not \textbf{allowed} to peek at the 2012 data, we must resort to other creative techniques in estimating $\g$. In this report, we propose two techniques for estimating $\g$: the environmental loss function technique (more involved) and the window technique (more simple).
 
-### Environmental Loss Function
+## Method I: Environmental Loss Function
 
 The primary issue of relying solely on one years' worth of data to estimate the growth within that year is that there is great difficulty in factoring out the role environmental factors play in determining the difference in observed counts between any two given days. As such, if we are somehow able to find two days whose weather/environmental conditions are "similar" or "equivalent", the ratio of the counts between the later day and the earlier one is a reasonable "data point" useful for obtaining a sense of the growth. This follows because we asked those two days to be "environmentally equivalent" (we will formalize this notion soon), so \textit{a priori}, if we were somehow able to marginalize out the environmental factors, then any observed difference in the count `cnt` \textbf{must} be attributed to user base growth! This motivates our technique, aptly named the "environmental loss function" technique. In brief, here is the strategy: by designing a loss function, we seek to find special pairs of days whose environmental factors are roughly equivalent. By taking the ratio of the counts, we obtain a preliminary estimate for the growth factor since in theory, we have marginalized the environmental factors in the selection process. Aggregating all these ratios and averaging them, we obtain an estimate for $\g$. That being said, we now slowly develop our technique. 
 
@@ -508,7 +481,7 @@ df_param %>% g_plot()
 
 Again, as mentioned previously, the index difference bound is more sensitive when it comes to lower values. Greener points suggest that the index difference bound is high, so our days are quite far apart. Before we delve into the behaviour of the loss upper bound $B$, note that the opacity corresponds to the "percentage of pairs omitted". Recall that we want an exclusive set of pairs in which few pairs survive our strict filtrations or quality control. This is what the plot is suggesting, the more "faded" estimates of $\g$ are less well-founded, in fact completely unfounded as $p \to 1$ since we would indiscriminately be considering all pairs! As such, we conclude that the optimal range for $B$ probably lies between $[1,2]$, as these points have more "clarity" in their predictions due to their exclusively low loss. Otherwise, we also notice an interesting pattern with the index difference bound which makes sense, allowing days closer to each other will suggest "less growth". That being said, this means that in some sense, a potential optimal range for $\g$ could be that around the values where its variance starts to stabilize with respect to $\rho$. Visually, this is the range where the "length" of the streaks starts to hold still. For values before the critical $B \in [1,2]$ range, this corresponds to the values around $\g \in [1.4, 1.6]$. That being said, this analysis is holistic, and not $100\%$ conclusive. However, seeing this continous picture of estimating $g$ and narrowing down its true value to be close to $\g \in [1.4, 1.6]$ is not bad!
 
-### Method II: The Window Technique
+## Method II: The Window Technique
 
 Jeez, that stuff was too technical. Thankfully, the window technique is much simpler. Remember our goal is to estiamte $\g$, which is the growth rate from 2011 to 2012. As such, the most elementary method to use based on this principle is to take the ratio of the counts in the first day of 2011 and those in the last day. This is justified because everyone would agree, there is some notion that Dec 31, 2011 $\approx$ Jan 1, 2012. However, the issue with this is that our estimate is based on one pair of points $(n = 1)$. 
 

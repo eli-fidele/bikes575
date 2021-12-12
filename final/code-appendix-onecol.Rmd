@@ -1,16 +1,90 @@
 ---
-title: "Code Appendix"
-author: "Taqi"
+title: | 
+  | Bike-Sharing Data Analysis: 
+  | Prediction of Daily Bike Rental Counts 
+  | Based on Multiple Linear Regression
+subtitle: |
+  | \hfill\break
+  | Final Project Report · MA 575 Fall 2021 · C3 · Team #2
+author: "Ali Taqi, Hsin-Chang Lin, Huiru Yang, Ryan Mahoney, Yulin Li"
 date: "12/10/2021"
-output: pdf_document
+abstract: |
+ | In this project, the following question is to be answered: If we have the past history of bike rental counts as well as records of environmental and seasonal conditions, how and how well could we predict the bike rental counts in the future? In this project, such questions are approached by predictive modeling of daily bike rental counts from a 2011-2012 Bike Sharing dataset [1]. The daily bike rental counts are predicted with models based on Multiple Linear Regression (MLS) using the environmental and seasonal variables as predictors. The initial goal of this project is to train the model using only the 2011 data, and then validate the prediction power of the model on the 2012 data. Given the limited time span of available training data, issues are found in the validation process using the 2012 data; the impact of user base on the future predictions is brought to our attention. The initial models are then revisited and corrected to account for the effect of user base. The refined models are expected to have better prediction powers than the initial MLS models, but a full validation would require further availability of bike rental data. 
+
+output: 
+  pdf_document: 
+    number_sections: true
+    includes:
+      in_header: ["tex/preamble.tex", "tex/math.tex", "tex/tables.tex"]
 ---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.align = "center", warning = F, message = F, fig.height = 4, fig.width = 6)
+#==============================#
+#       Import Libraries       #
+#==============================#
+library(tidyverse)
+library(GGally)
+library(cowplot)
+library(gglm)
+library(moderndive)
+library(patchwork)
+#==============================#
+#        Global Settings       #
+#==============================#
+# Center ggplot titles
+theme_update(plot.title = element_text(hjust = 0.5))
+#=============================#
+#        Obtain Dataset       #
+#=============================#
+# Source the wrangling scripts
+source(file = "wrangle.R")
+# Import and wrangle data
+bike_day <- read.csv("../data/bike-day.csv", header = T)
+# Use the wrangling "wrapper" function to clean the data (fxn sourced from wrangle.R)
+data <- wrangle_init(bike_day)
+# Partition the 2011/2012 data
+data2011 <- in_2011(data); data2012 <- in_2012(data)
+# Add the weekly average columns
+data2011 <- data2011 %>% add_weekly_averages
+data2012 <- data2012 %>% add_weekly_averages
+#============================#
+#       Source Scripts       #
+#============================#
+# Import any models (and fitted values, if applicable)
+source(file = "model-build.R")
+source(file = "model.R")
+# Import diagnostics functions
+source(file = "diagnostics.R")
+# Import any plots or plot wrapper functions
+source(file = "plot.R")
+# Source code for growth estimation
+source(file = "growth.R")
+```
+
+# Introduction 
+ 
+# a
+
+# a
+
+# aa
+
+# a
+
+# a
+
+\newpage
+
+# Appendix
 
 ```{r, include=FALSE}
 # setup chunks for code appendix
 knitr::opts_chunk$set(echo = T, eval = FALSE, fig.align = "center", warning = F, message = F, fig.height = 4)
 ```
 
-# Appendix
+
+\textbf{Note:} The source code can be found on Github in the repository found in the references. The primary files to consider are the source files found in the "final" directory, which will be refactored and tidied in an ongoing manner.
 
 ## Wrangling
 
@@ -49,14 +123,9 @@ wrangle_init <- function(data, omit_NA = TRUE, omit_idx = TRUE){
 #        Subsetting      #
 #========================#
 # Filter for the 2011 data
-in_2011 <- function(data){ 
-  return(data[(data$dteday >= "2011-01-01" & data$dteday <= "2011-12-31"),]) 
-}
+in_2011 <- function(data){ data[(data$dteday >= "2011-01-01" & data$dteday <= "2011-12-31"),] }
 # Filter for the 2012 data
-in_2012 <- function(data){ 
-  return(data[(data$dteday >= "2012-01-01" & data$dteday <= "2012-12-31"),]) 
-}
-
+in_2012 <- function(data){ data[(data$dteday >= "2012-01-01" & data$dteday <= "2012-12-31"),] }
 #======================#
 #       Wrangling      #
 #======================#
@@ -91,18 +160,15 @@ data2011 <- in_2011(data); data2012 <- in_2012(data)
 #======================================#
 # Given a vector of variable names, return a linear model fitting cnt
 lm.tot <- function(varset, train_data = data2011){
-  model <- lm(formula = .parseFormula(predictors = varset, response = "cnt"), data = train_data)
-  model
+  lm(formula = .parseFormula(predictors = varset, response = "cnt"), data = train_data)
 }
 # Given a vector of variable names, return a linear model fitting cas
 lm.cas <- function(varset, train_data = data2011){
-  model <- lm(formula = .parseFormula(predictors = varset, response = "casual"), data = train_data)
-  model
+  lm(formula = .parseFormula(predictors = varset, response = "casual"), data = train_data)
 }
 # Given a vector of variable names, return a linear model fitting reg
 lm.reg <- function(varset, train_data = data2011){
-  model <- lm(formula = .parseFormula(predictors = varset, response = "registered"), data = train_data)
-  model
+  lm(formula = .parseFormula(predictors = varset, response = "registered"), data = train_data)
 }
 ```
 
@@ -118,6 +184,8 @@ mod.cas.2.final <- lm.cas(c("holiday", "season:weathersit", "season:workingday:a
 mod.reg.2.final <- lm.reg(c("holiday", "season:weathersit", 
                             "season:workingday:atemp", "season:workingday:I(atemp^2)"))
 ```
+
+\newpage
 
 ### Growth-Adjusting Predictions 
 
@@ -144,7 +212,8 @@ residual_QQ <- function(model, title_str = ""){
     ggplot(aes(sample = ep)) +
     geom_qq(alpha = 0.8, color = "palegreen3") +
     stat_qq_line(color = "seagreen") +
-    labs(x = "Theoretical Quantile", y = "Sample Quantiles", title = paste("Normal Q-Q Plot", title_str, sep = "")) 
+    labs(x = "Theoretical Quantile", y = "Sample Quantiles", 
+         title = paste("Normal Q-Q Plot", title_str, sep = "")) 
 }
 residual_fitted <- function(model, title_str = ""){
   # Plot parameters 
@@ -155,12 +224,12 @@ residual_fitted <- function(model, title_str = ""){
     ggplot(aes(x = fitted_value, y = residual)) +
     geom_point(alpha = 0.7, color = "palegreen3") +
     stat_smooth(se = T, color = "forestgreen") +
-    labs(x = "Fitted Value", y = "Residual", title = paste("Fitted vs Residual",title_str, sep = ""))
+    labs(x = "Fitted Value", y = "Residual", 
+         title = paste("Fitted vs Residual",title_str, sep = ""))
 }
 residual_histogram <- function(model, title_str = ""){
   # Plot parameters 
   fsize0 <- 13; fsize1 <- 13; fsize2 <- 13
-  # Plot
   epsilons <- unname(model$residuals)
   df_res <- data.frame(epsilon = epsilons)
   df_res %>%
@@ -217,13 +286,15 @@ get_rmse <- function(y, y_hat, name='none'){
   normalized_rmse <- round(normalized_rmse, digits)
   percentage_error <- round(percentage_error, digits)
   # Return the dataframe row
-  return(data.frame('name' = name, 'rmse' = rmse, 'nrmse' = normalized_rmse, 'prc_err' = percentage_error))
+  return(data.frame('name' = name, 'rmse' = rmse, 
+                    'nrmse' = normalized_rmse, 'prc_err' = percentage_error))
 }
 
 get_mod_eval_2011 <- function(cas, reg){
   ret1 <- rbind(get_rmse(data2011$casual,     predict(cas, data2011), '2011 cas'),
                 get_rmse(data2011$registered, predict(reg, data2011), '2011 reg'),
-                get_rmse(data2011$cnt,        predict(cas, data2011) + predict(reg, data2011), '2011 tot'))
+                get_rmse(data2011$cnt,        
+                         predict(cas, data2011) + predict(reg, data2011), '2011 tot'))
   ret2 <- rbind(get_loocv_rmse(cas), 
                 get_loocv_rmse(reg), 
                 get_loocv_rmse_tot(cas, reg))
@@ -239,12 +310,14 @@ get_mod_eval <- function(cas, reg, data2011, data2012, scale_2012 = TRUE, includ
       get_rmse(data2011$cnt,        predict(cas, data2011) + predict(reg, data2011), '2011 tot'),
       get_rmse(data2012$casual,     predict(cas, data2012)/G_FACTOR, '2012 cas'),
       get_rmse(data2012$registered, predict(reg, data2012)/G_FACTOR, '2012 reg'),
-      get_rmse(data2012$cnt,        predict(cas, data2012)/G_FACTOR + predict(reg, data2012)/G_FACTOR, '2012 tot')))
+      get_rmse(data2012$cnt,        
+               predict(cas, data2012)/G_FACTOR + predict(reg, data2012)/G_FACTOR, '2012 tot')))
     }
   return(rbind(
     get_rmse(data2012$casual,     predict(cas, data2012)/G_FACTOR, '2012 cas'),
     get_rmse(data2012$registered, predict(reg, data2012)/G_FACTOR, '2012 reg'),
-    get_rmse(data2012$cnt,        predict(cas, data2012)/G_FACTOR + predict(reg, data2012)/G_FACTOR, '2012 tot')))
+    get_rmse(data2012$cnt,        
+             predict(cas, data2012)/G_FACTOR + predict(reg, data2012)/G_FACTOR, '2012 tot')))
   }
 get_mod_eval_tot_2011 <-function(tot){
   ret1 <- rbind(get_rmse(data2011$cnt, predict(tot, data2011), '2011 tot'))
@@ -259,6 +332,7 @@ get_mod_eval_tot <-function(tot, data2011, data2012, scale_2012 = TRUE){
 }
 ```
 
+\newpage
 
 ## Prediction of the Yearly Growth Ratio
 
@@ -266,7 +340,6 @@ get_mod_eval_tot <-function(tot, data2011, data2012, scale_2012 = TRUE){
 #=========================#
 #      Miscellaneous      #
 #=========================#
-
 # Enumerate all the pairs in the lower-triangular matrix scheme 
 # In other words, (i < j or i - j < 0) so that day_i preceeds day_j
 .unique_pairs_lower <- function(N){
@@ -281,7 +354,6 @@ get_mod_eval_tot <-function(tot, data2011, data2012, scale_2012 = TRUE){
 #===================================#
 #     Dataframe Wrapper Functions   #
 #===================================#
-
 # Given a dataframe of loss values between all possible day pairs
 # and a set of idx and loss bounds, compute the g estimates 
 get_df_param <- function(df_loss, idx_bds, loss_bds){
@@ -317,7 +389,11 @@ get_df_loss <- function(data2011){
   # Return the exhaustive dataset of loss values for every unique day ordered pair
   return(df_loss)
 }
+```
 
+\newpage
+
+```{r}
 #===========================================================================#
 #===========================================================================#
 
@@ -371,7 +447,11 @@ g_plot <- function(df_param){
     #scale_alpha(guide = "none") +
     scale_color_gradient(low = "palevioletred2", high = "seagreen3")
 }
+```
 
+\newpage
+
+```{r}
 #===========================================================================#
 #===========================================================================#
 
@@ -407,13 +487,16 @@ plot_window <- function(tbl_window){
     geom_vline(xintercept = 6, color = "red") +
     labs(title = "Growth Factor Estimates by Window Size")
 }
+```
 
+\newpage
+
+```{r}
 #---------------------------------------------------------------------------#
 #===========================================================================#
 #                           Primary Code Script                        
 #===========================================================================#
 #---------------------------------------------------------------------------#
-
 # Control flow for avoiding computational/time waste
 recompute <- F
 if(recompute){
@@ -446,8 +529,4 @@ plot_g <- df_param %>% g_plot()
 tbl_window <- purrr::map_dfr(1:20, function(w){data.frame(w = w, g_w = window_g(w))})
 # Plot the values
 plot_w <- plot_window(tbl_window)
-
-#===========================================================================#
-#---------------------------------------------------------------------------#
-#===========================================================================#
 ```

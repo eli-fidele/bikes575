@@ -1,0 +1,229 @@
+---
+title: 'Bike-Sharing Data Analysis: Prediction of Daily Bike Rental Counts Based on MLR'
+subtitle: "Final Project Report · MA 575 Fall 2021 · C3 · Team #2"
+author: "Ali Taqi, Hsin-Chang Lin, Huiru Yang, Ryan Mahoney, Yulin Li"
+date: "12/10/2021"
+output: 
+  pdf_document: 
+    number_sections: true
+    includes:
+      in_header: ["tex/preamble.tex", "tex/math.tex"]
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.align = "center")
+#==============================#
+#       Import Libraries       #
+#==============================#
+library(tidyverse)
+library(GGally)
+library(cowplot)
+library(gglm)
+library(moderndive)
+library(RColorBrewer)
+#==============================#
+#        Global Settings       #
+#==============================#
+# Center ggplot titles
+theme_update(plot.title = element_text(hjust = 0.5))
+#=============================#
+#        Obtain Dataset       #
+#=============================#
+# Source the wrangling scripts
+source(file = "wrangle.R")
+# Import and wrangle data
+bike_day <- read.csv("../data/bike-day.csv", header = T)
+# Use the wrangling "wrapper" function to clean the data (fxn sourced from wrangle.R)
+data <- wrangle_init(bike_day)
+# Partition the 2011/2012 data
+data2011 <- in_2011(data); data2012 <- in_2012(data)
+#============================#
+#       Source Scripts       #
+#============================#
+source("growth.R")
+```
+
+```{r}
+recompute <- F
+if(recompute){
+  # Obtain the exhaustive dataset of loss values for every unique day ordered pair
+  df_loss <- data_2011 %>% get_df_loss
+  # Write CSV to avoid future recomputation
+  write.csv(df_loss, "df_loss.csv", row.names = F)
+} else{ 
+  df_loss <- read.csv("df_loss.csv") 
+}
+```
+
+```{r}
+g_hat <- function(df_loss, n, idx_bd = 60){
+  top_pairs <- df_loss %>% 
+    arrange(loss_ij) %>% 
+    filter(idx_diff > idx_bd) %>% 
+    top_n(loss_ij, n = -n) %>% 
+    mutate(g = growth_ratio(i, j))
+  mean(top_pairs$g)
+}
+```
+
+```{r}
+df_loss %>% g_hat(500, 50)
+```
+
+```{r}
+idx_bds = 5:75; n_max = 500
+df_param <- function(df_loss, idx_bds, n_max){
+  # Use helper function to compute the g estimates for each set of bounds
+  .create_n_df <- function(idx_bd){
+    # Use helper function to compute dataframe of 1:n for current idx_bd
+    .create_idx_df <- function(n_curr){
+      data.frame(idx_bd = idx_bd, n_curr = n_curr, g = g_hat(df_loss, n_curr, idx_bd))
+    }
+    # Obtain the n_max rows for the current idx_bd
+    map_dfr(seq(from = 1, to = n_max, by = 10), .create_idx_df)
+  }
+  # Run helper over all index bounds and combine the dataframes
+  df_param <- map_dfr(idx_bds, .create_n_df)
+  # Return the estimates and number of pairs used bounds and n's used
+  return(df_param)
+}
+```
+
+```{r}
+my_idx_bds <- c(1,5,10,15,seq(from = 20, to = 210, by = 5),210,240,270,300,330)
+```
+
+
+```{r}
+recompute <- F
+if(recompute){
+  # Obtain the exhaustive dataset of loss values for every unique day ordered pair
+  df_final <- df_loss %>% df_param(idx_bds = my_idx_bds, n_max = 3000)
+  # Write CSV to avoid future recomputation
+  write.csv(df_final, "df_final.csv", row.names = F)
+} else{ 
+  df_final <- read.csv("df_final.csv")
+}
+
+```
+
+
+```{r}
+g_est_final <- function(idx_lw, idx_hi){
+  idx_bds <- as.integer(idx_lw):as.integer(idx_hi)
+  compute_g_df <- df_final %>% filter(idx_bd %in% idx_bds) %>% filter(n_curr == 991)
+  mean(compute_g_df$g)
+}
+```
+
+```{r}
+lowers <- c(i = 1:200); uppers = c(j = 1:350)
+
+.helperr <- function(i, uppers){
+  map_dfr(uppers, .f = function(j){
+    if(i <= j) { g_val = g_est_final(i , j) } else { g_val <- NA}
+    data.frame(i = i, j = j, g = g_val)
+  })
+}
+bound_indices <- map_dfr(lowers, .helperr, uppers)
+mean(bound_indices$g, na.rm = T)
+```
+
+
+```{r}
+na.omit(bound_indices) %>%
+  ggplot() +
+  geom_point(aes(x = i, y = j, color = g)) +
+  scale_color_gradient(low = "palevioletred2", high = "seagreen3") +
+  geom_point(data = data.frame(i = 30, j = 150), aes(x = i, y = j), color = "blue", shape = "cross") +
+  labs(x = "idx_lw", y = "idx_hi", title = "Binned g Esimates by Index Bound Parameters") 
+```
+
+\newpage
+
+```{r}
+#g_est_final(30:150)
+```
+
+
+```{r}
+df_plot <- df_final %>% filter(n_curr > 1) %>% filter(n_curr < 1000)
+```
+
+
+```{r, fig.width = 8, fig.height = 12}
+df_final %>%
+  filter(n_curr < 150) %>%
+  ggplot() +
+  geom_line(aes(x = n_curr, y = g, group = idx_bd, color = idx_bd), alpha = 0.7) +
+  #scale_color_viridis_c()+
+  scale_color_gradient(low = "palevioletred2", high = "steelblue3")+
+  geom_abline(slope = 0, intercept = 1.61, color = "red", linetype = "dotted", alpha = 1) +
+  labs(title = "g Estimate by Index Bound as top N pairs included")
+```
+\newpage
+
+```{r, fig.width = 10, fig.height = 14}
+df_final %>%
+  filter(n_curr < 150) %>%
+  ggplot() +
+  geom_point(aes(x = n_curr, y = g, group = idx_bd, color = idx_bd), alpha = 0.35) +
+  geom_line(aes(x = n_curr, y = g, group = idx_bd, color = idx_bd), alpha = 0.65) +
+  scale_color_gradient(low = "palevioletred2", high = "steelblue3")+
+  geom_abline(slope = 0, intercept = 1.64, color = "red")+
+  labs(title = "g Estimate by Index Bound as top N pairs included")
+```
+\newpage
+
+```{r, fig.width = 10, fig.height = 14}
+df_final %>%
+  filter(n_curr > 20) %>%
+  filter(idx_bd < 180) %>%
+  ggplot() +
+  geom_point(aes(x = n_curr, y = g, group = idx_bd, color = idx_bd), alpha = 0.15) +
+  geom_line(aes(x = n_curr, y = g, group = idx_bd, color = idx_bd)) +
+  scale_color_gradient(low = "palevioletred2", high = "steelblue3")+
+  geom_abline(slope = 0, intercept = 1.61, color = "red")+
+  labs(title = "g Estimate by Index Bound as top N pairs included")
+```
+
+
+```{r, include=F, warning = F}
+df_plot %>%
+  ggplot() +
+  geom_smooth(aes(x = n_curr, y = g, group = idx_bd, color = idx_bd), se = F) +
+  scale_color_viridis_c() +
+  #scale_color_gradient(low = "palevioletred2", high = "seagreen3")+
+  geom_abline(slope = 0, intercept = 1.61, color = "red")
+```
+
+```{r}
+z_loss <- function(loss){
+  mu <- mean(df_loss$loss_ij); sigma <- sd(df_loss$loss_ij)
+  (loss - mu)/sigma
+}
+```
+
+
+```{r, include=F}
+df_plot %>%
+  filter(n_curr > 1000) %>%
+  ggplot() +
+  geom_smooth(aes(x = n_curr, y = g, group = idx_bd, color = idx_bd), formula = y ~ poly(x, 2), se = F) +
+  scale_color_gradient(low = "palevioletred2", high = "seagreen3") +
+  geom_abline(slope = 0, intercept = 1.61, color = "red")
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+top <- 
+  df_loss %>%
+    arrange(loss_ij) %>%
+    top_n(loss_ij, n = 100)
+```
+

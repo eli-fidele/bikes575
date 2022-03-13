@@ -66,7 +66,7 @@ loss <- function(day0, day1){
   atemp_diff <- day0[["atemp"]] - day1[["atemp"]]
   wind_diff <- day0[["windspeed"]] -  day1[["windspeed"]]
   hum_diff <- day0[["hum"]] - day1[["hum"]]
-  norm(as.matrix(c(4*atemp_diff, wind_diff, hum_diff)))
+  norm(as.matrix(c(3*atemp_diff, wind_diff)))
 }
 
 # Given two row indices, compute the loss function between those two days
@@ -163,7 +163,7 @@ plot_window <- function(tbl_window){
 recompute <- F
 if(recompute){
   # Obtain the exhaustive dataset of loss values for every unique day ordered pair
-  df_loss <- data_2011 %>% get_df_loss
+  df_loss <- data2011 %>% get_df_loss
   # Write CSV to avoid future recomputation
   write.csv(df_loss, "df_loss.csv", row.names = F)
 } else{ 
